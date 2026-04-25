@@ -6,14 +6,17 @@ import {
   Briefcase,
   CaretRight,
   CheckCircle,
+  Clock,
   CreditCard,
   FileText,
   Headset,
   House,
   LockSimple,
+  SealCheck,
   ShieldCheck,
   SignOut,
   UserCircle,
+  WhatsappLogo,
 } from "@phosphor-icons/react";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +28,8 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 
-type ServiceType = "fgts" | "clt" | "saque-facil";
+type ServiceType = "clt" | "fgts" | "saque-facil";
+type FlowType = "splash" | "welcome" | "onboarding" | "home";
 
 const serviceCopy: Record<
   ServiceType,
@@ -35,15 +39,16 @@ const serviceCopy: Record<
     description: string;
     cta: string;
     icon: ReactNode;
+    highlight?: string;
   }
 > = {
   clt: {
     title: "Credito com desconto em folha",
     subtitle: "Para quem tem carteira assinada",
-    description:
-      "Parcelas fixas descontadas direto do seu salario. Sem susto no fim do mes.",
+    description: "Parcelas fixas descontadas direto do seu salario. Sem susto no fim do mes.",
     cta: "Consultar credito CLT",
     icon: <Briefcase size={20} />,
+    highlight: "Ate R$ 18.000 disponiveis",
   },
   fgts: {
     title: "Antecipar meu FGTS",
@@ -51,20 +56,22 @@ const serviceCopy: Record<
     description: "Receba em minutos com simulacao clara e sem burocracia.",
     cta: "Simular antecipacao",
     icon: <Bank size={20} />,
+    highlight: "Taxa a partir de 1,39% a.m.",
   },
   "saque-facil": {
     title: "Saque Facil no cartao",
     subtitle: "Saque com limite do seu cartao",
-    description: "Aprovacao rapida. Use o limite do seu cartao de credito.",
+    description: "Use o limite do seu cartao de credito. Aprovacao rapida.",
     cta: "Ver oferta",
     icon: <CreditCard size={20} />,
+    highlight: "Aprovacao em minutos",
   },
 };
 
 function SecurityStrip() {
   return (
-    <div className="flex items-center gap-2 rounded-lg bg-primary-light px-3 py-2.5">
-      <LockSimple size={16} className="shrink-0 text-primary-dark" />
+    <div className="flex items-center gap-2 rounded-xl bg-primary-light px-3 py-2.5">
+      <LockSimple size={15} className="shrink-0 text-primary-dark" />
       <p className="text-xs leading-snug text-primary-dark">
         Dados protegidos com criptografia ponta a ponta. Seguimos a LGPD.
       </p>
@@ -84,10 +91,11 @@ function StepHeader({
   subtitle: string;
 }) {
   const pct = Math.round((step / total) * 100);
+
   return (
-    <div className="mb-5 space-y-3">
+    <div className="mb-5 space-y-2">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>
+        <span className="font-medium">
           Passo {step} de {total}
         </span>
         <span>{pct}%</span>
@@ -96,8 +104,8 @@ function StepHeader({
         value={pct}
         className="h-1 bg-secondary [&>div]:bg-primary [&>div]:transition-all [&>div]:duration-500"
       />
-      <div>
-        <h2 className="text-lg font-semibold leading-snug text-foreground">{title}</h2>
+      <div className="pt-1">
+        <h2 className="text-lg font-bold leading-snug text-foreground">{title}</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
       </div>
     </div>
@@ -105,9 +113,7 @@ function StepHeader({
 }
 
 function App() {
-  const [flow, setFlow] = useState<"splash" | "welcome" | "onboarding" | "home">(
-    "splash"
-  );
+  const [flow, setFlow] = useState<FlowType>("splash");
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -120,13 +126,12 @@ function App() {
   const firstName = name.split(" ")[0] || "voce";
   const primaryInterest = interests[0] ?? "clt";
   const primaryService = serviceCopy[primaryInterest];
+  const totalSteps = 5;
 
   const canGoNext = useMemo(() => {
     if (step === 1) {
       return (
-        name.trim().length > 2 &&
-        email.includes("@") &&
-        phone.replace(/\D/g, "").length >= 10
+        name.trim().length > 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10
       );
     }
 
@@ -146,20 +151,44 @@ function App() {
   }, [cpf, email, interests, name, phone, pin, step]);
 
   const toggleInterest = (service: ServiceType) => {
-    setInterests((previous) =>
-      previous.includes(service)
-        ? previous.filter((item) => item !== service)
-        : [...previous, service]
-    );
+    setInterests((prev) => (prev.includes(service) ? prev.filter((i) => i !== service) : [...prev, service]));
+  };
+
+  const resetApp = () => {
+    setFlow("splash");
+    setStep(1);
+    setName("");
+    setEmail("");
+    setPhone("");
+    setCpf("");
+    setPin("");
+    setBiometria(false);
+    setInterests(["clt"]);
   };
 
   if (flow === "splash") {
     return (
-      <main className="mx-auto flex min-h-screen max-w-[430px] items-center justify-center bg-primary">
-        <div className="cursor-pointer space-y-3 text-center text-white" onClick={() => setFlow("welcome")}>
-          <div className="text-4xl font-bold tracking-tight">seutudo.</div>
-          <p className="text-sm text-white/80">O que e seu, disponivel.</p>
-          <p className="mt-6 text-xs text-white/50">Toque para comecar</p>
+      <main
+        className="relative mx-auto flex min-h-screen max-w-[430px] cursor-pointer flex-col justify-end overflow-hidden"
+        onClick={() => setFlow("welcome")}
+      >
+        <img
+          src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=860&q=80&fit=crop&crop=faces,center"
+          alt="Trabalhador com carteira assinada"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary/75 to-transparent" />
+        <div className="relative z-10 space-y-4 px-6 pb-14">
+          <div>
+            <div className="text-3xl font-bold tracking-tight text-white">seutudo.</div>
+            <p className="mt-1 text-sm text-white/75">O que e seu, disponivel.</p>
+          </div>
+          <h1 className="text-2xl font-bold leading-tight text-white">Credito para quem tem carteira assinada.</h1>
+          <div className="flex items-center gap-3 pt-1">
+            <div className="h-px flex-1 bg-white/20" />
+            <p className="text-xs text-white/50">Toque para comecar</p>
+            <div className="h-px flex-1 bg-white/20" />
+          </div>
         </div>
       </main>
     );
@@ -167,72 +196,75 @@ function App() {
 
   if (flow === "welcome") {
     return (
-      <main className="mx-auto flex min-h-screen max-w-[430px] flex-col justify-between bg-background px-4 py-10">
-        <div className="space-y-6">
-          <div className="text-2xl font-bold tracking-tight text-foreground">seutudo.</div>
-
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold leading-tight text-foreground">
-              Trabalhadores CLT podem ter ate <span className="text-primary">R$ 18.000</span> disponiveis.
-            </h1>
-            <p className="text-base text-muted-foreground">
-              Descubra o que e seu. Simulacao gratuita, sem compromisso, em 3 minutos.
-            </p>
-          </div>
-
-          <div className="space-y-2 pt-2">
-            {[
-              "Simulacao sem compromisso",
-              "Transparencia de taxas e parcelas",
-              "Seguranca com LGPD e biometria",
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-2 text-sm text-foreground">
-                <CheckCircle size={16} className="shrink-0 text-primary" weight="fill" />
-                {item}
-              </div>
-            ))}
-          </div>
+      <main className="mx-auto flex min-h-screen max-w-[430px] flex-col bg-background">
+        <div className="relative h-52 shrink-0 overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=860&q=80&fit=crop&crop=faces,top"
+            alt="Trabalhador CLT"
+            className="h-full w-full object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+          <span className="absolute left-5 top-4 text-xl font-bold text-white drop-shadow">seutudo.</span>
         </div>
 
-        <div className="space-y-3 pt-8">
-          <Button
-            className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-white hover:bg-primary-dark"
-            onClick={() => setFlow("onboarding")}
-          >
-            Criar minha conta gratuita
-            <ArrowRight size={18} className="ml-2" />
-          </Button>
-          <Button
-            variant="outline"
-            className="h-12 w-full rounded-xl border-border text-base text-foreground"
-            onClick={() => setFlow("home")}
-          >
-            Ja tenho cadastro - entrar
-          </Button>
-          <p className="text-center text-xs text-muted-foreground">
-            Ao continuar voce concorda com os{" "}
-            <a href="#" className="text-primary underline underline-offset-2">
-              Termos de Uso
-            </a>{" "}
-            e a{" "}
-            <a href="#" className="text-primary underline underline-offset-2">
-              Politica de Privacidade
-            </a>
-            .
-          </p>
+        <div className="flex flex-1 flex-col justify-between px-5 pb-8 pt-2">
+          <div className="space-y-5">
+            <div>
+              <h1 className="text-2xl font-bold leading-tight text-foreground">
+                Trabalhadores CLT podem ter ate <span className="text-primary">R$ 18.000</span> disponiveis.
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Descubra o que e seu. Simulacao gratuita, sem compromisso, em 3 minutos.
+              </p>
+            </div>
+            <div className="space-y-2.5">
+              {[
+                "Simulacao gratuita e sem compromisso",
+                "Transparencia total em taxas e parcelas",
+                "Seus dados protegidos pela LGPD",
+              ].map((text) => (
+                <div key={text} className="flex items-center gap-2.5 text-sm text-foreground">
+                  <CheckCircle size={16} weight="fill" className="shrink-0 text-primary" />
+                  {text}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-6">
+            <Button
+              className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-white hover:bg-primary-dark"
+              onClick={() => setFlow("onboarding")}
+            >
+              Criar minha conta gratuita
+              <ArrowRight size={18} className="ml-2" />
+            </Button>
+            <Button variant="outline" className="h-12 w-full rounded-xl border-border" onClick={() => setFlow("home")}>
+              Ja tenho cadastro - entrar
+            </Button>
+            <p className="text-center text-xs leading-relaxed text-muted-foreground">
+              Ao continuar voce concorda com os{" "}
+              <a href="#" className="text-primary underline underline-offset-2">
+                Termos de Uso
+              </a>{" "}
+              e a{" "}
+              <a href="#" className="text-primary underline underline-offset-2">
+                Politica de Privacidade
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </main>
     );
   }
 
   if (flow === "onboarding") {
-    const totalSteps = 5;
-
     return (
       <main className="mx-auto flex min-h-screen max-w-[430px] flex-col bg-background px-4 py-6">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-5 flex items-center justify-between">
           <span className="text-lg font-bold text-foreground">seutudo.</span>
-          <Badge className="border-0 bg-primary-light text-xs text-primary-dark">Cadastro</Badge>
+          <Badge className="border-0 bg-primary-light text-xs font-medium text-primary-dark">Cadastro</Badge>
         </div>
 
         <div className="flex-1 space-y-4">
@@ -244,13 +276,13 @@ function App() {
                 title="Crie sua conta gratuita"
                 subtitle="Esses dados ajudam a personalizar suas ofertas."
               />
-              <Card className="border-border shadow-card">
+              <Card className="border-border shadow-sm">
                 <CardContent className="space-y-4 pt-5">
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">Nome completo</Label>
                     <Input
                       value={name}
-                      onChange={(event) => setName(event.target.value)}
+                      onChange={(e) => setName(e.target.value)}
                       placeholder="Ex: Ana Souza"
                       className="h-12 rounded-xl"
                     />
@@ -260,7 +292,7 @@ function App() {
                     <Input
                       type="email"
                       value={email}
-                      onChange={(event) => setEmail(event.target.value)}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="seuemail@exemplo.com"
                       className="h-12 rounded-xl"
                     />
@@ -270,7 +302,7 @@ function App() {
                     <Input
                       type="tel"
                       value={phone}
-                      onChange={(event) => setPhone(event.target.value)}
+                      onChange={(e) => setPhone(e.target.value)}
                       placeholder="(11) 99999-9999"
                       className="h-12 rounded-xl"
                     />
@@ -291,20 +323,18 @@ function App() {
                 title="Informe seu CPF"
                 subtitle="Usamos para encontrar as ofertas disponiveis para voce."
               />
-              <Card className="border-border shadow-card">
+              <Card className="border-border shadow-sm">
                 <CardContent className="space-y-4 pt-5">
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">CPF</Label>
                     <Input
                       value={cpf}
-                      onChange={(event) => setCpf(event.target.value)}
+                      onChange={(e) => setCpf(e.target.value)}
                       placeholder="000.000.000-00"
                       className="h-12 rounded-xl"
                       maxLength={14}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Nenhum dado e compartilhado sem sua autorizacao.
-                    </p>
+                    <p className="text-xs text-muted-foreground">Nenhum dado e compartilhado sem sua autorizacao.</p>
                   </div>
                   <SecurityStrip />
                 </CardContent>
@@ -317,8 +347,8 @@ function App() {
               <StepHeader
                 step={3}
                 total={totalSteps}
-                title="Quais produtos te interessam?"
-                subtitle="Selecione um ou mais para personalizar sua experiencia."
+                title="O que voce precisa agora?"
+                subtitle="Selecione um ou mais produtos."
               />
               <div className="space-y-2">
                 {(Object.keys(serviceCopy) as ServiceType[]).map((service) => {
@@ -330,13 +360,13 @@ function App() {
                       key={service}
                       type="button"
                       onClick={() => toggleInterest(service)}
-                      className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
-                        checked ? "border-primary bg-primary-light" : "border-border bg-card"
+                      className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${
+                        checked ? "border-primary bg-primary-light" : "border-border bg-card hover:border-primary/40"
                       }`}
                     >
                       <div
                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                          checked ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
+                          checked ? "bg-primary text-white" : "bg-background text-muted-foreground"
                         }`}
                       >
                         {currentService.icon}
@@ -347,27 +377,30 @@ function App() {
                       </div>
                       <Checkbox
                         checked={checked}
-                        className={`shrink-0 ${checked ? "border-primary" : "border-border"}`}
+                        className={checked ? "border-primary data-[state=checked]:bg-primary" : "border-border"}
                         onCheckedChange={() => toggleInterest(service)}
                       />
                     </button>
                   );
                 })}
 
-                <div className="flex w-full items-center gap-3 rounded-xl border border-dashed border-border p-4 opacity-50">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
+                <div className="flex w-full items-center gap-3 rounded-xl border border-dashed border-border bg-background p-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-[#A8A29E]">
                     <ShieldCheck size={20} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-foreground">Seguro de Vida</p>
-                    <p className="text-xs text-muted-foreground">Em breve - Registre seu interesse</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-[#78716C]">Seguro de Vida</p>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#78716C]">
+                        <Clock size={10} /> Em breve
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-[#A8A29E]">Toque para registrar seu interesse</p>
                   </div>
                 </div>
 
                 {interests.length === 0 && (
-                  <p className="pt-1 text-center text-xs text-primary">
-                    Selecione pelo menos 1 produto para continuar.
-                  </p>
+                  <p className="pt-1 text-center text-xs text-primary">Selecione pelo menos 1 produto para continuar.</p>
                 )}
               </div>
             </>
@@ -381,7 +414,7 @@ function App() {
                 title="Crie seu PIN de acesso"
                 subtitle="6 numeros para entrar no app com seguranca."
               />
-              <Card className="border-border shadow-card">
+              <Card className="border-border shadow-sm">
                 <CardContent className="space-y-4 pt-5">
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">PIN numerico (6 digitos)</Label>
@@ -390,24 +423,22 @@ function App() {
                       inputMode="numeric"
                       maxLength={6}
                       value={pin}
-                      onChange={(event) => setPin(event.target.value.replace(/\D/g, ""))}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
                       placeholder="••••••"
                       className="h-12 rounded-xl text-center text-lg tracking-[0.5em]"
                     />
                   </div>
-                  <ul className="space-y-1.5 text-xs text-muted-foreground">
-                    <li className="flex items-center gap-1.5">
-                      <CheckCircle size={13} className="text-muted-foreground" />
-                      Nao use sequencias (123456)
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <CheckCircle size={13} className="text-muted-foreground" />
-                      Nao use sua data de nascimento
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <CheckCircle size={13} className="text-muted-foreground" />
-                      Voce podera ativar biometria no proximo passo
-                    </li>
+                  <ul className="space-y-1.5">
+                    {[
+                      "Nao use sequencias (123456)",
+                      "Nao use sua data de nascimento",
+                      "Voce podera ativar biometria no proximo passo",
+                    ].map((rule) => (
+                      <li key={rule} className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <CheckCircle size={13} className="shrink-0 text-muted-foreground/50" />
+                        {rule}
+                      </li>
+                    ))}
                   </ul>
                 </CardContent>
               </Card>
@@ -422,8 +453,8 @@ function App() {
                 title="Ativar biometria"
                 subtitle="Acesse mais rapido e com mais seguranca."
               />
-              <Card className="border-border shadow-card">
-                <CardContent className="space-y-5 pt-5">
+              <Card className="border-border shadow-sm">
+                <CardContent className="space-y-4 pt-5">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold text-foreground">Usar digital para entrar</p>
@@ -431,11 +462,7 @@ function App() {
                         Mais rapido e seguro do que digitar o PIN toda vez.
                       </p>
                     </div>
-                    <Switch
-                      checked={biometria}
-                      onCheckedChange={setBiometria}
-                      className="data-[state=checked]:bg-primary"
-                    />
+                    <Switch checked={biometria} onCheckedChange={setBiometria} className="data-[state=checked]:bg-primary" />
                   </div>
                   <SecurityStrip />
                 </CardContent>
@@ -454,10 +481,8 @@ function App() {
                 <div>
                   <h2 className="text-xl font-bold text-foreground">Tudo certo, {firstName}!</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Identificamos uma oferta de{" "}
-                    <span className="font-medium text-foreground">
-                      {primaryService.title.toLowerCase()}
-                    </span>{" "}
+                    Encontramos uma oferta de{" "}
+                    <span className="font-semibold text-foreground">{primaryService.title.toLowerCase()}</span>{" "}
                     disponivel para voce.
                   </p>
                 </div>
@@ -467,8 +492,9 @@ function App() {
                 <CardContent className="space-y-3 p-4">
                   <div className="flex items-center gap-2 text-primary-dark">
                     {primaryService.icon}
-                    <p className="text-sm font-semibold">{primaryService.title}</p>
+                    <p className="text-sm font-bold">{primaryService.title}</p>
                   </div>
+                  {primaryService.highlight && <p className="text-xs font-semibold text-primary">{primaryService.highlight}</p>}
                   <p className="text-xs text-primary-dark">{primaryService.description}</p>
                   <Button
                     className="h-11 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
@@ -480,11 +506,7 @@ function App() {
                 </CardContent>
               </Card>
 
-              <Button
-                variant="ghost"
-                className="w-full text-sm text-muted-foreground"
-                onClick={() => setFlow("home")}
-              >
+              <Button variant="ghost" className="w-full text-sm text-muted-foreground" onClick={() => setFlow("home")}>
                 Ver minha tela inicial
                 <CaretRight size={14} className="ml-1" />
               </Button>
@@ -500,7 +522,7 @@ function App() {
                 if (step === 1) {
                   setFlow("welcome");
                 } else {
-                  setStep((previous) => previous - 1);
+                  setStep((p) => p - 1);
                 }
               }}
               className="h-12 rounded-xl border-border text-foreground"
@@ -508,7 +530,7 @@ function App() {
               Voltar
             </Button>
             <Button
-              onClick={() => setStep((previous) => previous + 1)}
+              onClick={() => setStep((p) => p + 1)}
               disabled={!canGoNext}
               className="h-12 rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
             >
@@ -533,19 +555,15 @@ function App() {
           </button>
         </div>
 
-        <Card className="border-0 bg-white shadow-card">
+        <Card className="border-0 bg-white shadow-none">
           <CardContent className="space-y-3 p-4">
             <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                  Oferta disponivel para voce
-                </p>
-                <p className="mt-1 text-sm font-bold leading-snug text-foreground">
-                  Voce pode antecipar ate R$ 4.800 no FGTS
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">Taxa a partir de 1,39% ao mes</p>
+              <div className="space-y-0.5">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Oferta disponivel para voce</p>
+                <p className="text-sm font-bold leading-snug text-foreground">Voce pode antecipar ate R$ 4.800 no FGTS</p>
+                <p className="text-xs text-muted-foreground">Taxa a partir de 1,39% ao mes</p>
               </div>
-              <Badge className="shrink-0 border-0 bg-primary-light text-primary-dark">Novo</Badge>
+              <Badge className="shrink-0 border-0 bg-primary-light text-xs text-primary-dark">Novo</Badge>
             </div>
             <Button className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">
               Simular agora
@@ -555,25 +573,37 @@ function App() {
       </header>
 
       <div className="space-y-3 p-4 pb-28">
-        {interests.map((interest) => {
+        {interests.map((interest, idx) => {
           const currentService = serviceCopy[interest];
+          const isPrimary = idx === 0;
 
           return (
-            <Card key={interest} className="border-border shadow-card">
+            <Card key={interest} className={`shadow-sm ${isPrimary ? "border-primary/30" : "border-border"}`}>
               <CardContent className="p-4">
                 <div className="mb-2 flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-light text-primary">
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                      isPrimary ? "bg-primary-light text-primary" : "bg-background text-muted-foreground"
+                    }`}
+                  >
                     {currentService.icon}
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-foreground">{currentService.title}</p>
-                    <p className="text-xs text-muted-foreground">{currentService.subtitle}</p>
+                    {isPrimary && currentService.highlight && (
+                      <p className="mt-0.5 text-xs font-medium text-primary">{currentService.highlight}</p>
+                    )}
                   </div>
+                  {isPrimary && (
+                    <Badge className="shrink-0 border-0 bg-primary-light text-[10px] text-primary-dark">Principal</Badge>
+                  )}
                 </div>
                 <p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p>
                 <Button
-                  variant="outline"
-                  className="h-9 w-full rounded-lg border-border text-sm font-medium"
+                  variant={isPrimary ? "default" : "outline"}
+                  className={`h-9 w-full rounded-lg text-sm font-medium ${
+                    isPrimary ? "bg-primary text-white hover:bg-primary-dark" : "border-border"
+                  }`}
                 >
                   {currentService.cta}
                   <CaretRight size={14} className="ml-1" />
@@ -583,41 +613,47 @@ function App() {
           );
         })}
 
-        <Card className="border-border shadow-card">
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
-              <Headset size={20} />
+        <Card className="border-border shadow-sm">
+          <CardContent className="p-4">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground">
+                <Headset size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Precisa de ajuda?</p>
+                <p className="text-xs text-muted-foreground">Atendimento seg a sex, 8h as 18h</p>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Suporte rapido</p>
-              <p className="text-xs text-muted-foreground">Duvidas sobre contrato ou aprovacao</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border text-sm">
+                <WhatsappLogo size={15} /> WhatsApp
+              </Button>
+              <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border text-sm">
+                <Headset size={15} /> Ligar
+              </Button>
             </div>
-            <Button variant="outline" size="sm" className="shrink-0 rounded-lg border-border text-xs">
-              Falar
-            </Button>
           </CardContent>
         </Card>
 
-        <Button
-          variant="ghost"
-          className="w-full text-sm text-muted-foreground"
-          onClick={() => {
-            setFlow("splash");
-            setStep(1);
-            setName("");
-            setEmail("");
-            setPhone("");
-            setCpf("");
-            setPin("");
-            setInterests(["clt"]);
-          }}
-        >
-          <SignOut size={16} className="mr-2" />
-          Reiniciar onboarding
+        <div className="flex items-center justify-center gap-5 py-1">
+          {[
+            { icon: <LockSimple size={13} />, label: "LGPD" },
+            { icon: <SealCheck size={13} />, label: "Banco Central" },
+            { icon: <ShieldCheck size={13} />, label: "Criptografado" },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              {item.icon}
+              {item.label}
+            </div>
+          ))}
+        </div>
+
+        <Button variant="ghost" className="w-full text-sm text-muted-foreground" onClick={resetApp}>
+          <SignOut size={16} className="mr-2" /> Reiniciar onboarding
         </Button>
       </div>
 
-      <nav className="fixed bottom-4 left-1/2 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-card">
+      <nav className="fixed bottom-4 left-1/2 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm">
         <ul className="grid grid-cols-4 text-center text-[11px]">
           <li className="rounded-xl bg-primary-light p-2 text-primary">
             <House size={18} className="mx-auto mb-1" />
