@@ -513,7 +513,7 @@ function App() {
 
         <div>
           <h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2>
-          <p className="mx-auto mt-2 max-w-[260px] text-sm text-muted-foreground">
+          <p className="mx-auto mt-2 text-sm text-muted-foreground">
             A gente ja encontrou uma opcao para voce. Veja o que esta disponivel na sua conta.
           </p>
         </div>
@@ -543,7 +543,7 @@ function App() {
       >
         {flow === "splash" && (
           <main
-            className="relative mx-auto flex min-h-screen w-full max-w-[430px] cursor-pointer flex-col justify-end overflow-hidden md:max-w-[1280px] md:items-center md:justify-center md:bg-primary"
+            className="relative mx-auto flex min-h-screen w-full cursor-pointer flex-col justify-end overflow-hidden md:items-center md:justify-center md:bg-primary"
             onClick={() => setFlow("welcome")}
           >
             <img
@@ -557,7 +557,7 @@ function App() {
               initial={shouldReduce ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: shouldReduce ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] }}
-              className="relative z-10 space-y-4 px-6 pb-14 md:max-w-[460px] md:pb-0 md:text-center"
+              className="relative z-10 space-y-4 px-6 pb-14 md:pb-0 md:text-center"
             >
               <div>
                 <div className="text-3xl font-bold tracking-tight text-white">seutudo.</div>
@@ -583,7 +583,7 @@ function App() {
         )}
 
         {flow === "welcome" && (
-          <main className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-background md:max-w-[1280px] md:flex-row">
+          <main className="mx-auto flex min-h-screen w-full flex-col bg-background md:flex-row">
             <div className="relative h-52 shrink-0 overflow-hidden md:h-screen md:w-1/2">
               <img
                 src="https://static.vecteezy.com/ti/fotos-gratis/p1/75899742-o-negocio-mulher-dentro-cidade-feliz-e-retrato-ao-ar-livre-para-trabalhando-em-criativo-carreira-ou-trabalho-face-empreendedor-e-confiante-pessoa-profissional-desenhador-e-empregado-sorrir-em-urbano-telhado-dentro-brasil-foto.jpg"
@@ -651,8 +651,8 @@ function App() {
         )}
 
         {flow === "onboarding" && (
-          <main className="mx-auto min-h-screen w-full max-w-[1280px] bg-background px-4 py-6 md:px-8">
-            <div className="mx-auto flex w-full max-w-[430px] flex-col md:max-w-[480px] md:pt-12">
+          <main className="mx-auto min-h-screen w-full bg-background px-4 py-6 md:px-8">
+            <div className="mx-auto flex w-full flex-col md:pt-12">
               <div className="mb-5 flex items-center justify-between">
                 <span className="text-lg font-bold text-foreground">seutudo.</span>
                 <Badge className="border-0 bg-primary-light text-xs font-medium text-primary-dark md:hidden">Cadastro</Badge>
@@ -696,7 +696,7 @@ function App() {
               <>
                 <div className="fixed inset-0 z-40 bg-black/40" onClick={closeBiometria} />
 
-                <div className="fixed bottom-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 rounded-t-2xl bg-white px-6 pb-10 pt-6">
+                <div className="fixed bottom-0 left-1/2 z-50 w-full -translate-x-1/2 rounded-t-2xl bg-white px-6 pb-10 pt-6">
                   <div className="mx-auto mb-6 h-1 w-10 rounded-full bg-border" />
 
                   <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light">
@@ -766,8 +766,8 @@ function App() {
               </div>
             </aside>
 
-            <main className="mx-auto min-h-screen w-full max-w-[430px] bg-background md:mx-0 md:max-w-none md:flex-1 md:overflow-y-auto">
-              <header className="relative z-10 bg-primary px-5 pb-6 pt-8 text-white rounded-b-[32px] md:mx-auto md:mt-6 md:max-w-[860px] md:px-6 md:pt-6">
+            <main className="mx-auto min-h-screen w-full bg-background md:mx-0 md:flex-1 md:overflow-y-auto">
+              <header className="relative z-10 bg-primary px-5 pb-6 pt-8 text-white rounded-b-[32px] md:mx-auto md:mt-6 md:px-6 md:pt-6">
                 <div className="mb-5 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/75">Ola, {firstName}</p>
@@ -803,7 +803,7 @@ function App() {
               </header>
 
               <div className="mt-0 space-y-3 p-4 pb-28 md:px-6 md:pb-8">
-                <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
+                <div className="md:mx-auto md:space-y-3">
                 <motion.div
                   variants={cardsContainerVariants}
                   initial="initial"
@@ -920,7 +920,7 @@ function App() {
                 </div>
               </div>
 
-              <nav className="fixed bottom-4 left-1/2 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
+              <nav className="fixed bottom-4 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
                 <ul className="grid grid-cols-4 text-center text-[11px]">
                   <li className="rounded-xl bg-primary-light p-2 text-primary">
                     <House size={18} className="mx-auto mb-1" />
