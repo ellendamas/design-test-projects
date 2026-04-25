@@ -730,7 +730,7 @@ function App() {
         )}
 
         {flow === "home" && (
-          <div className="mx-auto min-h-screen w-full max-w-[1280px] md:flex">
+          <div className="min-h-screen w-full md:flex">
             <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
               <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
 
@@ -767,7 +767,7 @@ function App() {
             </aside>
 
             <main className="mx-auto min-h-screen w-full max-w-[430px] bg-background md:mx-0 md:max-w-none md:flex-1 md:overflow-y-auto">
-              <header className="bg-primary px-5 pb-6 pt-8 text-white rounded-b-[32px] md:mx-auto md:mt-6 md:max-w-[860px] md:px-6 md:pt-6">
+              <header className="relative z-10 bg-primary px-5 pb-6 pt-8 text-white rounded-b-[32px] md:mx-auto md:mt-6 md:max-w-[860px] md:px-6 md:pt-6">
                 <div className="mb-5 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/75">Ola, {firstName}</p>
@@ -802,7 +802,7 @@ function App() {
 
               </header>
 
-              <div className="space-y-3 p-4 pb-28 md:px-6 md:pb-8">
+              <div className="mt-0 space-y-3 p-4 pb-28 md:px-6 md:pb-8">
                 <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
                 <motion.div
                   variants={cardsContainerVariants}
