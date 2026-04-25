@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { IMaskInput } from "react-imask";
 import {
   ArrowRight,
   Bank,
@@ -9,6 +10,7 @@ import {
   Clock,
   CreditCard,
   FileText,
+  Fingerprint,
   Headset,
   House,
   LockSimple,
@@ -26,7 +28,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
 
 type ServiceType = "clt" | "fgts" | "saque-facil";
 type FlowType = "splash" | "welcome" | "onboarding" | "home";
@@ -40,6 +41,7 @@ const serviceCopy: Record<
     cta: string;
     icon: ReactNode;
     highlight?: string;
+    image: string;
   }
 > = {
   clt: {
@@ -49,6 +51,8 @@ const serviceCopy: Record<
     cta: "Consultar credito CLT",
     icon: <Briefcase size={20} />,
     highlight: "Ate R$ 18.000 disponiveis",
+    image:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=70&fit=crop&crop=face",
   },
   fgts: {
     title: "Antecipar meu FGTS",
@@ -57,6 +61,8 @@ const serviceCopy: Record<
     cta: "Simular antecipacao",
     icon: <Bank size={20} />,
     highlight: "Taxa a partir de 1,39% a.m.",
+    image:
+      "https://images.unsplash.com/photo-1584999734482-0361aecad844?w=200&q=70&fit=crop&crop=face",
   },
   "saque-facil": {
     title: "Saque Facil no cartao",
@@ -65,8 +71,13 @@ const serviceCopy: Record<
     cta: "Ver oferta",
     icon: <CreditCard size={20} />,
     highlight: "Aprovacao em minutos",
+    image:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=70&fit=crop&crop=face",
   },
 };
+
+const maskedInputClass =
+  "flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
 function SecurityStrip() {
   return (
@@ -121,17 +132,18 @@ function App() {
   const [cpf, setCpf] = useState("");
   const [pin, setPin] = useState("");
   const [biometria, setBiometria] = useState(false);
+  const [biometriaSheetOpen, setBiometriaSheetOpen] = useState(false);
   const [interests, setInterests] = useState<ServiceType[]>(["clt"]);
 
   const firstName = name.split(" ")[0] || "voce";
-  const primaryInterest = interests[0] ?? "clt";
-  const primaryService = serviceCopy[primaryInterest];
-  const totalSteps = 5;
+  const totalSteps = 4;
 
   const canGoNext = useMemo(() => {
     if (step === 1) {
       return (
-        name.trim().length > 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10
+        name.trim().length > 2 &&
+        email.includes("@") &&
+        phone.replace(/\D/g, "").length >= 10
       );
     }
 
@@ -151,7 +163,9 @@ function App() {
   }, [cpf, email, interests, name, phone, pin, step]);
 
   const toggleInterest = (service: ServiceType) => {
-    setInterests((prev) => (prev.includes(service) ? prev.filter((i) => i !== service) : [...prev, service]));
+    setInterests((prev) =>
+      prev.includes(service) ? prev.filter((item) => item !== service) : [...prev, service]
+    );
   };
 
   const resetApp = () => {
@@ -163,7 +177,22 @@ function App() {
     setCpf("");
     setPin("");
     setBiometria(false);
+    setBiometriaSheetOpen(false);
     setInterests(["clt"]);
+  };
+
+  const goNext = () => {
+    if (step === 4) {
+      setStep(5);
+      setBiometriaSheetOpen(true);
+      return;
+    }
+
+    setStep((prev) => prev + 1);
+  };
+
+  const closeBiometria = () => {
+    setBiometriaSheetOpen(false);
   };
 
   if (flow === "splash") {
@@ -174,7 +203,7 @@ function App() {
       >
         <img
           src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=860&q=80&fit=crop&crop=faces,center"
-          alt="Trabalhador com carteira assinada"
+          alt="Pessoa com carteira assinada"
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary/75 to-transparent" />
@@ -183,7 +212,7 @@ function App() {
             <div className="text-3xl font-bold tracking-tight text-white">seutudo.</div>
             <p className="mt-1 text-sm text-white/75">O que e seu, disponivel.</p>
           </div>
-          <h1 className="text-2xl font-bold leading-tight text-white">Credito para quem tem carteira assinada.</h1>
+          <h1 className="text-2xl font-bold leading-tight text-white">O que e seu, disponivel.</h1>
           <div className="flex items-center gap-3 pt-1">
             <div className="h-px flex-1 bg-white/20" />
             <p className="text-xs text-white/50">Toque para comecar</p>
@@ -200,7 +229,7 @@ function App() {
         <div className="relative h-52 shrink-0 overflow-hidden">
           <img
             src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=860&q=80&fit=crop&crop=faces,top"
-            alt="Trabalhador CLT"
+            alt="Pessoa CLT"
             className="h-full w-full object-cover object-top"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
@@ -211,17 +240,18 @@ function App() {
           <div className="space-y-5">
             <div>
               <h1 className="text-2xl font-bold leading-tight text-foreground">
-                Trabalhadores CLT podem ter ate <span className="text-primary">R$ 18.000</span> disponiveis.
+                Quem tem carteira assinada pode ter muito mais do que imagina.
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Descubra o que e seu. Simulacao gratuita, sem compromisso, em 3 minutos.
+                Descubra o que esta disponivel para voce. E gratuito e sem compromisso.
               </p>
             </div>
+
             <div className="space-y-2.5">
               {[
-                "Simulacao gratuita e sem compromisso",
-                "Transparencia total em taxas e parcelas",
-                "Seus dados protegidos pela LGPD",
+                "Simulacao gratuita, sem compromisso",
+                "Tudo explicado, sem letra miuda",
+                "Seus dados ficam so com voce",
               ].map((text) => (
                 <div key={text} className="flex items-center gap-2.5 text-sm text-foreground">
                   <CheckCircle size={16} weight="fill" className="shrink-0 text-primary" />
@@ -236,11 +266,11 @@ function App() {
               className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-white hover:bg-primary-dark"
               onClick={() => setFlow("onboarding")}
             >
-              Criar minha conta gratuita
+              Quero comecar
               <ArrowRight size={18} className="ml-2" />
             </Button>
             <Button variant="outline" className="h-12 w-full rounded-xl border-border" onClick={() => setFlow("home")}>
-              Ja tenho cadastro - entrar
+              Ja tenho conta
             </Button>
             <p className="text-center text-xs leading-relaxed text-muted-foreground">
               Ao continuar voce concorda com os{" "}
@@ -273,9 +303,10 @@ function App() {
               <StepHeader
                 step={1}
                 total={totalSteps}
-                title="Crie sua conta gratuita"
-                subtitle="Esses dados ajudam a personalizar suas ofertas."
+                title="Vamos comecar?"
+                subtitle="Leva menos de 3 minutos."
               />
+
               <Card className="border-border shadow-sm">
                 <CardContent className="space-y-4 pt-5">
                   <div className="space-y-1.5">
@@ -287,6 +318,7 @@ function App() {
                       className="h-12 rounded-xl"
                     />
                   </div>
+
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">E-mail</Label>
                     <Input
@@ -297,14 +329,15 @@ function App() {
                       className="h-12 rounded-xl"
                     />
                   </div>
+
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">Telefone com DDD</Label>
-                    <Input
-                      type="tel"
+                    <IMaskInput
+                      mask="(00) 00000-0000"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onAccept={(value) => setPhone(String(value))}
                       placeholder="(11) 99999-9999"
-                      className="h-12 rounded-xl"
+                      className={maskedInputClass}
                     />
                     <p className="text-xs text-muted-foreground">
                       Vamos usar para confirmar sua identidade e avisar sobre sua proposta.
@@ -320,19 +353,20 @@ function App() {
               <StepHeader
                 step={2}
                 total={totalSteps}
-                title="Informe seu CPF"
-                subtitle="Usamos para encontrar as ofertas disponiveis para voce."
+                title="Qual e o seu CPF?"
+                subtitle="A gente usa para encontrar as ofertas certas para voce."
               />
+
               <Card className="border-border shadow-sm">
                 <CardContent className="space-y-4 pt-5">
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">CPF</Label>
-                    <Input
+                    <IMaskInput
+                      mask="000.000.000-00"
                       value={cpf}
-                      onChange={(e) => setCpf(e.target.value)}
+                      onAccept={(value) => setCpf(String(value))}
                       placeholder="000.000.000-00"
-                      className="h-12 rounded-xl"
-                      maxLength={14}
+                      className={maskedInputClass}
                     />
                     <p className="text-xs text-muted-foreground">Nenhum dado e compartilhado sem sua autorizacao.</p>
                   </div>
@@ -347,9 +381,10 @@ function App() {
               <StepHeader
                 step={3}
                 total={totalSteps}
-                title="O que voce precisa agora?"
-                subtitle="Selecione um ou mais produtos."
+                title="O que voce esta precisando?"
+                subtitle="Pode escolher mais de um."
               />
+
               <div className="space-y-2">
                 {(Object.keys(serviceCopy) as ServiceType[]).map((service) => {
                   const checked = interests.includes(service);
@@ -411,9 +446,10 @@ function App() {
               <StepHeader
                 step={4}
                 total={totalSteps}
-                title="Crie seu PIN de acesso"
-                subtitle="6 numeros para entrar no app com seguranca."
+                title="Escolha um PIN de acesso."
+                subtitle="Vai ser usado para entrar no app."
               />
+
               <Card className="border-border shadow-sm">
                 <CardContent className="space-y-4 pt-5">
                   <div className="space-y-1.5">
@@ -432,7 +468,7 @@ function App() {
                     {[
                       "Nao use sequencias (123456)",
                       "Nao use sua data de nascimento",
-                      "Voce podera ativar biometria no proximo passo",
+                      "Voce podera ativar biometria na proxima tela",
                     ].map((rule) => (
                       <li key={rule} className="flex items-center gap-2 text-xs text-muted-foreground">
                         <CheckCircle size={13} className="shrink-0 text-muted-foreground/50" />
@@ -446,75 +482,28 @@ function App() {
           )}
 
           {step === 5 && (
-            <>
-              <StepHeader
-                step={5}
-                total={totalSteps}
-                title="Ativar biometria"
-                subtitle="Acesse mais rapido e com mais seguranca."
-              />
-              <Card className="border-border shadow-sm">
-                <CardContent className="space-y-4 pt-5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Usar digital para entrar</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        Mais rapido e seguro do que digitar o PIN toda vez.
-                      </p>
-                    </div>
-                    <Switch checked={biometria} onCheckedChange={setBiometria} className="data-[state=checked]:bg-primary" />
-                  </div>
-                  <SecurityStrip />
-                </CardContent>
-              </Card>
-            </>
-          )}
+            <div className="flex flex-col items-center space-y-4 pt-8 text-center">
+              <CheckCircle size={56} className="text-primary" weight="fill" />
 
-          {step === 6 && (
-            <div className="space-y-5 pt-4">
-              <div className="space-y-3 text-center">
-                <div className="flex justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-light">
-                    <CheckCircle size={36} className="text-primary" weight="fill" />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">Tudo certo, {firstName}!</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Encontramos uma oferta de{" "}
-                    <span className="font-semibold text-foreground">{primaryService.title.toLowerCase()}</span>{" "}
-                    disponivel para voce.
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2>
+                <p className="mx-auto mt-2 max-w-[260px] text-sm text-muted-foreground">
+                  A gente ja encontrou uma opcao para voce. Veja o que esta disponivel na sua conta.
+                </p>
               </div>
 
-              <Card className="border-primary bg-primary-light shadow-none">
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-center gap-2 text-primary-dark">
-                    {primaryService.icon}
-                    <p className="text-sm font-bold">{primaryService.title}</p>
-                  </div>
-                  {primaryService.highlight && <p className="text-xs font-semibold text-primary">{primaryService.highlight}</p>}
-                  <p className="text-xs text-primary-dark">{primaryService.description}</p>
-                  <Button
-                    className="h-11 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-                    onClick={() => setFlow("home")}
-                  >
-                    {primaryService.cta}
-                    <ArrowRight size={16} className="ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Button variant="ghost" className="w-full text-sm text-muted-foreground" onClick={() => setFlow("home")}>
-                Ver minha tela inicial
-                <CaretRight size={14} className="ml-1" />
+              <Button
+                className="mt-4 h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+                onClick={() => setFlow("home")}
+              >
+                Ver minha conta
+                <ArrowRight size={16} className="ml-2" />
               </Button>
             </div>
           )}
         </div>
 
-        {step <= 5 && (
+        {step <= 4 && (
           <div className="grid grid-cols-2 gap-3 pt-6">
             <Button
               variant="outline"
@@ -530,13 +519,46 @@ function App() {
               Voltar
             </Button>
             <Button
-              onClick={() => setStep((p) => p + 1)}
+              onClick={goNext}
               disabled={!canGoNext}
               className="h-12 rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
             >
               Continuar
             </Button>
           </div>
+        )}
+
+        {step === 5 && biometriaSheetOpen && (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/40" onClick={closeBiometria} />
+
+            <div className="fixed bottom-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 rounded-t-2xl bg-white px-6 pb-10 pt-6">
+              <div className="mx-auto mb-6 h-1 w-10 rounded-full bg-border" />
+
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light">
+                <Fingerprint size={32} className="text-primary" />
+              </div>
+
+              <h3 className="mb-2 text-center text-xl font-bold text-foreground">Quer entrar com sua digital?</h3>
+              <p className="mb-6 text-center text-sm text-muted-foreground">
+                E mais rapido e voce nao precisa lembrar do PIN.
+              </p>
+
+              <Button
+                className="mb-3 h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+                onClick={() => {
+                  setBiometria(true);
+                  closeBiometria();
+                }}
+              >
+                Habilitar biometria
+              </Button>
+
+              <Button variant="ghost" className="h-12 w-full font-semibold text-primary" onClick={closeBiometria}>
+                Agora nao
+              </Button>
+            </div>
+          </>
         )}
       </main>
     );
@@ -549,6 +571,9 @@ function App() {
           <div>
             <p className="text-sm text-white/75">Ola, {firstName}</p>
             <h2 className="text-xl font-bold">Seu credito na seutudo.</h2>
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-white/60">
+              <SealCheck size={12} /> Conta verificada
+            </p>
           </div>
           <button className="rounded-full bg-white/15 p-2.5">
             <Bell size={20} />
@@ -566,7 +591,7 @@ function App() {
               <Badge className="shrink-0 border-0 bg-primary-light text-xs text-primary-dark">Novo</Badge>
             </div>
             <Button className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">
-              Simular agora
+              Ver minha oferta
             </Button>
           </CardContent>
         </Card>
@@ -578,8 +603,19 @@ function App() {
           const isPrimary = idx === 0;
 
           return (
-            <Card key={interest} className={`shadow-sm ${isPrimary ? "border-primary/30" : "border-border"}`}>
-              <CardContent className="p-4">
+            <Card
+              key={interest}
+              className={`relative overflow-hidden shadow-sm ${isPrimary ? "border-primary/30" : "border-border"}`}
+            >
+              {isPrimary && (
+                <img
+                  src={currentService.image}
+                  className="absolute right-0 top-0 h-full w-32 object-cover object-top opacity-20"
+                  alt=""
+                />
+              )}
+
+              <CardContent className="relative p-4">
                 <div className="mb-2 flex items-center gap-3">
                   <div
                     className={`flex h-9 w-9 items-center justify-center rounded-lg ${
@@ -620,7 +656,7 @@ function App() {
                 <Headset size={20} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Precisa de ajuda?</p>
+                <p className="text-sm font-semibold text-foreground">Ficou alguma duvida?</p>
                 <p className="text-xs text-muted-foreground">Atendimento seg a sex, 8h as 18h</p>
               </div>
             </div>
