@@ -502,21 +502,21 @@ function App() {
       >
         {flow === "splash" && (
           <main
-            className="relative mx-auto flex min-h-screen max-w-[430px] cursor-pointer flex-col justify-end overflow-hidden"
+            className="relative mx-auto flex min-h-screen w-full max-w-[430px] cursor-pointer flex-col justify-end overflow-hidden md:max-w-[1280px] md:items-center md:justify-center md:bg-primary"
             onClick={() => setFlow("welcome")}
           >
             <img
               src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=860&q=80&fit=crop&crop=faces,center"
               alt="Pessoa com carteira assinada"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary/75 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary/75 to-transparent md:hidden" />
 
             <motion.div
               initial={shouldReduce ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: shouldReduce ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] }}
-              className="relative z-10 space-y-4 px-6 pb-14"
+              className="relative z-10 space-y-4 px-6 pb-14 md:max-w-[460px] md:pb-0 md:text-center"
             >
               <div>
                 <div className="text-3xl font-bold tracking-tight text-white">seutudo.</div>
@@ -530,7 +530,7 @@ function App() {
               </div>
             </motion.div>
 
-            <div className="absolute bottom-0 left-0 right-0 h-16">
+            <div className="absolute bottom-0 left-0 right-0 h-16 md:hidden">
               <svg viewBox="0 0 430 64" preserveAspectRatio="none" className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M0,32 C100,64 200,0 300,48 C370,64 400,32 430,40 L430,64 L0,64 Z"
@@ -542,8 +542,8 @@ function App() {
         )}
 
         {flow === "welcome" && (
-          <main className="mx-auto flex min-h-screen max-w-[430px] flex-col bg-background">
-            <div className="relative h-52 shrink-0 overflow-hidden">
+          <main className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-background md:max-w-[1280px] md:flex-row">
+            <div className="relative h-52 shrink-0 overflow-hidden md:h-screen md:w-1/2">
               <img
                 src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=860&q=80&fit=crop&crop=faces,top"
                 alt="Pessoa CLT"
@@ -553,7 +553,7 @@ function App() {
               <span className="absolute left-5 top-4 text-xl font-bold text-white drop-shadow">seutudo.</span>
             </div>
 
-            <div className="flex flex-1 flex-col justify-between px-5 pb-8 pt-2">
+            <div className="flex flex-1 flex-col justify-between px-5 pb-8 pt-2 md:w-1/2 md:justify-center md:px-16 md:py-12">
               <div className="space-y-5">
                 <div>
                   <h1 className="text-2xl font-bold leading-tight text-foreground">
@@ -610,44 +610,46 @@ function App() {
         )}
 
         {flow === "onboarding" && (
-          <main className="mx-auto flex min-h-screen max-w-[430px] flex-col bg-background px-4 py-6">
-            <div className="mb-5 flex items-center justify-between">
-              <span className="text-lg font-bold text-foreground">seutudo.</span>
-              <Badge className="border-0 bg-primary-light text-xs font-medium text-primary-dark">Cadastro</Badge>
-            </div>
-
-            <div className="flex-1 space-y-4">
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={step}
-                  custom={direction}
-                  variants={stepVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                >
-                  {renderOnboardingStep()}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {step <= 4 && (
-              <div className="grid grid-cols-2 gap-3 pt-6">
-                <Button variant="outline" onClick={goBack} className="h-12 rounded-xl border-border text-foreground">
-                  Voltar
-                </Button>
-
-                <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
-                  <Button
-                    onClick={goNext}
-                    disabled={!canGoNext}
-                    className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
-                  >
-                    Continuar
-                  </Button>
-                </motion.div>
+          <main className="mx-auto min-h-screen w-full max-w-[1280px] bg-background px-4 py-6 md:px-8">
+            <div className="mx-auto flex w-full max-w-[430px] flex-col md:max-w-[480px] md:pt-12">
+              <div className="mb-5 flex items-center justify-between">
+                <span className="text-lg font-bold text-foreground">seutudo.</span>
+                <Badge className="border-0 bg-primary-light text-xs font-medium text-primary-dark md:hidden">Cadastro</Badge>
               </div>
-            )}
+
+              <div className="flex-1 space-y-4">
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={step}
+                    custom={direction}
+                    variants={stepVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                  >
+                    {renderOnboardingStep()}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {step <= 4 && (
+                <div className="grid grid-cols-2 gap-3 pt-6">
+                  <Button variant="outline" onClick={goBack} className="h-12 rounded-xl border-border text-foreground">
+                    Voltar
+                  </Button>
+
+                  <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
+                    <Button
+                      onClick={goNext}
+                      disabled={!canGoNext}
+                      className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+                    >
+                      Continuar
+                    </Button>
+                  </motion.div>
+                </div>
+              )}
+            </div>
 
             {step === 5 && biometriaSheetOpen && (
               <>
@@ -687,187 +689,229 @@ function App() {
         )}
 
         {flow === "home" && (
-          <main className="mx-auto min-h-screen max-w-[430px] bg-background">
-            <header className="bg-primary px-5 pt-8 text-white">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/75">Ola, {firstName}</p>
-                  <h2 className="text-xl font-bold">Seu credito na seutudo.</h2>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-white/60">
-                    <SealCheck size={12} /> Conta verificada
-                  </p>
-                </div>
-                <button className="rounded-full bg-white/15 p-2.5">
-                  <Bell size={20} />
-                </button>
-              </div>
+          <div className="mx-auto min-h-screen w-full max-w-[1280px] md:flex">
+            <aside className="hidden md:flex md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
+              <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
 
-              <Card className="border-0 bg-white shadow-none">
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-0.5">
-                      <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Oferta disponivel para voce</p>
-                      <p className="text-sm font-bold leading-snug text-foreground">Voce pode antecipar ate R$ 4.800 no FGTS</p>
-                      <p className="text-xs text-muted-foreground">Taxa a partir de 1,39% ao mes</p>
-                    </div>
-                    <Badge className="shrink-0 border-0 bg-primary-light text-xs text-primary-dark">Novo</Badge>
+              <nav className="flex flex-col gap-1">
+                {[
+                  { icon: <House size={18} />, label: "Inicio", active: true },
+                  { icon: <FileText size={18} />, label: "Contratos" },
+                  { icon: <Headset size={18} />, label: "Duvidas" },
+                  { icon: <UserCircle size={18} />, label: "Conta" },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                      item.active ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"
+                    }`}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+
+              <div className="mt-auto">
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">
+                    {firstName[0]?.toUpperCase() ?? "S"}
                   </div>
-
-                  <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
-                    <Button className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">
-                      Ver minha oferta
-                    </Button>
-                  </motion.div>
-                </CardContent>
-              </Card>
-
-              <div className="relative -mb-1 h-8 overflow-hidden">
-                <svg
-                  viewBox="0 0 430 32"
-                  preserveAspectRatio="none"
-                  className="absolute bottom-0 h-full w-full"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M0,0 C80,32 160,32 215,16 C270,0 350,0 430,20 L430,32 L0,32 Z"
-                    fill="#F5F4F2"
-                  />
-                </svg>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">{firstName}</p>
+                    <p className="text-xs text-muted-foreground">Conta verificada</p>
+                  </div>
+                </div>
               </div>
-            </header>
+            </aside>
 
-            <div className="space-y-3 p-4 pb-28">
-              <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="space-y-3">
-                {interests.map((interest, idx) => {
-                  const currentService = serviceCopy[interest];
-                  const isPrimary = idx === 0;
+            <main className="mx-auto min-h-screen w-full max-w-[430px] bg-background md:mx-0 md:max-w-none md:flex-1 md:overflow-y-auto">
+              <header className="bg-primary px-5 pt-8 text-white md:mx-6 md:mt-6 md:rounded-2xl md:px-6 md:pt-6">
+                <div className="mb-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-white/75">Ola, {firstName}</p>
+                    <h2 className="text-xl font-bold">Seu credito na seutudo.</h2>
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-white/60">
+                      <SealCheck size={12} /> Conta verificada
+                    </p>
+                  </div>
+                  <button className="rounded-full bg-white/15 p-2.5">
+                    <Bell size={20} />
+                  </button>
+                </div>
 
-                  if (isPrimary) {
-                    return (
-                      <motion.div key={interest} variants={cardVariants}>
-                        <Card className="relative overflow-hidden border-primary/30 shadow-sm">
-                          <CardContent className="flex min-h-[140px] items-stretch p-0">
-                            <div className="flex flex-1 flex-col justify-between p-4">
-                              <div>
-                                <div className="mb-1 flex items-center gap-2">
-                                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-light text-primary">
-                                    {currentService.icon}
+                <Card className="border-0 bg-white shadow-none">
+                  <CardContent className="space-y-3 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Oferta disponivel para voce</p>
+                        <p className="text-sm font-bold leading-snug text-foreground">Voce pode antecipar ate R$ 4.800 no FGTS</p>
+                        <p className="text-xs text-muted-foreground">Taxa a partir de 1,39% ao mes</p>
+                      </div>
+                      <Badge className="shrink-0 border-0 bg-primary-light text-xs text-primary-dark">Novo</Badge>
+                    </div>
+
+                    <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
+                      <Button className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">
+                        Ver minha oferta
+                      </Button>
+                    </motion.div>
+                  </CardContent>
+                </Card>
+
+                <div className="relative -mb-1 h-8 overflow-hidden">
+                  <svg
+                    viewBox="0 0 430 32"
+                    preserveAspectRatio="none"
+                    className="absolute bottom-0 h-full w-full"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M0,0 C80,32 160,32 215,16 C270,0 350,0 430,20 L430,32 L0,32 Z"
+                      fill="#F5F4F2"
+                    />
+                  </svg>
+                </div>
+              </header>
+
+              <div className="space-y-3 p-4 pb-28 md:px-6 md:pb-8">
+                <motion.div
+                  variants={cardsContainerVariants}
+                  initial="initial"
+                  animate="animate"
+                  className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0"
+                >
+                  {interests.map((interest, idx) => {
+                    const currentService = serviceCopy[interest];
+                    const isPrimary = idx === 0;
+
+                    if (isPrimary) {
+                      return (
+                        <motion.div key={interest} variants={cardVariants}>
+                          <Card className="relative overflow-hidden border-primary/30 shadow-sm">
+                            <CardContent className="flex min-h-[140px] items-stretch p-0">
+                              <div className="flex flex-1 flex-col justify-between p-4">
+                                <div>
+                                  <div className="mb-1 flex items-center gap-2">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-light text-primary">
+                                      {currentService.icon}
+                                    </div>
+                                    <p className="text-sm font-semibold text-foreground">{currentService.title}</p>
                                   </div>
-                                  <p className="text-sm font-semibold text-foreground">{currentService.title}</p>
+                                  {currentService.highlight && (
+                                    <p className="mb-1 text-xs font-semibold text-primary">{currentService.highlight}</p>
+                                  )}
+                                  <p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p>
                                 </div>
-                                {currentService.highlight && (
-                                  <p className="mb-1 text-xs font-semibold text-primary">{currentService.highlight}</p>
-                                )}
-                                <p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p>
+
+                                <Button className="h-9 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">
+                                  {currentService.cta} <CaretRight size={14} className="ml-1" />
+                                </Button>
                               </div>
 
-                              <Button className="h-9 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">
-                                {currentService.cta} <CaretRight size={14} className="ml-1" />
-                              </Button>
-                            </div>
+                              <div className="relative w-28 shrink-0 overflow-hidden bg-white">
+                                <img
+                                  src={currentService.photo}
+                                  alt=""
+                                  className="absolute inset-0 h-full w-full object-cover object-top"
+                                  style={{ mixBlendMode: "multiply" }}
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      );
+                    }
 
-                            <div className="relative w-28 shrink-0 overflow-hidden bg-white">
-                              <img
-                                src={currentService.photo}
-                                alt=""
-                                className="absolute inset-0 h-full w-full object-cover object-top"
-                                style={{ mixBlendMode: "multiply" }}
-                              />
+                    return (
+                      <motion.div key={interest} variants={cardVariants}>
+                        <Card className="border-border shadow-sm">
+                          <CardContent className="p-4">
+                            <div className="mb-2 flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-muted-foreground">
+                                {currentService.icon}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-foreground">{currentService.title}</p>
+                                {currentService.highlight && (
+                                  <p className="mt-0.5 text-xs font-medium text-primary">{currentService.highlight}</p>
+                                )}
+                              </div>
                             </div>
+                            <p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p>
+                            <Button variant="outline" className="h-9 w-full rounded-lg border-border text-sm font-medium">
+                              {currentService.cta}
+                              <CaretRight size={14} className="ml-1" />
+                            </Button>
                           </CardContent>
                         </Card>
                       </motion.div>
                     );
-                  }
+                  })}
+                </motion.div>
 
-                  return (
-                    <motion.div key={interest} variants={cardVariants}>
-                      <Card className="border-border shadow-sm">
-                        <CardContent className="p-4">
-                          <div className="mb-2 flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-muted-foreground">
-                              {currentService.icon}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-foreground">{currentService.title}</p>
-                              {currentService.highlight && (
-                                <p className="mt-0.5 text-xs font-medium text-primary">{currentService.highlight}</p>
-                              )}
-                            </div>
-                          </div>
-                          <p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p>
-                          <Button variant="outline" className="h-9 w-full rounded-lg border-border text-sm font-medium">
-                            {currentService.cta}
-                            <CaretRight size={14} className="ml-1" />
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-
-              <Card className="border-border shadow-sm">
-                <CardContent className="p-4">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground">
-                      <Headset size={20} />
+                <Card className="border-border shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground">
+                        <Headset size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Ficou alguma duvida?</p>
+                        <p className="text-xs text-muted-foreground">Atendimento seg a sex, 8h as 18h</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Ficou alguma duvida?</p>
-                      <p className="text-xs text-muted-foreground">Atendimento seg a sex, 8h as 18h</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border text-sm">
+                        <WhatsappLogo size={15} /> WhatsApp
+                      </Button>
+                      <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border text-sm">
+                        <Headset size={15} /> Ligar
+                      </Button>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border text-sm">
-                      <WhatsappLogo size={15} /> WhatsApp
-                    </Button>
-                    <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border text-sm">
-                      <Headset size={15} /> Ligar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <div className="flex items-center justify-center gap-5 py-1">
-                {[
-                  { icon: <LockSimple size={13} />, label: "LGPD" },
-                  { icon: <SealCheck size={13} />, label: "Banco Central" },
-                  { icon: <ShieldCheck size={13} />, label: "Criptografado" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                    {item.icon}
-                    {item.label}
-                  </div>
-                ))}
+                <div className="flex items-center justify-center gap-5 py-1">
+                  {[
+                    { icon: <LockSimple size={13} />, label: "LGPD" },
+                    { icon: <SealCheck size={13} />, label: "Banco Central" },
+                    { icon: <ShieldCheck size={13} />, label: "Criptografado" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      {item.icon}
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+
+                <Button variant="ghost" className="w-full text-sm text-muted-foreground" onClick={resetApp}>
+                  <SignOut size={16} className="mr-2" /> Reiniciar onboarding
+                </Button>
               </div>
 
-              <Button variant="ghost" className="w-full text-sm text-muted-foreground" onClick={resetApp}>
-                <SignOut size={16} className="mr-2" /> Reiniciar onboarding
-              </Button>
-            </div>
-
-            <nav className="fixed bottom-4 left-1/2 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm">
-              <ul className="grid grid-cols-4 text-center text-[11px]">
-                <li className="rounded-xl bg-primary-light p-2 text-primary">
-                  <House size={18} className="mx-auto mb-1" />
-                  Inicio
-                </li>
-                <li className="p-2 text-muted-foreground">
-                  <FileText size={18} className="mx-auto mb-1" />
-                  Contratos
-                </li>
-                <li className="p-2 text-muted-foreground">
-                  <Headset size={18} className="mx-auto mb-1" />
-                  Duvidas
-                </li>
-                <li className="p-2 text-muted-foreground">
-                  <UserCircle size={18} className="mx-auto mb-1" />
-                  Conta
-                </li>
-              </ul>
-            </nav>
-          </main>
+              <nav className="fixed bottom-4 left-1/2 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
+                <ul className="grid grid-cols-4 text-center text-[11px]">
+                  <li className="rounded-xl bg-primary-light p-2 text-primary">
+                    <House size={18} className="mx-auto mb-1" />
+                    Inicio
+                  </li>
+                  <li className="p-2 text-muted-foreground">
+                    <FileText size={18} className="mx-auto mb-1" />
+                    Contratos
+                  </li>
+                  <li className="p-2 text-muted-foreground">
+                    <Headset size={18} className="mx-auto mb-1" />
+                    Duvidas
+                  </li>
+                  <li className="p-2 text-muted-foreground">
+                    <UserCircle size={18} className="mx-auto mb-1" />
+                    Conta
+                  </li>
+                </ul>
+              </nav>
+            </main>
+          </div>
         )}
       </motion.div>
     </AnimatePresence>
