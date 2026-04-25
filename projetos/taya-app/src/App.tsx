@@ -124,6 +124,46 @@ function StepHeader({
   );
 }
 
+function ThemeSwitcher() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const themes = [
+    { key: "laranja", color: "#E8590A" },
+    { key: "azul", color: "#1D4ED8" },
+    { key: "verde", color: "#16A34A" },
+    { key: "roxo", color: "#7C3AED" },
+    { key: "grafite", color: "#374151" },
+  ];
+
+  const hasDebug = window.location.search.includes("debug=true");
+  const isLocal = window.location.hostname.includes("localhost");
+
+  if (!hasDebug && !isLocal) {
+    return null;
+  }
+
+  const setTheme = (key: string) => {
+    document.documentElement.setAttribute("data-theme", key);
+  };
+
+  return (
+    <div className="fixed bottom-20 right-4 z-50 flex flex-col gap-2 rounded-2xl border border-border bg-white p-3 shadow-lg">
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tema</p>
+      {themes.map((theme) => (
+        <button
+          key={theme.key}
+          onClick={() => setTheme(theme.key)}
+          className="h-6 w-6 rounded-full border-2 border-white shadow-sm transition-transform hover:scale-110"
+          style={{ background: theme.color }}
+          title={theme.key}
+        />
+      ))}
+    </div>
+  );
+}
+
 function App() {
   const shouldReduce = useReducedMotion();
   const [flow, setFlow] = useState<FlowType>("splash");
@@ -492,8 +532,9 @@ function App() {
   };
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
+    <>
+      <AnimatePresence mode="wait">
+        <motion.div
         key={flow}
         variants={pageVariants}
         initial="initial"
@@ -690,7 +731,7 @@ function App() {
 
         {flow === "home" && (
           <div className="mx-auto min-h-screen w-full max-w-[1280px] md:flex">
-            <aside className="hidden md:flex md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
+            <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
               <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
 
               <nav className="flex flex-col gap-1">
@@ -726,7 +767,7 @@ function App() {
             </aside>
 
             <main className="mx-auto min-h-screen w-full max-w-[430px] bg-background md:mx-0 md:max-w-none md:flex-1 md:overflow-y-auto">
-              <header className="bg-primary px-5 pb-6 pt-8 text-white rounded-b-[32px] md:mx-6 md:mt-6 md:px-6 md:pt-6">
+              <header className="bg-primary px-5 pb-6 pt-8 text-white rounded-b-[32px] md:mx-auto md:mt-6 md:max-w-[860px] md:px-6 md:pt-6">
                 <div className="mb-5 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/75">Ola, {firstName}</p>
@@ -762,6 +803,7 @@ function App() {
               </header>
 
               <div className="space-y-3 p-4 pb-28 md:px-6 md:pb-8">
+                <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
                 <motion.div
                   variants={cardsContainerVariants}
                   initial="initial"
@@ -875,6 +917,7 @@ function App() {
                 <Button variant="ghost" className="w-full text-sm text-muted-foreground" onClick={resetApp}>
                   <SignOut size={16} className="mr-2" /> Reiniciar onboarding
                 </Button>
+                </div>
               </div>
 
               <nav className="fixed bottom-4 left-1/2 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
@@ -900,8 +943,10 @@ function App() {
             </main>
           </div>
         )}
-      </motion.div>
-    </AnimatePresence>
+        </motion.div>
+      </AnimatePresence>
+      <ThemeSwitcher />
+    </>
   );
 }
 

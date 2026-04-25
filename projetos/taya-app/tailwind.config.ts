@@ -11,11 +11,16 @@ export default {
       colors: {
         background: "#F5F4F2",
         foreground: "#1C1917",
+        brand: {
+          DEFAULT: "var(--brand)",
+          light: "var(--brand-light)",
+          dark: "var(--brand-dark)",
+        },
         primary: {
-          DEFAULT: "#E8590A",
+          DEFAULT: "var(--brand)",
           foreground: "#FFFFFF",
-          light: "#FEF0E7",
-          dark: "#A33D05",
+          light: "var(--brand-light)",
+          dark: "var(--brand-dark)",
         },
         secondary: {
           DEFAULT: "#F0EDE8",
