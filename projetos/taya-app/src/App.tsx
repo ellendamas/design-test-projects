@@ -594,8 +594,8 @@ function App() {
               <span className="absolute left-5 top-4 text-xl font-bold text-white drop-shadow">seutudo.</span>
             </div>
 
-            <div className="flex flex-1 flex-col justify-between px-5 pb-8 pt-2 md:w-1/2 md:justify-center md:px-16 md:py-12">
-              <div className="space-y-5">
+            <div className="flex flex-1 flex-col justify-between px-5 pb-8 pt-2 md:w-1/2 md:justify-center md:px-16 md:py-12 md:items-start">
+              <div className="space-y-5 md:w-[60%]">
                 <div>
                   <h1 className="text-2xl font-bold leading-tight text-foreground">
                     Quem tem carteira assinada pode ter muito mais do que imagina.
@@ -619,7 +619,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="space-y-3 pt-6">
+              <div className="space-y-3 pt-6 md:w-[60%]">
                 <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
                   <Button
                     className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-white hover:bg-primary-dark"
@@ -634,7 +634,7 @@ function App() {
                   Ja tenho conta
                 </Button>
 
-                <p className="text-center text-xs leading-relaxed text-muted-foreground">
+                <p className="text-center text-xs leading-relaxed text-muted-foreground md:text-left">
                   Ao continuar voce concorda com os{" "}
                   <a href="#" className="text-primary underline underline-offset-2">
                     Termos de Uso
@@ -652,7 +652,7 @@ function App() {
 
         {flow === "onboarding" && (
           <main className="mx-auto min-h-screen w-full bg-background px-4 py-6 md:px-8">
-            <div className="mx-auto flex w-full flex-col md:pt-12">
+            <div className="mx-auto flex w-full flex-col md:w-[860px] md:pt-12">
               <div className="mb-5 flex items-center justify-between">
                 <span className="text-lg font-bold text-foreground">seutudo.</span>
                 <Badge className="border-0 bg-primary-light text-xs font-medium text-primary-dark md:hidden">Cadastro</Badge>
@@ -803,7 +803,7 @@ function App() {
               </header>
 
               <div className="mt-0 space-y-3 p-4 pb-28 md:px-6 md:pb-8">
-                <div className="md:mx-auto md:space-y-3">
+                <div className="md:mx-auto md:w-[860px] md:space-y-3">
                 <motion.div
                   variants={cardsContainerVariants}
                   initial="initial"
