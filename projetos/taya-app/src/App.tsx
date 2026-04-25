@@ -506,7 +506,7 @@ function App() {
             onClick={() => setFlow("welcome")}
           >
             <img
-              src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=860&q=80&fit=crop&crop=faces,center"
+              src="https://static.vecteezy.com/ti/fotos-gratis/p1/75899742-o-negocio-mulher-dentro-cidade-feliz-e-retrato-ao-ar-livre-para-trabalhando-em-criativo-carreira-ou-trabalho-face-empreendedor-e-confiante-pessoa-profissional-desenhador-e-empregado-sorrir-em-urbano-telhado-dentro-brasil-foto.jpg"
               alt="Pessoa com carteira assinada"
               className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
             />
@@ -545,7 +545,7 @@ function App() {
           <main className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-background md:max-w-[1280px] md:flex-row">
             <div className="relative h-52 shrink-0 overflow-hidden md:h-screen md:w-1/2">
               <img
-                src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=860&q=80&fit=crop&crop=faces,top"
+                src="https://static.vecteezy.com/ti/fotos-gratis/p1/75899742-o-negocio-mulher-dentro-cidade-feliz-e-retrato-ao-ar-livre-para-trabalhando-em-criativo-carreira-ou-trabalho-face-empreendedor-e-confiante-pessoa-profissional-desenhador-e-empregado-sorrir-em-urbano-telhado-dentro-brasil-foto.jpg"
                 alt="Pessoa CLT"
                 className="h-full w-full object-cover object-top"
               />
