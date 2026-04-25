@@ -726,7 +726,7 @@ function App() {
             </aside>
 
             <main className="mx-auto min-h-screen w-full max-w-[430px] bg-background md:mx-0 md:max-w-none md:flex-1 md:overflow-y-auto">
-              <header className="bg-primary px-5 pt-8 text-white md:mx-6 md:mt-6 md:rounded-2xl md:px-6 md:pt-6">
+              <header className="bg-primary px-5 pb-6 pt-8 text-white rounded-b-[32px] md:mx-6 md:mt-6 md:px-6 md:pt-6">
                 <div className="mb-5 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/75">Ola, {firstName}</p>
@@ -759,19 +759,6 @@ function App() {
                   </CardContent>
                 </Card>
 
-                <div className="relative -mb-1 h-8 overflow-hidden">
-                  <svg
-                    viewBox="0 0 430 32"
-                    preserveAspectRatio="none"
-                    className="absolute bottom-0 h-full w-full"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0,0 C80,32 160,32 215,16 C270,0 350,0 430,20 L430,32 L0,32 Z"
-                      fill="#F5F4F2"
-                    />
-                  </svg>
-                </div>
               </header>
 
               <div className="space-y-3 p-4 pb-28 md:px-6 md:pb-8">
