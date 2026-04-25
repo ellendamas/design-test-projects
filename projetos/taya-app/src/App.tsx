@@ -626,11 +626,12 @@ function App() {
                     </Button>
                   </div>
 
-                  <div className="relative w-28 shrink-0 overflow-hidden">
+                  <div className="relative w-28 shrink-0 overflow-hidden bg-white">
                     <img
                       src={currentService.photo}
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover object-top"
+                      style={{ mixBlendMode: "multiply" }}
                     />
                   </div>
                 </CardContent>
