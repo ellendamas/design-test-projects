@@ -41,7 +41,7 @@ const serviceCopy: Record<
     cta: string;
     icon: ReactNode;
     highlight?: string;
-    image: string;
+    photo: string;
   }
 > = {
   clt: {
@@ -51,8 +51,8 @@ const serviceCopy: Record<
     cta: "Consultar credito CLT",
     icon: <Briefcase size={20} />,
     highlight: "Ate R$ 18.000 disponiveis",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=70&fit=crop&crop=face",
+    photo:
+      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=300&q=80&fit=crop&crop=face",
   },
   fgts: {
     title: "Antecipar meu FGTS",
@@ -61,8 +61,8 @@ const serviceCopy: Record<
     cta: "Simular antecipacao",
     icon: <Bank size={20} />,
     highlight: "Taxa a partir de 1,39% a.m.",
-    image:
-      "https://images.unsplash.com/photo-1584999734482-0361aecad844?w=200&q=70&fit=crop&crop=face",
+    photo:
+      "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=300&q=80&fit=crop&crop=face",
   },
   "saque-facil": {
     title: "Saque Facil no cartao",
@@ -71,8 +71,8 @@ const serviceCopy: Record<
     cta: "Ver oferta",
     icon: <CreditCard size={20} />,
     highlight: "Aprovacao em minutos",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=70&fit=crop&crop=face",
+    photo:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&q=80&fit=crop&crop=face",
   },
 };
 
@@ -602,45 +602,58 @@ function App() {
           const currentService = serviceCopy[interest];
           const isPrimary = idx === 0;
 
-          return (
-            <Card
-              key={interest}
-              className={`relative overflow-hidden shadow-sm ${isPrimary ? "border-primary/30" : "border-border"}`}
-            >
-              {isPrimary && (
-                <img
-                  src={currentService.image}
-                  className="absolute right-0 top-0 h-full w-32 object-cover object-top opacity-20"
-                  alt=""
-                />
-              )}
+          if (isPrimary) {
+            return (
+              <Card key={interest} className="relative overflow-hidden border-primary/30 shadow-sm">
+                <CardContent className="flex min-h-[140px] items-stretch p-0">
+                  <div className="flex flex-1 flex-col justify-between p-4">
+                    <div>
+                      <div className="mb-1 flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-light text-primary">
+                          {currentService.icon}
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">{currentService.title}</p>
+                      </div>
+                      {currentService.highlight && (
+                        <p className="mb-1 text-xs font-semibold text-primary">{currentService.highlight}</p>
+                      )}
+                      <p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p>
+                    </div>
 
-              <CardContent className="relative p-4">
+                    <Button className="h-9 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">
+                      {currentService.cta}
+                      <CaretRight size={14} className="ml-1" />
+                    </Button>
+                  </div>
+
+                  <div className="relative w-28 shrink-0 overflow-hidden">
+                    <img
+                      src={currentService.photo}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover object-top"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          return (
+            <Card key={interest} className="border-border shadow-sm">
+              <CardContent className="p-4">
                 <div className="mb-2 flex items-center gap-3">
-                  <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-                      isPrimary ? "bg-primary-light text-primary" : "bg-background text-muted-foreground"
-                    }`}
-                  >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-muted-foreground">
                     {currentService.icon}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-foreground">{currentService.title}</p>
-                    {isPrimary && currentService.highlight && (
+                    {currentService.highlight && (
                       <p className="mt-0.5 text-xs font-medium text-primary">{currentService.highlight}</p>
                     )}
                   </div>
-                  {isPrimary && (
-                    <Badge className="shrink-0 border-0 bg-primary-light text-[10px] text-primary-dark">Principal</Badge>
-                  )}
                 </div>
                 <p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p>
-                <Button
-                  variant={isPrimary ? "default" : "outline"}
-                  className={`h-9 w-full rounded-lg text-sm font-medium ${
-                    isPrimary ? "bg-primary text-white hover:bg-primary-dark" : "border-border"
-                  }`}
-                >
+                <Button variant="outline" className="h-9 w-full rounded-lg border-border text-sm font-medium">
                   {currentService.cta}
                   <CaretRight size={14} className="ml-1" />
                 </Button>
