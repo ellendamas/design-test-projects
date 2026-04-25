@@ -3,6 +3,7 @@
 
 # build outputs
 **/dist/
+**/*.tsbuildinfo
 
 # logs
 npm-debug.log*
