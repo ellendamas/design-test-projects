@@ -191,7 +191,7 @@ function AuthHeroLayout({ rightContent }: { rightContent: ReactNode }) {
       </div>
 
       <div className="flex flex-1 flex-col justify-between px-5 pb-8 pt-2 md:w-1/2 md:items-start md:justify-center md:px-16 md:py-12">
-        <div className="space-y-5 md:w-[60%]">{rightContent}</div>
+        <div className="space-y-5">{rightContent}</div>
       </div>
     </main>
   );
