@@ -715,50 +715,69 @@ function App() {
   );
 
   const AccountScreen = (
-    <main className="mx-auto min-h-screen w-full bg-background pb-28 md:max-w-[860px] md:px-6 md:pt-8">
-      <header className="sticky top-0 z-10 bg-background px-4 py-4 text-center md:px-0">
-        <h2 className="text-base font-semibold text-foreground">Minha conta</h2>
-      </header>
-
-      <div className="px-4 pb-6 pt-4 md:px-0">
-        <p className="text-lg font-bold uppercase text-foreground">{(storedUser?.name || name || "USUÁRIO").toUpperCase()}</p>
-        <div className="mt-1 flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">CPF</span>
-          <SensitiveData value="123.456.789-00" type="cpf" />
+    <div className="min-h-screen w-full md:flex">
+      <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
+        <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
+        <nav className="flex flex-col gap-1">
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+            <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
+          ))}
+        </nav>
+        <div className="mt-auto space-y-2">
+          <div className="flex items-center gap-2 px-3 py-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">{firstName[0]?.toUpperCase() ?? "S"}</div><div><p className="text-xs font-semibold text-foreground">{firstName}</p><p className="text-xs text-muted-foreground">Conta verificada</p></div></div>
+          <button onClick={resetApp} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"><SignOut size={16} />Sair</button>
         </div>
-      </div>
+      </aside>
 
-      <div className="space-y-4 px-4 md:px-0">
-        {[
-          { title: "Conta", icon: <UserCircle size={18} />, items: ["Meus dados", "Editar endereço"] },
-          { title: "Segurança", icon: <ShieldCheck size={18} />, items: ["Alterar senha"] },
-          { title: "Configurações", icon: <Gear size={18} />, items: ["Avaliar o aplicativo"] },
-          { title: "Informações", icon: <Info size={18} />, items: ["Política de Privacidade", "Termos de Uso"] },
-        ].map((group) => (
-          <Card key={group.title} className="border-border shadow-sm">
-            <CardContent className="p-0">
-              <div className="flex items-center gap-2 px-4 py-3">
-                <span className="text-primary">{group.icon}</span>
-                <p className="text-sm font-bold text-foreground">{group.title}</p>
+      <main className="mx-auto min-h-screen w-full bg-background md:mx-0 md:flex-1 md:overflow-y-auto">
+        <header className="sticky top-0 z-10 bg-background px-4 py-4 text-center md:px-0">
+          <h2 className="text-base font-semibold text-foreground">Minha conta</h2>
+        </header>
+
+        <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
+          <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
+            <div className="px-0 pb-6 pt-4">
+              <p className="text-lg font-bold uppercase text-foreground">{(storedUser?.name || name || "USUÁRIO").toUpperCase()}</p>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">CPF</span>
+                <SensitiveData value="123.456.789-00" type="cpf" />
               </div>
-              {group.items.map((item) => (
-                <button key={item} className="w-full border-b border-border px-4 py-3.5 text-left text-sm text-foreground last:border-0">
-                  <div className="flex items-center justify-between">
-                    {item}
-                    <CaretRight size={16} className="text-muted-foreground" />
-                  </div>
-                </button>
+            </div>
+
+            <div className="space-y-4 px-0">
+              {[
+                { title: "Conta", icon: <UserCircle size={18} />, items: ["Meus dados", "Editar endereço"] },
+                { title: "Segurança", icon: <ShieldCheck size={18} />, items: ["Alterar senha"] },
+                { title: "Configurações", icon: <Gear size={18} />, items: ["Avaliar o aplicativo"] },
+                { title: "Informações", icon: <Info size={18} />, items: ["Política de Privacidade", "Termos de Uso"] },
+              ].map((group) => (
+                <Card key={group.title} className="border-border shadow-sm">
+                  <CardContent className="p-0">
+                    <div className="flex items-center gap-2 px-4 py-3">
+                      <span className="text-primary">{group.icon}</span>
+                      <p className="text-sm font-bold text-foreground">{group.title}</p>
+                    </div>
+                    {group.items.map((item) => (
+                      <button key={item} className="w-full border-b border-border px-4 py-3.5 text-left text-sm text-foreground last:border-0">
+                        <div className="flex items-center justify-between">
+                          {item}
+                          <CaretRight size={16} className="text-muted-foreground" />
+                        </div>
+                      </button>
+                    ))}
+                  </CardContent>
+                </Card>
               ))}
-            </CardContent>
-          </Card>
-        ))}
 
-        <button onClick={resetApp} className="w-full py-3 text-center text-sm font-medium text-primary">Sair</button>
-        <p className="pb-2 text-center text-xs text-muted-foreground">Versão 0.1.0-mvp</p>
-      </div>
+              <button onClick={resetApp} className="w-full py-3 text-center text-sm font-medium text-primary">Sair</button>
+              <p className="pb-2 text-center text-xs text-muted-foreground">Versão 0.1.0-mvp</p>
+            </div>
+          </div>
+        </div>
 
-      {renderBottomNav()}
-    </main>
+        {renderBottomNav()}
+      </main>
+    </div>
   );
 
   return (
