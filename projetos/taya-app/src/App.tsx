@@ -10,6 +10,7 @@ import {
   CaretRight,
   ChatCircle,
   CheckCircle,
+  CaretDown,
   Clock,
   CreditCard,
   EnvelopeSimple,
@@ -28,6 +29,7 @@ import {
   SealCheck,
   ShieldCheck,
   SignOut,
+  Tag,
   Trash,
   UserCircle,
   WhatsappLogo,
@@ -46,6 +48,10 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { contratos } from "@/data/contratos";
+import { usePrivacy } from "@/context/PrivacyContext";
+import { useNotificacoes } from "@/context/NotificacoesContext";
+import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 
 type ServiceType = "clt" | "fgts" | "saque-facil";
 type OtpChannel = "whatsapp" | "email" | "sms";
@@ -141,21 +147,26 @@ function StepHeader({ step, total, title, subtitle }: { step: number; total: num
 }
 
 function SensitiveData({ value, type = "text" }: { value: string; type?: "cpf" | "phone" | "currency" | "text" }) {
-  const [visible, setVisible] = useState(false);
+  const { dataVisible } = usePrivacy();
   const masked = { cpf: "•••.•••.•••-••", phone: "(••) •••••-••••", currency: "R$ ••••", text: "••••••••" }[
     type
   ];
+  return <span className="font-medium text-foreground">{dataVisible ? value : masked}</span>;
+}
+
+function PrivacyToggle({ size = 20, variant = "dark" }: { size?: number; variant?: "light" | "dark" }) {
+  const { dataVisible, toggleVisibility } = usePrivacy();
+  const iconClass = variant === "light" ? (dataVisible ? "text-white" : "text-white/60") : dataVisible ? "text-foreground" : "text-muted-foreground";
+
   return (
-    <span className="inline-flex items-center gap-2">
-      <span className="font-medium text-foreground">{visible ? value : masked}</span>
-      <button
-        onClick={() => setVisible((v) => !v)}
-        className="text-muted-foreground transition-colors hover:text-foreground"
-        aria-label={visible ? "Ocultar" : "Mostrar"}
-      >
-        {visible ? <EyeSlash size={16} /> : <Eye size={16} />}
-      </button>
-    </span>
+    <button
+      onClick={toggleVisibility}
+      className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-white/20 md:hover:bg-[#F5F4F2]"
+      aria-label={dataVisible ? "Ocultar dados sensíveis" : "Mostrar dados sensíveis"}
+      title={dataVisible ? "Ocultar dados" : "Mostrar dados"}
+    >
+      {dataVisible ? <Eye size={size} className={iconClass} /> : <EyeSlash size={size} className={iconClass} />}
+    </button>
   );
 }
 
@@ -224,6 +235,7 @@ function ComingSoon({ title }: { title: string }) {
 function SubPageLayout({ title, children }: { title: string; children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { naoLidas } = useNotificacoes();
   const user = getStoredUser();
   const firstName = (user?.name || "usuário").split(" ")[0] || "usuário";
 
@@ -268,9 +280,30 @@ function SubPageLayout({ title, children }: { title: string; children: ReactNode
           <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F5F4F2]">
             <ArrowLeft size={20} className="text-foreground" />
           </button>
-          <h1 className="text-base font-semibold text-foreground">{title}</h1>
+          <h1 className="flex-1 text-base font-semibold text-foreground">{title}</h1>
+          <PrivacyToggle size={18} variant="dark" />
+          <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F5F4F2]">
+            <Bell size={18} className="text-muted-foreground" />
+            {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#E8590A] text-[9px] font-bold text-white">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
+          </button>
         </header>
-        <div className="px-4 py-5 md:mx-auto md:max-w-[640px] md:px-0 md:py-8">{children}</div>
+        <div className="px-4 py-5 pb-28 md:mx-auto md:max-w-[640px] md:px-0 md:py-8">{children}</div>
+
+        <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
+          <ul className="grid w-full grid-cols-4 text-center">
+            {navItems.map((item) => (
+              <li key={item.path} className="flex flex-col items-center justify-center text-center">
+                <button
+                  onClick={() => navigate(item.path)}
+                  className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl p-2 text-center text-[11px] ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground"}`}
+                >
+                  <span className="flex items-center justify-center leading-none">{item.icon}</span>
+                  <span className="block w-full leading-none">{item.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </main>
     </div>
   );
@@ -649,28 +682,185 @@ function AlterarSenhaPage() {
 
 function ContratosPage() {
   const navigate = useNavigate();
+  const lista = contratos;
   return (
-    <main className="mx-auto min-h-screen max-w-[430px] bg-background md:max-w-full">
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-white px-4 py-4">
-        <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F5F4F2]"><ArrowLeft size={20} className="text-foreground" /></button>
-        <h1 className="text-base font-semibold text-foreground">Contratos</h1>
-      </header>
+    <SubPageLayout title="Meus contratos">
+      <p className="mb-4 text-sm text-muted-foreground">{lista.length} contratos ativos</p>
 
-      <div className="px-4 py-5">
+      {lista.length === 0 ? (
         <div className="flex flex-col items-center space-y-4 px-6 py-16 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7]"><FileText size={32} className="text-[#E8590A]" /></div>
           <div>
             <h2 className="text-lg font-bold text-foreground">Você ainda não tem contratos.</h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Quando você contratar um produto, ele aparece aqui para você acompanhar tudo.</p>
           </div>
-          <Button className="h-11 w-full rounded-xl bg-[#E8590A] font-semibold text-white hover:bg-[#A33D05]" onClick={() => navigate("/painel")}>
-            Ver ofertas disponíveis
-            <CaretRight size={14} className="ml-1" />
-          </Button>
+          <Button className="h-11 w-full rounded-xl bg-[#E8590A] font-semibold text-white hover:bg-[#A33D05]" onClick={() => navigate("/painel")}>Ver ofertas disponíveis</Button>
         </div>
-        <p className="px-6 pb-8 text-center text-xs text-muted-foreground">Todos os seus contratos ficam aqui — parcelas, vencimentos e histórico de pagamentos.</p>
+      ) : (
+        <div className="space-y-3">
+          {lista.map((contrato) => (
+            <button key={contrato.id} onClick={() => navigate(`/contratos/${contrato.id}`)} className="w-full rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#E8590A]/40">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="rounded-full bg-[#FEF0E7] px-2.5 py-1 text-xs font-semibold text-[#A33D05]">{contrato.tipo === "seguro" ? "Seguro de Vida" : "Crédito CLT"}</span>
+                <span className="flex items-center gap-1.5 text-xs font-medium text-green-700"><div className="h-1.5 w-1.5 rounded-full bg-green-500" />Ativo</span>
+              </div>
+              <p className="mb-2 text-sm font-bold text-foreground">{contrato.produto}</p>
+              {contrato.tipo === "seguro" ? (
+                <div className="flex items-center justify-between">
+                  <div><p className="text-xs text-muted-foreground">Valor mensal</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorMensal.toFixed(2).replace(".", ",")}</p></div>
+                  <div className="text-right"><p className="text-xs text-muted-foreground">Vigência até</p><p className="text-sm font-semibold text-foreground">{contrato.vigencia}</p></div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div><p className="text-xs text-muted-foreground">Parcela mensal</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorParcela.toFixed(2).replace(".", ",")}</p></div>
+                  <div className="text-right"><p className="text-xs text-muted-foreground">Próximo desconto</p><p className="text-sm font-semibold text-foreground">{contrato.proximoDesconto}</p></div>
+                </div>
+              )}
+              <div className="mt-3 flex items-center gap-1 border-t border-border pt-3 text-xs font-medium text-[#E8590A]">Ver detalhes<CaretRight size={12} /></div>
+            </button>
+          ))}
+        </div>
+      )}
+    </SubPageLayout>
+  );
+}
+
+function AccordionItemContrato({ cobertura, hideValue }: { cobertura: { nome: string; valor: number; descricao: string }; hideValue?: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-2 overflow-hidden rounded-xl border border-border">
+      <div className="p-4">
+        <p className="text-sm font-semibold text-foreground">{cobertura.nome}</p>
+        {!hideValue && <p className="mt-0.5 text-xs text-muted-foreground">Cobertura de R$ {cobertura.valor.toLocaleString("pt-BR")},00</p>}
+        <button onClick={() => setOpen((o) => !o)} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#E8590A]">{open ? "Mostrar menos" : "Mostrar mais"}<CaretDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} /></button>
       </div>
-    </main>
+      {open && <div className="px-4 pb-4 pt-0"><p className="text-xs leading-relaxed text-muted-foreground">{cobertura.descricao}</p></div>}
+    </div>
+  );
+}
+
+function ContratoSeguroPage() {
+  const contrato = contratos.find((c) => c.id === "seguro-001" && c.tipo === "seguro");
+  if (!contrato) return <Navigate to="/contratos" replace />;
+  return (
+    <SubPageLayout title="Seguro de Vida">
+      <div className="mb-5"><div className="mb-1 flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-green-500" /><span className="text-sm font-medium text-green-700">Ativo</span></div><h2 className="text-2xl font-bold text-foreground">Seguro de Vida</h2></div>
+      <div className="mb-5 grid grid-cols-2 gap-x-4 gap-y-4">
+        <div><p className="text-xs text-muted-foreground">Solicitado em</p><p className="text-sm font-semibold text-foreground">{contrato.dataContratacao}</p></div>
+        <div><p className="text-xs text-muted-foreground">Seguradora</p><p className="text-sm font-semibold text-foreground">{contrato.seguradora}</p></div>
+        <div><p className="text-xs text-muted-foreground">Plano selecionado</p><p className="text-sm font-semibold text-foreground">{contrato.plano}</p></div>
+        <div><p className="text-xs text-muted-foreground">Valor mensal</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
+      </div>
+      <div className="mb-6 flex items-center gap-2 border-b border-border pb-6"><CreditCard size={16} className="text-muted-foreground" /><span className="text-sm text-muted-foreground">Cartão cadastrado</span><span className="text-sm font-semibold text-foreground">Final ***{contrato.cartaoFinal}</span></div>
+      <div className="mb-6"><div className="mb-3 flex items-center gap-2"><ShieldCheck size={18} className="text-[#E8590A]" /><h3 className="text-base font-bold text-foreground">Coberturas</h3></div>{contrato.coberturas.map((c) => <AccordionItemContrato cobertura={c} key={c.nome} />)}</div>
+      <div className="flex items-start gap-2 border-t border-border pt-4"><Info size={14} className="mt-0.5 shrink-0 text-muted-foreground" /><p className="text-xs text-muted-foreground">Consulte os <a href={contrato.linkTermos} target="_blank" className="text-[#E8590A] underline underline-offset-2">Termos do Seguro</a> e o <a href={contrato.linkPrivacidade} target="_blank" className="text-[#E8590A] underline underline-offset-2">Aviso de Privacidade da Seguradora</a>.</p></div>
+    </SubPageLayout>
+  );
+}
+
+function ContratoCLTPage() {
+  const contrato = contratos.find((c) => c.id === "clt-001" && c.tipo === "clt");
+  if (!contrato) return <Navigate to="/contratos" replace />;
+  const progresso = ((contrato.totalParcelas - contrato.parcelasRestantes) / contrato.totalParcelas) * 100;
+  return (
+    <SubPageLayout title="Crédito com desconto em folha">
+      <div className="mb-5 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3"><Info size={15} className="mt-0.5 shrink-0 text-amber-600" /><p className="text-xs leading-snug text-amber-700">Este é um contrato de exemplo para fins de demonstração. Os dados reais serão exibidos após integração com o sistema.</p></div>
+      <div className="mb-5"><div className="mb-1 flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-green-500" /><span className="text-sm font-medium text-green-700">Ativo</span></div><h2 className="text-2xl font-bold text-foreground">Crédito com desconto em folha</h2></div>
+      <div className="mb-5 grid grid-cols-2 gap-x-4 gap-y-4">
+        <div><p className="text-xs text-muted-foreground">Número da CCB</p><p className="text-sm font-semibold text-foreground">{contrato.numeroCCB}</p></div>
+        <div><p className="text-xs text-muted-foreground">Data de emissão</p><p className="text-sm font-semibold text-foreground">{contrato.dataEmissao}</p></div>
+        <div><p className="text-xs text-muted-foreground">Modalidade</p><p className="text-sm font-semibold leading-snug text-foreground">{contrato.modalidade}</p></div>
+        <div><p className="text-xs text-muted-foreground">Valor líquido recebido</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
+      </div>
+      <div className="mb-5 rounded-2xl bg-[#FEF0E7] p-4">
+        <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-bold text-[#A33D05]">Parcelas</h3><span className="text-xs text-[#A33D05]">{contrato.parcelasRestantes} de {contrato.totalParcelas} restantes</span></div>
+        <div className="mb-3 h-2 rounded-full bg-[#A33D05]/20"><div className="h-2 rounded-full bg-[#E8590A] transition-all" style={{ width: `${progresso}%` }} /></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><p className="text-xs text-[#A33D05]/70">Valor da parcela</p><p className="text-sm font-bold text-[#A33D05]">R$ {contrato.valorParcela.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
+          <div><p className="text-xs text-[#A33D05]/70">Próximo desconto</p><p className="text-sm font-bold text-[#A33D05]">{contrato.proximoDesconto}</p></div>
+          <div><p className="text-xs text-[#A33D05]/70">Saldo devedor</p><SensitiveData value={`R$ ${contrato.saldoDevedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} type="currency" /></div>
+          <div><p className="text-xs text-[#A33D05]/70">Dia de pagamento</p><p className="text-sm font-bold text-[#A33D05]">Todo dia {contrato.diaPagamento}</p></div>
+        </div>
+      </div>
+      <div className="mb-5 rounded-2xl border border-border p-4"><h3 className="mb-3 text-sm font-bold text-foreground">Taxas e custos</h3><div className="space-y-2.5">{[{ label: "Taxa de juros", value: `${contrato.taxaJurosMes}% a.m. / ${contrato.taxaJurosAno}% a.a.` }, { label: "Custo Efetivo Total (CET)", value: `${contrato.cet}% a.a.` }, { label: "IOF", value: `R$ ${contrato.iof.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` }, { label: "Valor total das parcelas", value: `R$ ${contrato.valorTotalParcelas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p><p className="text-xs font-semibold text-foreground">{item.value}</p></div>)}</div></div>
+      <div className="mb-5 rounded-2xl border border-border p-4"><h3 className="mb-3 text-sm font-bold text-foreground">Dados do emitente</h3><div className="space-y-3">{[{ label: "Nome completo", value: contrato.nomeCliente, sensitive: true }, { label: "CPF", value: contrato.cpfCliente, sensitive: true, type: "cpf" as const }, { label: "Data de nascimento", value: contrato.dataNascimento }, { label: "Data de admissão", value: contrato.dataAdmissao }, { label: "Cidade", value: contrato.cidade }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p>{item.sensitive ? <SensitiveData value={item.value} type={item.type ?? "text"} /> : <p className="text-xs font-semibold text-foreground">{item.value}</p>}</div>)}</div></div>
+      <div className="mb-5 rounded-2xl border border-border p-4"><h3 className="mb-3 text-sm font-bold text-foreground">Dados para depósito</h3><div className="space-y-3">{[{ label: "Banco", value: contrato.banco }, { label: "Agência", value: contrato.agencia }, { label: "Conta", value: contrato.conta }, { label: "Chave Pix", value: contrato.chavePix }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p><SensitiveData value={item.value} type="text" /></div>)}</div></div>
+      <div className="mb-5 rounded-2xl border border-dashed border-border p-4"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-foreground">Quitar antecipadamente</p><p className="mt-0.5 text-xs text-muted-foreground">Pague o saldo devedor e encerre o contrato antes do prazo.</p></div><span className="rounded-full bg-[#E7E5E4] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#78716C]">Em breve</span></div></div>
+      <AccordionItemContrato hideValue cobertura={{ nome: "Informações do FIDC endossatário", valor: 0, descricao: `Fundo de Investimento em Direitos Creditórios responsável pela operação. Preço de aquisição: R$ ${contrato.precoAquisicao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. Data de aquisição: ${contrato.dataAquisicao}. Nome do FIDC: ${contrato.fidcNome}. CNPJ: ${contrato.fidcCnpj}.` }} />
+    </SubPageLayout>
+  );
+}
+
+function NotificacaoCard({ notificacao }: { notificacao: Notificacao }) {
+  const iconePorTipo: Record<NotificacaoTipo, ReactNode> = {
+    transacional: <CheckCircle size={18} weight="fill" className="text-green-600" />,
+    lembrete: <Clock size={18} weight="fill" className="text-[#E8590A]" />,
+    oferta: <Tag size={18} weight="fill" className="text-[#E8590A]" />,
+    sistema: <Info size={18} weight="fill" className="text-blue-500" />,
+  };
+
+  return (
+    <div className={`flex gap-3 rounded-2xl border p-4 transition-colors ${!notificacao.lida ? "border-[#E8590A]/20 bg-[#FEF0E7]" : "border-border bg-white"}`}>
+      <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${!notificacao.lida ? "bg-white" : "bg-[#F5F4F2]"}`}>{iconePorTipo[notificacao.tipo]}</div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className={`text-sm leading-snug ${!notificacao.lida ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>{notificacao.titulo}</p>
+          {!notificacao.lida ? <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#E8590A]" /> : null}
+        </div>
+        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{notificacao.descricao}</p>
+        <p className="mt-1.5 text-[11px] text-muted-foreground/60">{notificacao.data}</p>
+      </div>
+    </div>
+  );
+}
+
+function NotificacoesPage() {
+  const { notificacoes, marcarTodasLidas } = useNotificacoes();
+
+  useEffect(() => {
+    marcarTodasLidas();
+  }, [marcarTodasLidas]);
+
+  const grupos = [
+    { key: "hoje", label: "Hoje" },
+    { key: "semana", label: "Esta semana" },
+    { key: "anteriores", label: "Anteriores" },
+  ] as const;
+
+  const containerVariants = { initial: {}, animate: { transition: { staggerChildren: 0.08 } } };
+  const cardVariants = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0, transition: { duration: 0.25 } } };
+
+  return (
+    <SubPageLayout title="Notificações">
+      {notificacoes.length === 0 ? (
+        <div className="flex flex-col items-center space-y-4 px-6 py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F5F4F2]"><Bell size={32} className="text-muted-foreground" /></div>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Nada por aqui ainda.</h2>
+            <p className="mx-auto mt-1 max-w-[260px] text-sm leading-relaxed text-muted-foreground">Quando tiver novidades sobre seus contratos, ofertas e pagamentos, a gente avisa aqui.</p>
+          </div>
+        </div>
+      ) : (
+        <motion.div variants={containerVariants} initial="initial" animate="animate">
+          {grupos.map((grupo) => {
+            const itens = notificacoes.filter((n) => n.grupo === grupo.key);
+            if (itens.length === 0) return null;
+            return (
+              <div key={grupo.key} className="mb-5">
+                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{grupo.label}</p>
+                <div className="space-y-2">
+                  {itens.map((notificacao) => (
+                    <motion.div key={notificacao.id} variants={cardVariants}>
+                      <NotificacaoCard notificacao={notificacao} />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </motion.div>
+      )}
+    </SubPageLayout>
   );
 }
 
@@ -698,6 +888,7 @@ function App() {
   const [otpCode, setOtpCode] = useState("");
   const [loginStep, setLoginStep] = useState<1 | 2 | 3>(1);
   const [otpCountdown, setOtpCountdown] = useState(30);
+  const { notificacoes, naoLidas, marcarTodasLidas } = useNotificacoes();
 
   const firstName = (storedUser?.name || name || "você").split(" ")[0] || "você";
   const totalSteps = 4;
@@ -760,7 +951,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -1144,7 +1335,13 @@ function App() {
               <h2 className="text-xl font-bold">Seu crédito na seutudo.</h2>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-white/60"><SealCheck size={12} /> Conta verificada</p>
             </div>
-            <button className="rounded-full bg-white/15 p-2.5"><Bell size={20} /></button>
+            <div className="flex items-center gap-1">
+              <PrivacyToggle variant="light" />
+              <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 transition-colors hover:bg-white/25">
+                <Bell size={20} className="text-white" />
+                {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold text-[#E8590A]">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
+              </button>
+            </div>
           </div>
           <Card className="border-0 bg-white shadow-none"><CardContent className="space-y-3 p-4"><div className="flex items-start justify-between gap-2"><div className="space-y-0.5"><p className="text-[11px] font-bold uppercase tracking-wide text-primary">Oferta disponível para você</p><p className="text-sm font-bold leading-snug text-foreground">Você pode antecipar até <SensitiveData value="R$ 4.800" type="currency" /> no FGTS</p><p className="text-xs text-muted-foreground">Taxa a partir de 1,39% ao mês</p></div><Badge className="shrink-0 border-0 bg-primary-light text-xs text-primary-dark">Novo</Badge></div><motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}><Button className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">Ver minha oferta</Button></motion.div></CardContent></Card>
         </header>
@@ -1157,10 +1354,10 @@ function App() {
                 const isPrimary = idx === 0;
                 if (isPrimary) {
                   return (
-                    <motion.div key={interest} variants={cardVariants}><Card className="relative overflow-hidden border-primary/30 shadow-sm"><CardContent className="flex min-h-[140px] items-stretch p-0"><div className="flex flex-1 flex-col justify-between p-4"><div><div className="mb-1 flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-light text-primary">{currentService.icon}</div><p className="text-sm font-semibold text-foreground">{currentService.title}</p></div>{currentService.highlight && <p className="mb-1 text-xs font-semibold text-primary">{currentService.highlight}</p>}<p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p></div><Button className="h-9 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">{currentService.cta} <CaretRight size={14} className="ml-1" /></Button></div><div className="relative w-28 shrink-0 overflow-hidden bg-white"><img src={currentService.photo} alt="" className="absolute inset-0 h-full w-full object-cover object-top" style={{ mixBlendMode: "multiply" }} /></div></CardContent></Card></motion.div>
+                    <motion.div key={interest} variants={cardVariants}><Card className="relative overflow-hidden border-primary/30 shadow-sm"><CardContent className="flex min-h-[140px] items-stretch p-0"><div className="flex flex-1 flex-col justify-between p-4"><div><div className="mb-1 flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-light text-primary">{currentService.icon}</div><p className="text-sm font-semibold text-foreground">{currentService.title}</p></div>{currentService.highlight && <p className="mb-1 text-xs font-semibold text-primary">{interest === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p>}<p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p></div><Button className="h-9 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">{currentService.cta} <CaretRight size={14} className="ml-1" /></Button></div><div className="relative w-28 shrink-0 overflow-hidden bg-white"><img src={currentService.photo} alt="" className="absolute inset-0 h-full w-full object-cover object-top" style={{ mixBlendMode: "multiply" }} /></div></CardContent></Card></motion.div>
                   );
                 }
-                return <motion.div key={interest} variants={cardVariants}><Card className="border-border shadow-sm"><CardContent className="p-4"><div className="mb-2 flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-muted-foreground">{currentService.icon}</div><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-foreground">{currentService.title}</p>{currentService.highlight && <p className="mt-0.5 text-xs font-medium text-primary">{currentService.highlight}</p>}</div></div><p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p><Button variant="outline" className="h-9 w-full rounded-lg border-border text-sm font-medium">{currentService.cta}<CaretRight size={14} className="ml-1" /></Button></CardContent></Card></motion.div>;
+                return <motion.div key={interest} variants={cardVariants}><Card className="border-border shadow-sm"><CardContent className="p-4"><div className="mb-2 flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-muted-foreground">{currentService.icon}</div><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-foreground">{currentService.title}</p>{currentService.highlight && <p className="mt-0.5 text-xs font-medium text-primary">{interest === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p>}</div></div><p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p><Button variant="outline" className="h-9 w-full rounded-lg border-border text-sm font-medium">{currentService.cta}<CaretRight size={14} className="ml-1" /></Button></CardContent></Card></motion.div>;
               })}
             </motion.div>
 
@@ -1221,7 +1418,6 @@ function App() {
                   icon: <ShieldCheck size={18} />,
                   items: [
                     { label: "Alterar senha", action: () => navigate("/minha-conta/alterar-senha") },
-                    { label: "Avaliar o aplicativo", action: () => window.open("https://play.google.com", "_blank") },
                   ],
                 },
                 {
@@ -1295,6 +1491,9 @@ function App() {
             <Route path="/minha-conta/dados-bancarios" element={getStoredUser() ? <DadosBancariosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/alterar-senha" element={getStoredUser() ? <AlterarSenhaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos" element={getStoredUser() ? <ContratosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
