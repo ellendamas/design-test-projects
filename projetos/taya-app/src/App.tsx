@@ -7,32 +7,49 @@ import {
   Bank,
   Bell,
   Briefcase,
+  Check,
+  Buildings,
+  Cake,
   CaretRight,
   ChatCircle,
   CheckCircle,
+  ClipboardText,
   CaretDown,
   Clock,
   CreditCard,
+  CurrencyCircleDollar,
+  DeviceMobile,
   EnvelopeSimple,
   Eye,
   EyeSlash,
   FileText,
   Fingerprint,
   Gear,
+  GenderIntersex,
   Headset,
   House,
+  IdentificationCard,
   Info,
+  Lightning,
   LockSimple,
   MagnifyingGlass,
+  MapPin,
   PencilSimple,
   Plus,
+  ShoppingBag,
   SealCheck,
   ShieldCheck,
+  DownloadSimple,
   SignOut,
+  Sliders,
+  SpinnerGap,
   Tag,
   Trash,
   UserCircle,
   WhatsappLogo,
+  X,
+  Users,
+  User,
 } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
@@ -51,7 +68,11 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { contratos } from "@/data/contratos";
 import { usePrivacy } from "@/context/PrivacyContext";
 import { useNotificacoes } from "@/context/NotificacoesContext";
+import { CreditCardProvider, useCreditCard } from "@/context/CreditCardContext";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
+import { trackStep } from "@/utils/analytics";
+import Cards from "react-credit-cards-2";
+import "react-credit-cards-2/dist/es/styles-compiled.css";
 
 type ServiceType = "clt" | "fgts" | "saque-facil";
 type OtpChannel = "whatsapp" | "email" | "sms";
@@ -76,21 +97,19 @@ const serviceCopy: Record<
     title: "Crédito com desconto em folha",
     subtitle: "Para quem tem carteira assinada",
     description: "Parcelas fixas descontadas direto do seu salário. Sem susto no fim do mês.",
-    cta: "Consultar crédito CLT",
+    cta: "Ver oferta",
     icon: <Briefcase size={20} />,
     highlight: "Até R$ 18.000 disponíveis",
-    photo:
-      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=300&q=80&fit=crop&crop=face",
+    photo: "/images/card-dash-clt.png",
   },
   fgts: {
     title: "Antecipar meu FGTS",
     subtitle: "Seu saldo do FGTS disponível agora",
     description: "Receba em minutos com simulação clara e sem burocracia.",
-    cta: "Simular antecipação",
-    icon: <Bank size={20} />,
+    cta: "Ver oferta",
+    icon: <Buildings size={20} />,
     highlight: "Taxa a partir de 1,39% a.m.",
-    photo:
-      "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=300&q=80&fit=crop&crop=face",
+    photo: "/images/card-dash-fgts.png",
   },
   "saque-facil": {
     title: "Saque Fácil no cartão",
@@ -99,8 +118,7 @@ const serviceCopy: Record<
     cta: "Ver oferta",
     icon: <CreditCard size={20} />,
     highlight: "Aprovação em minutos",
-    photo:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&q=80&fit=crop&crop=face",
+    photo: "/images/card-dash-saquefacil.png",
   },
 };
 
@@ -129,12 +147,12 @@ function SecurityStrip() {
   );
 }
 
-function StepHeader({ step, total, title, subtitle }: { step: number; total: number; title: string; subtitle: string }) {
+function StepHeader({ step, total, title, subtitle, labelWord = "Passo" }: { step: number; total: number; title: string; subtitle: string; labelWord?: string }) {
   const pct = Math.round((step / total) * 100);
   return (
     <div className="mb-5 space-y-2">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span className="font-medium">Passo {step} de {total}</span>
+        <span className="font-medium">{labelWord} {step} de {total}</span>
         <span>{pct}%</span>
       </div>
       <Progress value={pct} className="h-1 bg-secondary [&>div]:bg-primary [&>div]:transition-all [&>div]:duration-500" />
@@ -306,6 +324,509 @@ function SubPageLayout({ title, children }: { title: string; children: ReactNode
         </nav>
       </main>
     </div>
+  );
+}
+
+type SaqueFacilStep = "intro" | "simulation" | "data_intro" | "rg" | "birth" | "income" | "civil" | "gender" | "card_due_day" | "address" | "bank" | "stark_analysis" | "card_type" | "card" | "selfie_ownership" | "selfie_identity" | "confirmation" | "success";
+
+const etapasSaqueFacil = [
+  { id: "simulacao", label: "Simulação" },
+  { id: "dados", label: "Seus dados" },
+  { id: "cartao", label: "Cartão" },
+  { id: "verificacao", label: "Verificação" },
+  { id: "confirmacao", label: "Confirmar" },
+] as const;
+
+function StepperSaqueFacil({ etapaAtual }: { etapaAtual: string }) {
+  const idx = etapasSaqueFacil.findIndex((e) => e.id === etapaAtual);
+  return (
+    <div className="mb-6 flex w-full items-center justify-between px-1">
+      {etapasSaqueFacil.map((etapa, i) => (
+        <motion.div key={etapa.id} className="contents">
+          <div key={etapa.id} className="flex min-w-0 flex-col items-center gap-1">
+            <div
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-all ${
+                i < idx
+                  ? "bg-[#E8590A] text-white"
+                  : i === idx
+                    ? "bg-[#E8590A] text-white ring-4 ring-[#FEF0E7]"
+                    : "border border-border bg-[#F5F4F2] text-muted-foreground"
+              }`}
+            >
+              {i < idx ? <CheckCircle size={14} weight="fill" /> : i + 1}
+            </div>
+            <span
+              className={`max-w-[52px] text-center text-[10px] leading-tight ${
+                i === idx ? "font-semibold text-[#E8590A]" : i < idx ? "text-[#E8590A]" : "text-muted-foreground"
+              }`}
+            >
+              {etapa.label}
+            </span>
+          </div>
+          {i < etapasSaqueFacil.length - 1 ? <div className={`mx-1 mb-4 h-0.5 flex-1 ${i < idx ? "bg-[#E8590A]" : "bg-[#F5F4F2]"}`} /> : null}
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function OptionButton({ selected, onClick, children, fullWidth = false }: { selected: boolean; onClick: () => void; children: ReactNode; fullWidth?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${fullWidth ? "w-full" : ""} ${selected ? "border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]" : "border-border bg-white text-foreground hover:border-[#E8590A]/40"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SaqueFacilPage() {
+  const navigate = useNavigate();
+  const { state, setState } = useCreditCard();
+  const [step, setStep] = useState<SaqueFacilStep>("intro");
+  const [orgaoExpedidor, setOrgaoExpedidor] = useState("SSP");
+  const [faixaRenda, setFaixaRenda] = useState("");
+  const [faqOpen, setFaqOpen] = useState<number | null>(0);
+  const [taxasOpen, setTaxasOpen] = useState(false);
+  const [focused, setFocused] = useState<"number" | "name" | "expiry" | "cvc" | "">("");
+  const [addressCep, setAddressCep] = useState("01522-000");
+  const [addressStreet, setAddressStreet] = useState("Rua Dona Ana Neri");
+  const [addressNumber, setAddressNumber] = useState("581");
+  const [agencia, setAgencia] = useState("1234");
+  const [addressSelected, setAddressSelected] = useState(true);
+  const [bankSelected, setBankSelected] = useState(true);
+  const [bankSearch, setBankSearch] = useState("");
+  const [bankName, setBankName] = useState("Banco Inter");
+  const [bankConta, setBankConta] = useState("12345");
+  const [bankDigito, setBankDigito] = useState("6");
+  const [cardType, setCardType] = useState("");
+  const [cardDueDay, setCardDueDay] = useState("");
+  const [addressBairro, setAddressBairro] = useState("Cambuci");
+  const [addressCidade, setAddressCidade] = useState("São Paulo");
+  const [addressEstado, setAddressEstado] = useState("SP");
+  const [cepErro, setCepErro] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
+  const numeroRef = useRef<HTMLInputElement>(null);
+  const [usarOutroDia, setUsarOutroDia] = useState(false);
+  const [openBanco, setOpenBanco] = useState(false);
+  const [bancoSelecionado, setBancoSelecionado] = useState<{ cod: string; nome: string } | null>(null);
+  const [useOtherAddress, setUseOtherAddress] = useState(false);
+  const [useOtherBank, setUseOtherBank] = useState(false);
+  const [starkProgress, setStarkProgress] = useState(0);
+  const [starkApproved, setStarkApproved] = useState<boolean | null>(null);
+  const [showStarkButton, setShowStarkButton] = useState(false);
+
+  const flow: SaqueFacilStep[] = ["simulation", "data_intro", "rg", "birth", "income", "civil", "gender", "card_due_day", "address", "bank", "stark_analysis", "card_type", "card", "selfie_ownership", "selfie_identity", "confirmation", "success"];
+  const index = flow.indexOf(step);
+  const firstName = (getStoredUser()?.name || "Cliente").split(" ")[0];
+
+  const toCurrency = (value: number) =>
+    value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const parseCurrency = (value: string) => {
+    const normalized = value.replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
+    return Number(normalized) || 0;
+  };
+
+  const limiteCartao = state.valorDesejado || 0;
+  const valorLiquido = useMemo(() => limiteCartao / 1.1315, [limiteCartao]);
+  const valorParcela = useMemo(() => (state.numeroParcelas > 0 ? limiteCartao / state.numeroParcelas : 0), [limiteCartao, state.numeroParcelas]);
+  const cardFinal = state.numeroCartao.replace(/\s/g, "").slice(-4) || "----";
+
+  const stepMap: Record<SaqueFacilStep, string> = {
+    intro: "credit_card_intro",
+    simulation: "credit_card_simulation",
+    data_intro: "credit_card_data_intro",
+    rg: "credit_card_rg",
+    birth: "credit_card_birth_date",
+    income: "credit_card_income",
+    civil: "credit_card_civil_status",
+    gender: "credit_card_gender",
+    card_due_day: "credit_card_due_day",
+    address: "credit_card_address_confirmation",
+    bank: "credit_card_bank_confirmation",
+    stark_analysis: "credit_card_stark_analysis",
+    card_type: "credit_card_type_selection",
+    card: "credit_card_card_data",
+    selfie_ownership: "credit_card_selfie_ownership",
+    selfie_identity: "credit_card_selfie_identity",
+    confirmation: "credit_card_confirmation",
+    success: "credit_card_success",
+  };
+
+  useEffect(() => {
+    trackStep(stepMap[step]);
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== "selfie_ownership") return;
+    const timer = window.setTimeout(() => {
+      setState((prev) => ({ ...prev, selfieOwnershipOk: true }));
+      setStep("selfie_identity");
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [step, setState]);
+
+  useEffect(() => {
+    if (step !== "selfie_identity") return;
+    const timer = window.setTimeout(() => {
+      setState((prev) => ({ ...prev, selfieIdentityOk: true }));
+      setStep("confirmation");
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [step, setState]);
+
+  useEffect(() => {
+    if (step !== "stark_analysis") return;
+    setStarkApproved(null);
+    setShowStarkButton(false);
+    setStarkProgress(0);
+
+    const start = Date.now();
+    const interval = window.setInterval(() => {
+      const elapsed = Date.now() - start;
+      const pct = Math.min(100, Math.round((elapsed / 4000) * 100));
+      setStarkProgress(pct);
+    }, 120);
+
+    const timer = window.setTimeout(() => {
+      window.clearInterval(interval);
+      setStarkProgress(100);
+      setStarkApproved(true);
+      window.setTimeout(() => setShowStarkButton(true), 1000);
+    }, 4000);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timer);
+    };
+  }, [step]);
+
+  useEffect(() => {
+    if (step === "success") {
+      toast("seutudo.", { description: "Você vai receber um e-mail com o contrato assinado." });
+    }
+  }, [step]);
+
+  const goBack = () => {
+    if (step === "intro") return navigate("/painel");
+    if (step === "simulation") return setStep("intro");
+    if (index > 0) return setStep(flow[index - 1]);
+    navigate("/painel");
+  };
+
+  const goNext = () => {
+    if (step === "intro") return setStep("simulation");
+    if (step === "confirmation") return setStep("success");
+    if (step === "success") return navigate("/painel");
+    if (index >= 0 && index < flow.length - 1) setStep(flow[index + 1]);
+  };
+
+  const showHeader = !["intro", "data_intro", "success"].includes(step);
+  const displayStep = step === "simulation" ? 1 : ["rg", "birth", "income", "civil", "gender", "card_due_day", "address", "bank"].includes(step) ? 2 : ["stark_analysis", "card_type", "card"].includes(step) ? 3 : ["selfie_ownership", "selfie_identity"].includes(step) ? 4 : 5;
+
+  const canAdvance = useMemo(() => {
+    if (step === "simulation") return limiteCartao > 0 && state.numeroParcelas >= 4;
+    if (step === "data_intro") return true;
+    if (step === "rg") return state.rg.length >= 12 && orgaoExpedidor.length > 0;
+    if (step === "birth") return state.dataNascimento.length === 10;
+    if (step === "income") return Boolean(faixaRenda);
+    if (step === "civil") return Boolean(state.estadoCivil);
+    if (step === "gender") return Boolean(state.sexo);
+    if (step === "card_due_day") return Boolean(cardDueDay);
+    if (step === "address") return useOtherAddress ? Boolean(addressCep && addressStreet && addressNumber) : addressSelected;
+    if (step === "bank") return useOtherBank ? Boolean(bankName && agencia && bankConta && bankDigito) : bankSelected;
+    if (step === "stark_analysis") return starkApproved === true && showStarkButton;
+    if (step === "card_type") return Boolean(cardType);
+    if (step === "card") return Boolean(state.numeroCartao && state.nomeCartao && state.vencimento && state.cvv);
+    if (step === "confirmation") return state.termoAceito;
+    return true;
+  }, [step, limiteCartao, state, orgaoExpedidor, faixaRenda, cardDueDay, useOtherAddress, addressCep, addressStreet, addressNumber, addressSelected, useOtherBank, bankName, agencia, bankConta, bankDigito, bankSelected, starkApproved, showStarkButton, cardType]);
+
+  const faq = [
+    { q: "Quem pode usar o Saque Fácil?", a: "Qualquer pessoa com cartão de crédito com bandeira reconhecida (Visa, Mastercard, Elo, Hipercard ou Amex), função crédito ativa e limite disponível. Cartões Alelo, Sodexo e VR não são aceitos." },
+    { q: "Como aparece na fatura?", a: "A cobrança aparece como STARK*SeuTudo junto ao valor de cada parcela." },
+    { q: "O que acontece com meu limite?", a: "Seu limite é usado na contratação e vai sendo liberado conforme você paga as parcelas mensais, igual a uma compra comum." },
+    { q: "É seguro?", a: "Sim. A operação usa tecnologia Unico para validar sua identidade e seu cartão, com assinatura eletrônica com validade jurídica." },
+  ];
+
+  const subtelaParaEtapa: Record<SaqueFacilStep, string> = {
+    intro: "simulacao",
+    simulation: "simulacao",
+    data_intro: "dados",
+    rg: "dados",
+    birth: "dados",
+    income: "dados",
+    civil: "dados",
+    gender: "dados",
+    card_due_day: "dados",
+    address: "dados",
+    bank: "dados",
+    card_type: "cartao",
+    card: "cartao",
+    stark_analysis: "verificacao",
+    selfie_ownership: "verificacao",
+    selfie_identity: "verificacao",
+    confirmation: "confirmacao",
+    success: "confirmacao",
+  };
+
+  const bancosBrasil = [
+    { cod: "001", nome: "Banco do Brasil" }, { cod: "341", nome: "Itaú Unibanco" }, { cod: "237", nome: "Bradesco" }, { cod: "033", nome: "Santander" },
+    { cod: "104", nome: "Caixa Econômica Federal" }, { cod: "260", nome: "Nubank" }, { cod: "077", nome: "Banco Inter" }, { cod: "290", nome: "PagBank" },
+    { cod: "323", nome: "Mercado Pago" }, { cod: "336", nome: "C6 Bank" }, { cod: "212", nome: "Banco Original" }, { cod: "756", nome: "Sicoob" },
+    { cod: "748", nome: "Sicredi" }, { cod: "422", nome: "Safra" }, { cod: "070", nome: "BRB" }, { cod: "756", nome: "Bancoob" },
+    { cod: "085", nome: "Via Credi" }, { cod: "756", nome: "Unicred" }, { cod: "389", nome: "Banco Mercantil" }, { cod: "074", nome: "BCO. J.SAFRA" },
+    { cod: "707", nome: "Daycoval" }, { cod: "655", nome: "Votorantim" }, { cod: "169", nome: "Banco Olé" }, { cod: "274", nome: "Money Plus" },
+    { cod: "318", nome: "BMG" }, { cod: "121", nome: "Agibank" }, { cod: "380", nome: "PicPay" }, { cod: "364", nome: "EFÍ Bank" },
+    { cod: "403", nome: "Cora" }, { cod: "461", nome: "Asaas" }, { cod: "084", nome: "Uniprime" },
+  ];
+
+  const buscarCEP = async (cep: string) => {
+    const cepLimpo = cep.replace(/\D/g, "");
+    if (cepLimpo.length !== 8) return;
+    setCepErro("");
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await res.json();
+      if (data.erro) {
+        setCepErro("CEP não encontrado. Verifique e tente novamente.");
+        return;
+      }
+      setAddressStreet(data.logradouro || "");
+      setAddressBairro(data.bairro || "");
+      setAddressCidade(data.localidade || "");
+      setAddressEstado(data.uf || "");
+      requestAnimationFrame(() => numeroRef.current?.focus());
+    } catch {
+      setCepErro("Não foi possível buscar o CEP. Tente novamente.");
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
+  return (
+    <SubPageLayout title="Saque Fácil no cartão">
+      <style>{`.rccs__card--front{background:linear-gradient(135deg,#1C1917,#374151)!important}.rccs__card--back{background:linear-gradient(135deg,#374151,#1C1917)!important}`}</style>
+      <div className="space-y-4 md:mx-auto md:max-w-[640px]">
+        {step !== "intro" ? <StepperSaqueFacil etapaAtual={subtelaParaEtapa[step]} /> : null}
+
+        <div>
+        {step === "intro" && (
+          <div className="space-y-6 px-4 pb-24">
+            <div className="relative mb-5 min-h-[200px] overflow-hidden rounded-2xl">
+              <img
+                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80&fit=crop&crop=center"
+                alt="Saque Fácil"
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#A33D05] via-[#E8590A]/70 to-transparent" />
+              <div className="relative z-10 flex min-h-[200px] flex-col justify-end p-5">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/75">Saque Fácil no cartão</p>
+                <h1 className="mb-2 text-2xl font-bold leading-tight text-white">Transforme o limite do seu cartão em dinheiro na conta</h1>
+                <p className="text-sm text-white/85">Em poucos minutos, sem análise de crédito</p>
+              </div>
+            </div>
+
+            <div className="mb-6 flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"><CheckCircle size={12} className="text-[#E8590A]" />100% digital</div>
+              <div className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"><CheckCircle size={12} className="text-[#E8590A]" />Sem burocracia</div>
+              <div className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"><ShieldCheck size={12} className="text-[#E8590A]" />Com segurança</div>
+            </div>
+
+            <Card className="mb-6 border-border shadow-sm">
+              <CardContent className="divide-y divide-border pt-0">
+                {[{ icon: <Lightning size={20} />, titulo: "Dinheiro em até 30 minutos", desc: "Após a aprovação, o valor cai direto na sua conta." }, { icon: <X size={20} />, titulo: "Sem análise de crédito", desc: "Não consultamos SPC ou Serasa. Só precisa ter limite disponível." }, { icon: <Sliders size={20} />, titulo: "Você escolhe as parcelas", desc: "De 4 a 12 vezes, no limite do seu cartão de crédito." }].map((b) => (
+                  <div key={b.titulo} className="flex gap-3 py-4 first:pt-5 last:pb-5">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEF0E7] text-[#E8590A]">{b.icon}</div>
+                    <div><p className="text-sm font-semibold text-foreground">{b.titulo}</p><p className="mt-0.5 text-xs text-muted-foreground">{b.desc}</p></div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <div className="space-y-2">
+              <p className="mb-3 text-base font-semibold text-foreground">Saiba mais sobre o Saque Fácil</p>
+              {faq.map((item, i) => {
+                const open = faqOpen === i;
+                return (
+                  <Card key={item.q} className="border-border">
+                    <CardContent className="p-0">
+                      <button className="flex w-full items-center justify-between px-4 py-3 text-left" onClick={() => setFaqOpen(open ? null : i)}>
+                        <span className="text-sm font-medium text-foreground">{item.q}</span>
+                        <CaretDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+                      </button>
+                      {open ? <p className="px-4 pb-4 text-xs leading-relaxed text-muted-foreground">{item.a}</p> : null}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <div className="sticky bottom-0 bg-background pb-6 pt-3">
+              <Button className="h-12 w-full rounded-xl bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]" onClick={goNext}>Quero simular <ArrowRight size={16} className="ml-2" /></Button>
+            </div>
+          </div>
+        )}
+
+        {step === "data_intro" && (
+          <Card className="border-border">
+            <CardContent className="space-y-4 p-6 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><ClipboardText size={36} /></div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Agora precisamos de alguns dados seus</h2>
+                <p className="mt-1 text-sm text-muted-foreground">São informações necessárias para o seu contrato. Leva menos de 2 minutos.</p>
+              </div>
+              <ul className="space-y-2 text-left text-sm">
+                {[
+                  "Documento de identidade (RG)",
+                  "Data de nascimento e renda",
+                  "Endereço de cobrança",
+                  "Conta bancária para receber",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-foreground"><CheckCircle size={16} className="text-[#E8590A]" />{item}</li>
+                ))}
+              </ul>
+              <SecurityStrip />
+            </CardContent>
+          </Card>
+        )}
+
+        {step === "simulation" && (
+          <div className="space-y-4">
+            <div><h2 className="text-xl font-bold text-foreground">Qual é o limite disponível no seu cartão?</h2><p className="mt-1 text-sm text-muted-foreground">Informe o limite que está disponível agora para usarmos na simulação.</p></div>
+            <IMaskInput mask={Number} scale={2} signed={false} thousandsSeparator="." radix="," mapToRadix={["."]} normalizeZeros padFractionalZeros value={limiteCartao.toString()} onAccept={(v) => setState((prev) => ({ ...prev, valorDesejado: parseCurrency(String(v)) }))} className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold" placeholder="R$ 0,00" />
+            <div>
+              <p className="mb-2 text-sm font-medium text-foreground">Número de parcelas</p>
+              <input type="range" min={4} max={12} step={1} value={state.numeroParcelas} onChange={(e) => setState((prev) => ({ ...prev, numeroParcelas: Number(e.target.value) }))} className="w-full accent-[#E8590A]" />
+              <div className="mt-1 flex justify-between text-xs" style={{ paddingLeft: "8px", paddingRight: "8px" }}>{[4,5,6,7,8,9,10,11,12].map((n)=><span key={n} className={n===state.numeroParcelas?"font-bold text-[#E8590A]":"text-muted-foreground"}>{n}</span>)}</div>
+            </div>
+            <div className="mt-4">
+              <div className="rounded-2xl bg-[#FEF0E7] p-4">
+                <p className="mb-1 text-xs font-medium text-[#A33D05]">Você precisa ter este limite disponível no cartão</p>
+                <p className="text-3xl font-bold text-[#E8590A]">R$ {toCurrency(limiteCartao)}</p>
+                <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-base font-bold text-[#A33D05]">R$ {toCurrency(valorLiquido)}</p></div><div><p className="text-xs text-[#A33D05]/70">Parcelas de</p><p className="text-base font-bold text-[#A33D05]">{state.numeroParcelas}x R$ {toCurrency(valorParcela)}</p></div></div>
+              </div>
+              <button className="mt-3 flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm" onClick={() => setTaxasOpen((p) => !p)}>
+                Ver taxas da operação
+                <CaretDown size={16} className={`transition-transform ${taxasOpen ? "rotate-180" : ""}`} />
+              </button>
+              {taxasOpen ? <div className="mt-2 rounded-xl bg-white p-3 text-xs text-muted-foreground">CET estimado: 13,15%. IOF e encargos já incluídos na simulação.</div> : null}
+            </div>
+          </div>
+        )}
+
+        {step === "rg" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><IdentificationCard size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Qual é o seu RG?</h2></div><IMaskInput mask="00.000.000-0" value={state.rg} onAccept={(v) => setState((p) => ({ ...p, rg: String(v) }))} placeholder="00.000.000-0" className={maskedInputClass} /><div className="grid grid-cols-3 gap-2">{["SSP","DETRAN","PC","PM","SSPDS","Outro"].map((o)=><OptionButton key={o} selected={orgaoExpedidor===o} onClick={()=>setOrgaoExpedidor(o)}>{o}</OptionButton>)}</div></CardContent></Card>}
+        {step === "birth" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><Cake size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Data de nascimento</h2></div><IMaskInput mask="00/00/0000" value={state.dataNascimento} onAccept={(v) => setState((p) => ({ ...p, dataNascimento: String(v) }))} placeholder="DD/MM/AAAA" className={maskedInputClass} /></CardContent></Card>}
+        {step === "income" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><CurrencyCircleDollar size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Qual é sua renda?</h2></div><div className="grid grid-cols-2 gap-2">{["Até R$ 2.000","R$ 2.001 a R$ 4.000","R$ 4.001 a R$ 8.000","Acima de R$ 8.000"].map((f)=><button key={f} onClick={()=>{ setFaixaRenda(f); setState((p)=>({...p,renda: f==="Até R$ 2.000"?2000:f==="R$ 2.001 a R$ 4.000"?4000:f==="R$ 4.001 a R$ 8.000"?8000:10000})); }} className={`rounded-xl border px-3 py-2 text-xs ${faixaRenda===f?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>{f}</button>)}</div></CardContent></Card>}
+        {step === "civil" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><Users size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Estado civil</h2></div><div className="grid grid-cols-2 gap-2">{["Solteiro(a)","Casado(a)","Divorciado(a)","Viúvo(a)"].map((v)=><OptionButton key={v} selected={state.estadoCivil===v} onClick={()=>setState((p)=>({...p,estadoCivil:v}))}>{v}</OptionButton>)}</div></CardContent></Card>}
+        {step === "gender" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><GenderIntersex size={28} className="text-[#E8590A]" /><User size={0} className="hidden" /></div><h2 className="text-xl font-bold">Sexo</h2><p className="text-sm text-muted-foreground">Informação necessária para o seu contrato.</p></div><div className="grid grid-cols-2 gap-2"><button onClick={()=>setState((p)=>({...p,sexo:"M"}))} className={`h-11 rounded-xl border text-sm ${state.sexo==="M"?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>Masculino</button><button onClick={()=>setState((p)=>({...p,sexo:"F"}))} className={`h-11 rounded-xl border text-sm ${state.sexo==="F"?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>Feminino</button><button onClick={()=>setState((p)=>({...p,sexo:"N"}))} className={`col-span-2 h-11 rounded-xl border text-sm ${state.sexo==="N"?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>Prefiro não informar</button></div></CardContent></Card>}
+        {step === "card_due_day" && <Card className="border-border"><CardContent className="space-y-3 p-4"><h2 className="text-xl font-bold text-foreground">Dia do vencimento do cartão que será usado</h2><p className="text-sm text-muted-foreground">Selecione o dia de vencimento.</p><div className="grid grid-cols-4 gap-2">{[1,5,10,15,20,25].map((d)=><button key={d} onClick={()=>{setUsarOutroDia(false); setCardDueDay(String(d));}} className={`h-10 rounded-xl border text-sm ${cardDueDay===String(d)&&!usarOutroDia?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>{d}</button>)}<button onClick={()=>{setUsarOutroDia(true); if(!cardDueDay) setCardDueDay("1");}} className={`h-10 rounded-xl border text-sm ${usarOutroDia?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>Outro</button></div>{usarOutroDia ? <select value={cardDueDay} onChange={(e)=>setCardDueDay(String(Number(e.target.value)))} className="mt-2 h-12 w-full rounded-xl border border-border bg-white px-4 text-foreground">{Array.from({length:31},(_,i)=>i+1).map((d)=><option key={d} value={d}>Dia {d}</option>)}</select> : null}</CardContent></Card>}
+        {step === "address" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><MapPin size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Confirme seu endereço de cobrança</h2><p className="text-sm text-muted-foreground">É para onde enviaremos as comunicações do contrato</p></div>{!useOtherAddress ? <><button onClick={()=>{setAddressSelected(true); setState((p)=>({...p,enderecoConfirmado:true})); goNext();}} className={`w-full space-y-0.5 rounded-xl border p-4 text-left text-sm leading-relaxed ${addressSelected?"border-[#E8590A] bg-[#FEF0E7]/40":"border-border"}`}><div className="mb-2 flex items-center justify-between"><span className="text-xs font-semibold text-[#A33D05]">Endereço cadastrado</span>{addressSelected ? <Badge className="border-0 bg-[#FEF0E7] text-[#A33D05]">Usar este endereço</Badge> : null}</div><p>{addressStreet}, {addressNumber}</p><p>{addressBairro}</p><p>{addressCidade} / {addressEstado}</p><p>CEP: {addressCep}</p></button><Button variant="outline" className="h-11 w-full rounded-xl border-border" onClick={()=>setUseOtherAddress(true)}><PencilSimple size={16} className="mr-2" />Adicionar outro endereço</Button></> : <><div className="relative"><IMaskInput mask="00000-000" value={addressCep} onAccept={(v)=>{const val=String(v); setAddressCep(val); if(val.replace(/\D/g,"").length===8) buscarCEP(val);}} className={maskedInputClass} placeholder="CEP" />{cepLoading ? <SpinnerGap size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground" /> : null}</div><button className="text-sm text-primary underline" onClick={()=>window.open("https://buscacepinter.correios.com.br","_blank")}>Não sei meu CEP</button>{cepErro ? <p className="text-xs text-red-500">{cepErro}</p> : null}<Input value={addressStreet} onChange={(e)=>setAddressStreet(e.target.value)} className={`h-12 rounded-xl ${cepLoading?"animate-pulse bg-[#F5F4F2]":""}`} placeholder="Logradouro" /><Input ref={numeroRef} value={addressNumber} onChange={(e)=>setAddressNumber(e.target.value)} className="h-12 rounded-xl" placeholder="Número" /><Input value={addressBairro} onChange={(e)=>setAddressBairro(e.target.value)} className={`h-12 rounded-xl ${cepLoading?"animate-pulse bg-[#F5F4F2]":""}`} placeholder="Bairro" /><Input value={addressCidade} readOnly className={`h-12 rounded-xl opacity-70 ${cepLoading?"animate-pulse bg-[#F5F4F2]":""}`} placeholder="Cidade" /><Input value={addressEstado} readOnly className={`h-12 rounded-xl opacity-70 ${cepLoading?"animate-pulse bg-[#F5F4F2]":""}`} placeholder="Estado" /><Input className="h-12 rounded-xl" placeholder="Complemento (opcional)" /><Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" disabled={!addressCep || !addressStreet || !addressNumber || !addressBairro || !addressCidade || !addressEstado} onClick={()=>{setState((p)=>({...p,enderecoConfirmado:true})); goNext();}}>Usar endereço informado</Button></>}</CardContent></Card>}
+        {step === "bank" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><Bank size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Para qual conta enviamos o dinheiro?</h2></div>{!useOtherBank ? <><button onClick={()=>{setBankSelected(true); setState((p)=>({...p,bancoConfirmado:true})); goNext();}} className={`w-full rounded-xl border p-4 text-left ${bankSelected?"border-[#E8590A] bg-[#FEF0E7]/40":"border-border"}`}><div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">{bankName}</p>{bankSelected ? <Badge className="border-0 bg-[#FEF0E7] text-[#A33D05]">Receber nesta conta</Badge> : null}</div><p className="text-xs text-muted-foreground">Agência · <SensitiveData value={agencia} type="text" /></p><p className="text-xs text-muted-foreground">Conta corrente · <SensitiveData value={`${bankConta}-${bankDigito}`} type="text" /></p></button><Button variant="outline" className="h-11 w-full rounded-xl border-border" onClick={()=>setUseOtherBank(true)}><Bank size={16} className="mr-2" />Adicionar outra conta</Button></> : <><div className="relative"><button className="flex h-12 w-full items-center justify-between rounded-xl border border-border bg-white px-4 text-left" onClick={()=>setOpenBanco((p)=>!p)}><span className={bancoSelecionado?"text-foreground":"text-muted-foreground"}>{bancoSelecionado?.nome ?? "Selecionar banco"}</span><CaretDown size={16} className="text-muted-foreground" /></button>{openBanco ? <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-border bg-white p-2 shadow-sm"><input value={bankSearch} onChange={(e)=>setBankSearch(e.target.value)} placeholder="Buscar banco..." className="mb-2 h-9 w-full rounded-lg border border-border px-3 text-sm" />{bancosBrasil.filter((b)=>b.nome.toLowerCase().includes(bankSearch.toLowerCase())).map((b)=><button key={`${b.cod}-${b.nome}`} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-sm hover:bg-[#F5F4F2]" onClick={()=>{setBancoSelecionado(b); setBankName(b.nome); setOpenBanco(false);}}><span className="mr-2 text-xs text-muted-foreground">{b.cod}</span>{b.nome}</button>)}</div> : null}</div><Input value={agencia} onChange={(e)=>setAgencia(e.target.value)} className="h-12 rounded-xl" placeholder="Agência" /><div className="grid grid-cols-[1fr_auto_70px] items-end gap-2"><Input value={bankConta} onChange={(e)=>setBankConta(e.target.value)} className="h-12 rounded-xl" placeholder="Conta" /><span className="pb-3 text-muted-foreground">-</span><Input value={bankDigito} onChange={(e)=>setBankDigito(e.target.value)} className="h-12 rounded-xl" placeholder="Dígito" /></div><Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" disabled={!bankName || !agencia || !bankConta || !bankDigito} onClick={()=>{setState((p)=>({...p,bancoConfirmado:true})); goNext();}}>Receber nesta conta</Button></>}</CardContent></Card>}
+
+        {step === "card_type" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><CreditCard size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Que tipo de cartão você vai usar?</h2><p className="text-sm text-muted-foreground">Vamos identificar as melhores condições para o seu cartão.</p></div><div className="grid grid-cols-2 gap-2">{[{value:"rede",label:"Banco de rede",desc:"Itaú, Bradesco, Santander, BB...",icon:<Bank size={20}/>},{value:"digital",label:"Banco digital",desc:"Nubank, Inter, C6, PicPay...",icon:<DeviceMobile size={20}/>},{value:"porto",label:"Porto Seguro",desc:"Cartão Porto Bank",icon:<ShieldCheck size={20}/>},{value:"inss",label:"Cartão INSS",desc:"Consignado para aposentados",icon:<IdentificationCard size={20}/>},{value:"siape",label:"SIAPE / Servidor",desc:"Funcional público",icon:<Buildings size={20}/>},{value:"loja",label:"Cartão de loja",desc:"Magalu, Renner, Riachuelo...",icon:<ShoppingBag size={20}/>}].map((t)=><button key={t.value} onClick={()=>setCardType(t.value)} className={`rounded-xl border p-3 text-left ${cardType===t.value?"border-[#E8590A] bg-[#FEF0E7]":"border-border"}`}><div className="mb-1 text-[#E8590A]">{t.icon}</div><p className="text-sm font-semibold text-foreground">{t.label}</p><p className="text-xs text-muted-foreground">{t.desc}</p></button>)}</div></CardContent></Card>}
+
+        {step === "stark_analysis" && (
+          <Card className="border-border">
+            <CardContent className="space-y-4 p-6 text-center">
+              {starkApproved === null ? (
+                <>
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><MagnifyingGlass size={32} className="animate-pulse" /></div>
+                  <h2 className="text-xl font-bold text-foreground">Verificando sua elegibilidade...</h2>
+                  <p className="text-sm text-muted-foreground">Estamos consultando os dados junto ao nosso parceiro.</p>
+                  <Progress value={starkProgress} className="h-2 bg-secondary [&>div]:bg-[#E8590A]" />
+                  <p className="text-xs text-muted-foreground">Protegido por Stark</p>
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={44} weight="fill" className="mx-auto text-[#E8590A]" />
+                  <h2 className="text-xl font-bold text-foreground">Tudo certo!</h2>
+                  <p className="text-sm text-muted-foreground">Seus dados foram verificados. Agora é só adicionar o cartão.</p>
+                  {showStarkButton ? <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:w-auto md:min-w-[160px]" onClick={goNext}>Adicionar meu cartão <ArrowRight size={16} className="ml-2" /></Button> : null}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {step === "card" && (
+          <Card className="border-border">
+            <CardContent className="space-y-3 p-4">
+              <div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><CreditCard size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Dados do cartão</h2></div>
+               <div className="mb-4 flex items-center gap-2 rounded-xl bg-[#FEF0E7] px-3 py-2.5"><LockSimple size={16} className="shrink-0 text-[#A33D05]" /><div><p className="text-xs font-semibold text-[#A33D05]">Ambiente seguro</p><p className="text-xs text-[#A33D05]/80">Seus dados são criptografados e nunca armazenados sem sua autorização.</p></div><ShieldCheck size={20} className="ml-auto shrink-0 text-[#E8590A]" /></div>
+               <div className="mb-2 flex justify-center"><Cards number={state.numeroCartao} name={state.nomeCartao} expiry={state.vencimento.replace("/", "")} cvc={state.cvv} focused={focused} placeholders={{ name: "Seu nome aqui" }} locale={{ valid: "Validade" }} /></div>
+              <IMaskInput mask="0000 0000 0000 0000" value={state.numeroCartao} onAccept={(v) => setState((p) => ({ ...p, numeroCartao: String(v) }))} onFocus={() => setFocused("number")} onBlur={() => setFocused("")} placeholder="Número do cartão" className={maskedInputClass} />
+              <Input value={state.nomeCartao} onChange={(e) => setState((p) => ({ ...p, nomeCartao: e.target.value }))} onFocus={() => setFocused("name")} onBlur={() => setFocused("")} className="h-12 rounded-xl" placeholder="Nome impresso no cartão" />
+              <div className="grid grid-cols-2 gap-2"><IMaskInput mask="00/00" value={state.vencimento} onAccept={(v) => setState((p) => ({ ...p, vencimento: String(v) }))} onFocus={() => setFocused("expiry")} onBlur={() => setFocused("")} placeholder="MM/AA" className={maskedInputClass} /><IMaskInput mask="000" value={state.cvv} onAccept={(v) => setState((p) => ({ ...p, cvv: String(v) }))} onFocus={() => setFocused("cvc")} onBlur={() => setFocused("")} placeholder="CVV" className={maskedInputClass} /></div>
+            </CardContent>
+          </Card>
+        )}
+
+        {(step === "selfie_ownership" || step === "selfie_identity") && (
+          <Card className="border-border">
+            <CardContent className="flex flex-col items-center space-y-4 p-8 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Fingerprint size={28} className="animate-pulse" /></div>
+              <SpinnerGap size={28} className="animate-spin text-[#E8590A]" />
+              <h2 className="text-xl font-bold text-foreground">{step === "selfie_ownership" ? "Validando titularidade do cartão..." : "Confirmando sua identidade..."}</h2>
+              <p className="text-sm text-muted-foreground">{step === "selfie_ownership" ? "Verificando se o cartão pertence a você. Aguarde." : "Verificando seus documentos com segurança."}</p>
+              <p className="text-xs text-muted-foreground">Protegido por Unico</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {step === "confirmation" && (
+          <Card className="border-border">
+            <CardContent className="space-y-4 p-4">
+              <div className="flex flex-col items-center text-center"><CheckCircle size={42} className="text-[#E8590A]" /><h2 className="mt-2 text-xl font-bold">Tudo pronto. Só falta confirmar.</h2><p className="text-sm text-muted-foreground">Revise os dados e confirme para liberar o dinheiro.</p></div>
+              <div className="space-y-2.5 rounded-2xl bg-[#FEF0E7] p-4">{[{label:"Você vai receber",value:`R$ ${toCurrency(valorLiquido)}`},{label:"Limite usado no cartão",value:`R$ ${toCurrency(limiteCartao)}`},{label:"Parcelas",value:`${state.numeroParcelas}x de R$ ${toCurrency(valorParcela)}`},{label:"Cartão",value:`Final ${cardFinal}`},{label:"Conta de destino",value:`Banco ag. ${agencia}`},{label:"Na fatura aparece como",value:"STARK*SeuTudo"}].map((item)=><div key={item.label} className="flex items-center justify-between gap-2"><p className="text-xs text-[#A33D05]/70">{item.label}</p><p className="text-xs font-semibold text-[#A33D05]">{item.value}</p></div>)}</div>
+              <button
+                type="button"
+                onClick={() => setState((p) => ({ ...p, termoAceito: !p.termoAceito }))}
+                className={`w-full text-left flex items-start gap-3 rounded-xl border p-4 transition-all ${
+                  state.termoAceito ? "border-[#E8590A] bg-[#FEF0E7]" : "border-border bg-white hover:border-[#E8590A]/40"
+                }`}
+              >
+                <div
+                  className={`h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                    state.termoAceito ? "bg-[#E8590A] border-[#E8590A]" : "border-border bg-white"
+                  }`}
+                >
+                  {state.termoAceito && <Check size={12} className="text-white" weight="bold" />}
+                </div>
+                <p className="text-sm text-foreground leading-snug">
+                  Confirmo que li e aceito os <a href="#" className="text-[#E8590A] underline underline-offset-2">termos</a> desta operação, incluindo as condições
+                  de pagamento e o uso do limite do meu cartão de crédito.
+                </p>
+              </button>
+            </CardContent>
+          </Card>
+        )}
+
+        {step === "success" && (
+          <Card className="border-border">
+            <CardContent className="space-y-4 p-6 text-center">
+              <CheckCircle size={48} weight="fill" className="mx-auto text-[#E8590A]" />
+              <h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2>
+              <p className="text-sm text-muted-foreground">O dinheiro está a caminho. Deve cair em até 30 minutos.</p>
+              <div className="rounded-2xl bg-[#FEF0E7] p-4 text-left"><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-xl font-bold text-[#A33D05]">R$ {toCurrency(valorLiquido)}</p><p className="mt-1 text-xs text-[#A33D05]/70">Cartão final {cardFinal} · {state.numeroParcelas}x</p></div>
+              <div className="grid gap-2 md:flex md:justify-center"><Button className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px]" onClick={() => navigate("/contratos/saque-facil-001")}>Ver meu contrato</Button><Button variant="ghost" className="h-12 rounded-xl md:min-w-[160px]" onClick={() => navigate("/painel")}>Voltar para o início</Button></div>
+            </CardContent>
+          </Card>
+        )}
+
+        {step !== "intro" && step !== "selfie_ownership" && step !== "selfie_identity" && step !== "success" && step !== "stark_analysis" && (
+          <div className="grid grid-cols-2 gap-3 pt-2 md:flex md:justify-end">
+            <Button variant="outline" onClick={goBack} className="h-11 rounded-xl border-border md:min-w-[160px]">Voltar</Button>
+            {step !== "address" && step !== "bank" ? <Button disabled={!canAdvance} onClick={goNext} className="h-11 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px] disabled:opacity-40">{step === "simulation" ? "Começar proposta" : step === "data_intro" ? "Completar meus dados" : step === "confirmation" ? "Pegar meu dinheiro" : "Continuar"} <ArrowRight size={16} className="ml-2" /></Button> : null}
+          </div>
+        )}
+        </div>
+      </div>
+    </SubPageLayout>
   );
 }
 
@@ -687,7 +1208,7 @@ function ContratosPage() {
     <SubPageLayout title="Meus contratos">
       <p className="mb-4 text-sm text-muted-foreground">{lista.length} contratos ativos</p>
 
-      {lista.length === 0 ? (
+      {lista.length < 1 ? (
         <div className="flex flex-col items-center space-y-4 px-6 py-16 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7]"><FileText size={32} className="text-[#E8590A]" /></div>
           <div>
@@ -701,7 +1222,7 @@ function ContratosPage() {
           {lista.map((contrato) => (
             <button key={contrato.id} onClick={() => navigate(`/contratos/${contrato.id}`)} className="w-full rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#E8590A]/40">
               <div className="mb-3 flex items-center justify-between">
-                <span className="rounded-full bg-[#FEF0E7] px-2.5 py-1 text-xs font-semibold text-[#A33D05]">{contrato.tipo === "seguro" ? "Seguro de Vida" : "Crédito CLT"}</span>
+                <span className="rounded-full bg-[#FEF0E7] px-2.5 py-1 text-xs font-semibold text-[#A33D05]">{contrato.tipo === "seguro" ? "Seguro de Vida" : contrato.tipo === "saque-facil" ? "Saque Fácil" : "Crédito CLT"}</span>
                 <span className="flex items-center gap-1.5 text-xs font-medium text-green-700"><div className="h-1.5 w-1.5 rounded-full bg-green-500" />Ativo</span>
               </div>
               <p className="mb-2 text-sm font-bold text-foreground">{contrato.produto}</p>
@@ -772,7 +1293,7 @@ function ContratoCLTPage() {
         <div><p className="text-xs text-muted-foreground">Modalidade</p><p className="text-sm font-semibold leading-snug text-foreground">{contrato.modalidade}</p></div>
         <div><p className="text-xs text-muted-foreground">Valor líquido recebido</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
       </div>
-      <div className="mb-5 rounded-2xl bg-[#FEF0E7] p-4">
+      <div className="mb-5 rounded-2xl bg-white p-4 shadow-sm border border-border">
         <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-bold text-[#A33D05]">Parcelas</h3><span className="text-xs text-[#A33D05]">{contrato.parcelasRestantes} de {contrato.totalParcelas} restantes</span></div>
         <div className="mb-3 h-2 rounded-full bg-[#A33D05]/20"><div className="h-2 rounded-full bg-[#E8590A] transition-all" style={{ width: `${progresso}%` }} /></div>
         <div className="grid grid-cols-2 gap-3">
@@ -782,11 +1303,36 @@ function ContratoCLTPage() {
           <div><p className="text-xs text-[#A33D05]/70">Dia de pagamento</p><p className="text-sm font-bold text-[#A33D05]">Todo dia {contrato.diaPagamento}</p></div>
         </div>
       </div>
-      <div className="mb-5 rounded-2xl border border-border p-4"><h3 className="mb-3 text-sm font-bold text-foreground">Taxas e custos</h3><div className="space-y-2.5">{[{ label: "Taxa de juros", value: `${contrato.taxaJurosMes}% a.m. / ${contrato.taxaJurosAno}% a.a.` }, { label: "Custo Efetivo Total (CET)", value: `${contrato.cet}% a.a.` }, { label: "IOF", value: `R$ ${contrato.iof.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` }, { label: "Valor total das parcelas", value: `R$ ${contrato.valorTotalParcelas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p><p className="text-xs font-semibold text-foreground">{item.value}</p></div>)}</div></div>
-      <div className="mb-5 rounded-2xl border border-border p-4"><h3 className="mb-3 text-sm font-bold text-foreground">Dados do emitente</h3><div className="space-y-3">{[{ label: "Nome completo", value: contrato.nomeCliente, sensitive: true }, { label: "CPF", value: contrato.cpfCliente, sensitive: true, type: "cpf" as const }, { label: "Data de nascimento", value: contrato.dataNascimento }, { label: "Data de admissão", value: contrato.dataAdmissao }, { label: "Cidade", value: contrato.cidade }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p>{item.sensitive ? <SensitiveData value={item.value} type={item.type ?? "text"} /> : <p className="text-xs font-semibold text-foreground">{item.value}</p>}</div>)}</div></div>
-      <div className="mb-5 rounded-2xl border border-border p-4"><h3 className="mb-3 text-sm font-bold text-foreground">Dados para depósito</h3><div className="space-y-3">{[{ label: "Banco", value: contrato.banco }, { label: "Agência", value: contrato.agencia }, { label: "Conta", value: contrato.conta }, { label: "Chave Pix", value: contrato.chavePix }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p><SensitiveData value={item.value} type="text" /></div>)}</div></div>
-      <div className="mb-5 rounded-2xl border border-dashed border-border p-4"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-foreground">Quitar antecipadamente</p><p className="mt-0.5 text-xs text-muted-foreground">Pague o saldo devedor e encerre o contrato antes do prazo.</p></div><span className="rounded-full bg-[#E7E5E4] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#78716C]">Em breve</span></div></div>
+      <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-3 text-sm font-bold text-foreground">Taxas e custos</h3><div className="space-y-2.5">{[{ label: "Taxa de juros", value: `${contrato.taxaJurosMes}% a.m. / ${contrato.taxaJurosAno}% a.a.` }, { label: "Custo Efetivo Total (CET)", value: `${contrato.cet}% a.a.` }, { label: "IOF", value: `R$ ${contrato.iof.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` }, { label: "Valor total das parcelas", value: `R$ ${contrato.valorTotalParcelas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p><p className="text-xs font-semibold text-foreground">{item.value}</p></div>)}</div></div>
+      <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-3 text-sm font-bold text-foreground">Dados do emitente</h3><div className="space-y-3">{[{ label: "Nome completo", value: contrato.nomeCliente, sensitive: true }, { label: "CPF", value: contrato.cpfCliente, sensitive: true, type: "cpf" as const }, { label: "Data de nascimento", value: contrato.dataNascimento }, { label: "Data de admissão", value: contrato.dataAdmissao }, { label: "Cidade", value: contrato.cidade }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p>{item.sensitive ? <SensitiveData value={item.value} type={item.type ?? "text"} /> : <p className="text-xs font-semibold text-foreground">{item.value}</p>}</div>)}</div></div>
+      <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-3 text-sm font-bold text-foreground">Dados para depósito</h3><div className="space-y-3">{[{ label: "Banco", value: contrato.banco }, { label: "Agência", value: contrato.agencia }, { label: "Conta", value: contrato.conta }, { label: "Chave Pix", value: contrato.chavePix }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p><SensitiveData value={item.value} type="text" /></div>)}</div></div>
+      <div className="mb-5 rounded-2xl border border-dashed border-border bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-foreground">Quitar antecipadamente</p><p className="mt-0.5 text-xs text-muted-foreground">Pague o saldo devedor e encerre o contrato antes do prazo.</p></div><span className="rounded-full bg-[#E7E5E4] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#78716C]">Em breve</span></div></div>
       <AccordionItemContrato hideValue cobertura={{ nome: "Informações do FIDC endossatário", valor: 0, descricao: `Fundo de Investimento em Direitos Creditórios responsável pela operação. Preço de aquisição: R$ ${contrato.precoAquisicao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. Data de aquisição: ${contrato.dataAquisicao}. Nome do FIDC: ${contrato.fidcNome}. CNPJ: ${contrato.fidcCnpj}.` }} />
+    </SubPageLayout>
+  );
+}
+
+function ContratoSaqueFacilPage() {
+  const contrato = contratos.find((c) => c.id === "saque-facil-001");
+  if (!contrato) return <Navigate to="/contratos" replace />;
+  const handleDownload = () => {
+    const conteudo = `CÉDULA DE CRÉDITO BANCÁRIO — SAQUE FÁCIL\n==========================================\n\nI — PREÂMBULO\nEMITENTE\nNome: [DADO SENSÍVEL]\nCPF: [DADO SENSÍVEL]\nEndereço: [DADO SENSÍVEL]\n\nCREDORA\nNome: Stark Sociedade de Crédito Direto S.A.\nCNPJ: 39.908.427/0001-28\nEndereço: Rua Pamplona, 145 - Bela Vista - 01405-100 - São Paulo/SP\n\nII — CARACTERÍSTICAS DO CRÉDITO\nValor Principal: R$ 106,74\nValor Liberado: R$ 100,00\nData de Emissão: 08/05/2026\nTaxa de Juros Efetiva Mensal: 6,84% ao mês\nTaxa de Juros Efetiva Anual: 121,29% ao ano\nCET Anual: 190,73% ao ano\nIOF: 1,63%\nTarifa de Cadastro: R$ 5,00\n\nIII — LIBERAÇÃO DO CRÉDITO\nForma: Transferência Pix\nData Prevista: 08/05/2026\nData Máxima: 15/05/2026\n\nIV — PAGAMENTO\nForma: Pix Cobrança\nParcelas:\n1 — 08/06/2026 — R$ 25,98\n2 — 08/07/2026 — R$ 25,96\n3 — 08/08/2026 — R$ 25,96\n4 — 08/09/2026 — R$ 25,96\n5 — 08/10/2026 — R$ 25,96`;
+    const blob = new Blob([conteudo], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "contrato-saque-facil.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  return (
+    <SubPageLayout title="Contrato — Saque Fácil">
+      <div className="mb-3 flex justify-end"><button onClick={handleDownload} className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-[#F5F4F2]" aria-label="Baixar contrato"><DownloadSimple size={18} className="text-foreground" /></button></div>
+      <div className="mb-5"><div className="mb-1 flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-green-500" /><span className="text-sm font-medium text-green-700">Ativo</span></div><h2 className="text-2xl font-bold text-foreground">Saque Fácil no cartão</h2></div>
+      <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Dados do emitente</h3><p className="text-xs text-muted-foreground">Emitente</p><p className="text-sm"><SensitiveData value={contrato.emitente.nome} /></p><p className="text-sm"><SensitiveData value={contrato.emitente.cpf} type="cpf" /></p><p className="text-sm"><SensitiveData value={contrato.emitente.endereco} /></p><p className="mt-3 text-xs text-muted-foreground">Credora</p><p className="text-sm font-semibold">{contrato.credora.nome}</p><p className="text-xs">CNPJ {contrato.credora.cnpj}</p></div>
+      <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Características do crédito</h3><div className="grid grid-cols-2 gap-3 text-xs"><p>Principal: R$ {contrato.valorPrincipal.toFixed(2).replace(".", ",")}</p><p>Liberado: R$ {contrato.valorLiberado.toFixed(2).replace(".", ",")}</p><p>Taxa mensal: {contrato.taxaMensal}%</p><p>Taxa anual: {contrato.taxaAnual}%</p></div></div>
+      <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Parcelas</h3><div className="overflow-hidden rounded-xl border border-border"><div className="grid grid-cols-2 bg-[#F8F7F5] px-3 py-2 text-[11px] font-semibold text-muted-foreground"><span>Vencimento</span><span className="text-right">Valor</span></div>{contrato.parcelas.map((p)=><div key={p.numero} className="grid grid-cols-2 border-t border-border px-3 py-2 text-xs"><span>{p.vencimento}</span><span className="text-right font-semibold text-foreground">R$ {p.valor.toFixed(2).replace(".", ",")}</span></div>)}</div></div>
+      <p className="text-xs text-muted-foreground">Documento com validade jurídica. Consulte os termos em seutudo.com.br.</p>
     </SubPageLayout>
   );
 }
@@ -861,6 +1407,41 @@ function NotificacoesPage() {
         </motion.div>
       )}
     </SubPageLayout>
+  );
+}
+
+function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "default" }) {
+  const [dismissed, setDismissed] = useState<string[]>([]);
+  const items = [
+    { id: "fgts", title: "Antecipe seu FGTS", desc: "Taxa a partir de 1,39% ao mês", icon: <Buildings size={16} /> },
+    { id: "clt", title: "Crédito CLT disponível", desc: "Parcelas fixas com desconto em folha", icon: <Briefcase size={16} /> },
+    { id: "saque", title: "Saque Fácil no cartão", desc: "Aprovação em minutos", icon: <CreditCard size={16} /> },
+  ].filter((item) => !dismissed.includes(item.id));
+
+  if (items.length === 0) return null;
+
+  return (
+    <div>
+      {variant === "light" ? <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p> : null}
+      <div className={`flex gap-2 overflow-x-auto ${variant === "light" ? "px-0" : "px-1"}`}>
+        {items.map((item) => (
+          <Card key={item.id} className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] min-w-[280px] shadow-sm`}>
+            <CardContent className="flex h-full flex-col justify-between p-3">
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div>
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
+                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                </div>
+                <button onClick={() => setDismissed((prev) => [...prev, item.id])} className="text-muted-foreground" aria-label="Dispensar recomendação">
+                  <X size={14} />
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -951,7 +1532,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/saque-facil"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -1329,7 +1910,7 @@ function App() {
 
       <main className="mx-auto min-h-screen w-full bg-background md:mx-0 md:flex-1 md:overflow-y-auto">
         <header className="relative z-10 rounded-b-[32px] bg-primary px-5 pb-6 pt-8 text-white md:mx-auto md:mt-6 md:max-w-[860px] md:px-6 md:pt-6">
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm text-white/75">Olá, {firstName}</p>
               <h2 className="text-xl font-bold">Seu crédito na seutudo.</h2>
@@ -1343,7 +1924,7 @@ function App() {
               </button>
             </div>
           </div>
-          <Card className="border-0 bg-white shadow-none"><CardContent className="space-y-3 p-4"><div className="flex items-start justify-between gap-2"><div className="space-y-0.5"><p className="text-[11px] font-bold uppercase tracking-wide text-primary">Oferta disponível para você</p><p className="text-sm font-bold leading-snug text-foreground">Você pode antecipar até <SensitiveData value="R$ 4.800" type="currency" /> no FGTS</p><p className="text-xs text-muted-foreground">Taxa a partir de 1,39% ao mês</p></div><Badge className="shrink-0 border-0 bg-primary-light text-xs text-primary-dark">Novo</Badge></div><motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}><Button className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">Ver minha oferta</Button></motion.div></CardContent></Card>
+          <RecomendacoesCarousel variant="light" />
         </header>
 
         <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
@@ -1352,16 +1933,35 @@ function App() {
               {interests.map((interest, idx) => {
                 const currentService = serviceCopy[interest];
                 const isPrimary = idx === 0;
-                if (isPrimary) {
-                  return (
-                    <motion.div key={interest} variants={cardVariants}><Card className="relative overflow-hidden border-primary/30 shadow-sm"><CardContent className="flex min-h-[140px] items-stretch p-0"><div className="flex flex-1 flex-col justify-between p-4"><div><div className="mb-1 flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-light text-primary">{currentService.icon}</div><p className="text-sm font-semibold text-foreground">{currentService.title}</p></div>{currentService.highlight && <p className="mb-1 text-xs font-semibold text-primary">{interest === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p>}<p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p></div><Button className="h-9 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-dark">{currentService.cta} <CaretRight size={14} className="ml-1" /></Button></div><div className="relative w-28 shrink-0 overflow-hidden bg-white"><img src={currentService.photo} alt="" className="absolute inset-0 h-full w-full object-cover object-top" style={{ mixBlendMode: "multiply" }} /></div></CardContent></Card></motion.div>
-                  );
-                }
-                return <motion.div key={interest} variants={cardVariants}><Card className="border-border shadow-sm"><CardContent className="p-4"><div className="mb-2 flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-muted-foreground">{currentService.icon}</div><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-foreground">{currentService.title}</p>{currentService.highlight && <p className="mt-0.5 text-xs font-medium text-primary">{interest === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p>}</div></div><p className="mb-3 text-xs text-muted-foreground">{currentService.description}</p><Button variant="outline" className="h-9 w-full rounded-lg border-border text-sm font-medium">{currentService.cta}<CaretRight size={14} className="ml-1" /></Button></CardContent></Card></motion.div>;
+                return (
+                  <motion.div key={interest} variants={cardVariants}>
+                    <Card className={`relative overflow-hidden shadow-sm ${isPrimary ? "border-[#E8590A]/30" : "border-border"}`}>
+                      <CardContent className="flex min-h-[130px] items-stretch p-0">
+                        <div className="flex min-w-0 flex-1 flex-col justify-between p-4">
+                          <div>
+                            <div className="mb-1 flex items-center gap-2">
+                              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isPrimary ? "bg-[#FEF0E7] text-[#E8590A]" : "bg-[#F5F4F2] text-muted-foreground"}`}>{currentService.icon}</div>
+                              <p className="truncate text-sm font-semibold text-foreground">{currentService.title}</p>
+                              {isPrimary ? <Badge className="ml-auto shrink-0 border-0 bg-[#FEF0E7] text-[10px] text-[#A33D05]">Principal</Badge> : null}
+                            </div>
+                            {isPrimary && currentService.highlight ? <p className="mb-1 text-xs font-semibold text-[#E8590A]">{currentService.highlight}</p> : null}
+                            <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">{currentService.description}</p>
+                          </div>
+                          <Button onClick={() => interest === "saque-facil" ? navigate("/saque-facil") : undefined} variant="outline" className={`h-8 w-fit rounded-lg px-3 text-xs font-medium ${isPrimary ? "border-[#E8590A] text-[#E8590A] hover:bg-[#FEF0E7]" : "border-border text-foreground hover:bg-[#F5F4F2]"}`}>
+                            {currentService.cta} <CaretRight size={12} className="ml-1" />
+                          </Button>
+                        </div>
+                        <div className="w-24 shrink-0 overflow-hidden bg-white">
+                          <img src={currentService.photo} alt="" className="h-full w-full object-cover object-top" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
               })}
             </motion.div>
 
-            <Card className="mt-4 border-border shadow-sm"><CardContent className="p-4"><div className="mb-3 flex items-center gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground"><Headset size={20} /></div><div><p className="text-sm font-semibold text-foreground">Ficou alguma dúvida?</p><p className="text-xs text-muted-foreground">Atendimento seg a sex, 8h às 18h</p></div></div><div className="grid grid-cols-2 gap-2"><Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border text-sm"><WhatsappLogo size={15} /> WhatsApp</Button><Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border text-sm"><Headset size={15} /> Ligar</Button></div></CardContent></Card>
+            <Card className="overflow-hidden border-border shadow-sm"><CardContent className="p-0"><div className="flex items-center bg-[#EDE3DC] min-h-[100px]"><div className="flex-1 px-4 py-4"><p className="text-base font-bold text-foreground leading-tight">Ficou alguma dúvida?</p><p className="text-xs text-muted-foreground mt-0.5">Atendimento seg a sex, 8h às 18h</p></div><div className="w-28 h-full shrink-0 relative self-stretch"><img src="/images/card-dash-contato.png" alt="Atendente seutudo." className="absolute inset-0 w-full h-full object-cover object-top" /></div></div><div className="grid grid-cols-2 gap-2 p-3 bg-white"><Button variant="outline" className="h-9 rounded-2xl border-[#D5D6D8] text-sm gap-1.5 bg-[#F0F1F2]"><WhatsappLogo size={15} /> WhatsApp</Button><Button variant="outline" className="h-9 rounded-2xl border-[#D5D6D8] text-sm gap-1.5 bg-[#F0F1F2]"><Headset size={15} /> Ligar</Button></div></CardContent></Card>
 
             <div className="flex items-center justify-center gap-5 py-1">{[{ icon: <LockSimple size={13} />, label: "LGPD" }, { icon: <SealCheck size={13} />, label: "Banco Central" }, { icon: <ShieldCheck size={13} />, label: "Criptografado" }].map((item) => <div key={item.label} className="flex items-center gap-1 text-[11px] text-muted-foreground">{item.icon}{item.label}</div>)}</div>
           </div>
@@ -1443,10 +2043,10 @@ function App() {
                       <p className="text-sm font-medium text-foreground">{group.title}</p>
                     </div>
                     {group.items.map((item) => (
-                      <button key={item.label} onClick={() => (item.external ? window.open(item.href, "_blank") : item.action?.())} className="w-full border-b border-border px-4 py-3.5 text-left text-sm text-foreground last:border-0">
+                      <button key={item.label} onClick={() => ("external" in item && item.external ? window.open(item.href, "_blank") : item.action?.())} className="w-full border-b border-border px-4 py-3.5 text-left text-sm text-foreground last:border-0">
                         <div className="flex items-center justify-between">
                           {item.label}
-                          {item.external ? <ArrowSquareOut size={16} className="text-muted-foreground" /> : <CaretRight size={16} className="text-muted-foreground" />}
+                          {"external" in item && item.external ? <ArrowSquareOut size={16} className="text-muted-foreground" /> : <CaretRight size={16} className="text-muted-foreground" />}
                         </div>
                       </button>
                     ))}
@@ -1493,7 +2093,9 @@ function App() {
             <Route path="/contratos" element={getStoredUser() ? <ContratosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/contratos/saque-facil-001" element={getStoredUser() ? <ContratoSaqueFacilPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/saque-facil" element={getStoredUser() ? <CreditCardProvider><SaqueFacilPage /></CreditCardProvider> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
