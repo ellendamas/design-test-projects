@@ -10,6 +10,7 @@ import {
   Check,
   Buildings,
   Cake,
+  CaretLeft,
   CaretRight,
   ChatCircle,
   CheckCircle,
@@ -32,6 +33,7 @@ import {
   Info,
   Lightning,
   LockSimple,
+  Lock,
   MagnifyingGlass,
   MapPin,
   PencilSimple,
@@ -97,7 +99,7 @@ const serviceCopy: Record<
     title: "Crédito com desconto em folha",
     subtitle: "Para quem tem carteira assinada",
     description: "Parcelas fixas descontadas direto do seu salário. Sem susto no fim do mês.",
-    cta: "Ver oferta",
+    cta: "Consultar crédito CLT",
     icon: <Briefcase size={20} />,
     highlight: "Até R$ 18.000 disponíveis",
     photo: "/images/card-dash-clt.png",
@@ -106,24 +108,35 @@ const serviceCopy: Record<
     title: "Antecipar meu FGTS",
     subtitle: "Seu saldo do FGTS disponível agora",
     description: "Receba em minutos com simulação clara e sem burocracia.",
-    cta: "Ver oferta",
-    icon: <Buildings size={20} />,
+    cta: "Simular antecipação",
+    icon: <FgtsCustomIcon size={20} />,
     highlight: "Taxa a partir de 1,39% a.m.",
     photo: "/images/card-dash-fgts.png",
   },
   "saque-facil": {
     title: "Saque Fácil no cartão",
     subtitle: "Saque com limite do seu cartão",
-    description: "Use o limite do seu cartão de crédito. Aprovação rápida.",
-    cta: "Ver oferta",
+    description: "Use o limite do seu cartão de crédito. Sem consulta de crédito. Aprovação rápida!",
+    cta: "Simular agora",
     icon: <CreditCard size={20} />,
     highlight: "Aprovação em minutos",
-    photo: "/images/card-dash-saquefacil.png",
+    photo: "/images/card-dash-credit-card.png",
   },
 };
 
 const maskedInputClass =
   "flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
+
+function FgtsCustomIcon({ size = 20, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <rect x="4" y="4" width="2" height="12" rx="1" fill="currentColor" />
+      <rect x="4" y="4" width="10" height="2" rx="1" fill="currentColor" />
+      <path d="M8 6H14L8 12V6Z" fill="currentColor" />
+      <circle cx="7.2" cy="7.4" r="1" fill="#EFE2D9" />
+    </svg>
+  );
+}
 
 function getStoredUser(): StoredUser | null {
   if (typeof window === "undefined") return null;
@@ -185,36 +198,6 @@ function PrivacyToggle({ size = 20, variant = "dark" }: { size?: number; variant
     >
       {dataVisible ? <Eye size={size} className={iconClass} /> : <EyeSlash size={size} className={iconClass} />}
     </button>
-  );
-}
-
-function ThemeSwitcher() {
-  if (typeof window === "undefined") return null;
-  const hasDebug = window.location.search.includes("debug=true");
-  const isLocal = window.location.hostname.includes("localhost");
-  if (!hasDebug && !isLocal) return null;
-
-  const themes = [
-    { key: "laranja", color: "#E8590A" },
-    { key: "azul", color: "#1D4ED8" },
-    { key: "verde", color: "#16A34A" },
-    { key: "roxo", color: "#7C3AED" },
-    { key: "grafite", color: "#374151" },
-  ];
-
-  return (
-    <div className="fixed bottom-20 right-4 z-50 flex flex-col gap-2 rounded-2xl border border-border bg-white p-3 shadow-lg">
-      <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tema</p>
-      {themes.map((theme) => (
-        <button
-          key={theme.key}
-          onClick={() => document.documentElement.setAttribute("data-theme", theme.key)}
-          className="h-6 w-6 rounded-full border-2 border-white shadow-sm transition-transform hover:scale-110"
-          style={{ background: theme.color }}
-          title={theme.key}
-        />
-      ))}
-    </div>
   );
 }
 
@@ -1411,35 +1394,83 @@ function NotificacoesPage() {
 }
 
 function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "default" }) {
-  const [dismissed, setDismissed] = useState<string[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScroll, setCanScroll] = useState(false);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
   const items = [
-    { id: "fgts", title: "Antecipe seu FGTS", desc: "Taxa a partir de 1,39% ao mês", icon: <Buildings size={16} /> },
+    { id: "fgts", title: "Antecipe seu FGTS", desc: "Taxa a partir de 1,39% ao mês", icon: <FgtsCustomIcon size={16} /> },
     { id: "clt", title: "Crédito CLT disponível", desc: "Parcelas fixas com desconto em folha", icon: <Briefcase size={16} /> },
     { id: "saque", title: "Saque Fácil no cartão", desc: "Aprovação em minutos", icon: <CreditCard size={16} /> },
-  ].filter((item) => !dismissed.includes(item.id));
+  ];
 
   if (items.length === 0) return null;
 
+  const updateScrollState = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const hasOverflow = el.scrollWidth - el.clientWidth > 2;
+    setCanScroll(hasOverflow);
+    setCanLeft(el.scrollLeft > 2);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  };
+
+  useEffect(() => {
+    updateScrollState();
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => updateScrollState();
+    el.addEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
   return (
-    <div>
+    <div className="relative">
       {variant === "light" ? <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p> : null}
-      <div className={`flex gap-2 overflow-x-auto ${variant === "light" ? "px-0" : "px-1"}`}>
+      <div
+        ref={scrollRef}
+        className={`flex gap-2 ${canScroll ? "overflow-x-auto" : "overflow-x-hidden"} ${variant === "light" ? "px-0" : "px-1"} md:[&::-webkit-scrollbar]:hidden`}
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
         {items.map((item) => (
-          <Card key={item.id} className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] min-w-[280px] shadow-sm`}>
+          <Card key={item.id} className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] shadow-sm`}>
             <CardContent className="flex h-full flex-col justify-between p-3">
-              <div className="mb-2 flex items-start justify-between gap-2">
+              <div className="mb-2">
                 <div>
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
                   <p className="text-sm font-semibold text-foreground">{item.title}</p>
                   <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </div>
-                <button onClick={() => setDismissed((prev) => [...prev, item.id])} className="text-muted-foreground" aria-label="Dispensar recomendação">
-                  <X size={14} />
-                </button>
               </div>
             </CardContent>
           </Card>
         ))}
+      </div>
+      <div className={`pointer-events-none absolute left-0 top-1/2 hidden -translate-y-1/2 md:flex ${canScroll ? "" : "opacity-0"}`}>
+        <button
+          type="button"
+          onClick={() => scrollRef.current?.scrollBy({ left: -280, behavior: "smooth" })}
+          disabled={!canLeft}
+          className="pointer-events-auto -ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#E8590A] shadow disabled:opacity-40"
+          aria-label="Ver recomendações anteriores"
+        >
+          <CaretLeft size={16} />
+        </button>
+      </div>
+      <div className={`pointer-events-none absolute right-0 top-1/2 hidden -translate-y-1/2 md:flex ${canScroll ? "" : "opacity-0"}`}>
+        <button
+          type="button"
+          onClick={() => scrollRef.current?.scrollBy({ left: 280, behavior: "smooth" })}
+          disabled={!canRight}
+          className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#E8590A] shadow disabled:opacity-40"
+          aria-label="Ver próximas recomendações"
+        >
+          <CaretRight size={16} />
+        </button>
       </div>
     </div>
   );
@@ -1909,7 +1940,7 @@ function App() {
       </aside>
 
       <main className="mx-auto min-h-screen w-full bg-background md:mx-0 md:flex-1 md:overflow-y-auto">
-        <header className="relative z-10 rounded-b-[32px] bg-primary px-5 pb-6 pt-8 text-white md:mx-auto md:mt-6 md:max-w-[860px] md:px-6 md:pt-6">
+        <header className="relative z-10 rounded-b-[32px] bg-primary px-5 pb-6 pt-8 text-white md:mx-auto md:max-w-[860px] md:px-6 md:pt-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm text-white/75">Olá, {firstName}</p>
@@ -1930,29 +1961,43 @@ function App() {
         <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
           <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
             <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-              {interests.map((interest, idx) => {
-                const currentService = serviceCopy[interest];
-                const isPrimary = idx === 0;
+              {([
+                "clt",
+                "saque-facil",
+                "fgts",
+                "seguro",
+              ] as const).map((interest) => {
+                const currentService =
+                  interest === "seguro"
+                    ? {
+                        title: "Seguro de vida",
+                        subtitle: "Inserir copy",
+                        description: "Inserir copy",
+                        cta: "Contratar seguro",
+                        icon: <ShieldCheck size={20} />,
+                        highlight: "Inserir copy",
+                        photo: "/images/card-dash-security.png",
+                      }
+                    : serviceCopy[interest as ServiceType];
                 return (
                   <motion.div key={interest} variants={cardVariants}>
-                    <Card className={`relative overflow-hidden shadow-sm ${isPrimary ? "border-[#E8590A]/30" : "border-border"}`}>
-                      <CardContent className="flex min-h-[130px] items-stretch p-0">
-                        <div className="flex min-w-0 flex-1 flex-col justify-between p-4">
+                    <Card className="relative overflow-hidden rounded-2xl border border-[#DADADA] bg-white shadow-sm">
+                      <CardContent className="flex min-h-[158px] items-stretch p-0">
+                        <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
                           <div>
-                            <div className="mb-1 flex items-center gap-2">
-                              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isPrimary ? "bg-[#FEF0E7] text-[#E8590A]" : "bg-[#F5F4F2] text-muted-foreground"}`}>{currentService.icon}</div>
-                              <p className="truncate text-sm font-semibold text-foreground">{currentService.title}</p>
-                              {isPrimary ? <Badge className="ml-auto shrink-0 border-0 bg-[#FEF0E7] text-[10px] text-[#A33D05]">Principal</Badge> : null}
+                            <div className="mb-3 flex items-center gap-2">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{currentService.icon}</div>
+                              <p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{currentService.title}</p>
                             </div>
-                            {isPrimary && currentService.highlight ? <p className="mb-1 text-xs font-semibold text-[#E8590A]">{currentService.highlight}</p> : null}
-                            <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">{currentService.description}</p>
+                            {currentService.highlight ? <p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{interest === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p> : null}
+                            <p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{currentService.description}</p>
                           </div>
-                          <Button onClick={() => interest === "saque-facil" ? navigate("/saque-facil") : undefined} variant="outline" className={`h-8 w-fit rounded-lg px-3 text-xs font-medium ${isPrimary ? "border-[#E8590A] text-[#E8590A] hover:bg-[#FEF0E7]" : "border-border text-foreground hover:bg-[#F5F4F2]"}`}>
-                            {currentService.cta} <CaretRight size={12} className="ml-1" />
-                          </Button>
+                          <button onClick={() => interest === "saque-facil" ? navigate("/saque-facil") : undefined} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
+                            {currentService.cta} <CaretRight size={14} className="ml-1" />
+                          </button>
                         </div>
-                        <div className="w-24 shrink-0 overflow-hidden bg-white">
-                          <img src={currentService.photo} alt="" className="h-full w-full object-cover object-top" />
+                        <div className="w-36 shrink-0 overflow-hidden bg-white">
+                          <img src={currentService.photo} alt="" className="h-full w-full object-contain object-bottom" />
                         </div>
                       </CardContent>
                     </Card>
@@ -1961,9 +2006,29 @@ function App() {
               })}
             </motion.div>
 
-            <Card className="overflow-hidden border-border shadow-sm"><CardContent className="p-0"><div className="flex items-center bg-[#EDE3DC] min-h-[100px]"><div className="flex-1 px-4 py-4"><p className="text-base font-bold text-foreground leading-tight">Ficou alguma dúvida?</p><p className="text-xs text-muted-foreground mt-0.5">Atendimento seg a sex, 8h às 18h</p></div><div className="w-28 h-full shrink-0 relative self-stretch"><img src="/images/card-dash-contato.png" alt="Atendente seutudo." className="absolute inset-0 w-full h-full object-cover object-top" /></div></div><div className="grid grid-cols-2 gap-2 p-3 bg-white"><Button variant="outline" className="h-9 rounded-2xl border-[#D5D6D8] text-sm gap-1.5 bg-[#F0F1F2]"><WhatsappLogo size={15} /> WhatsApp</Button><Button variant="outline" className="h-9 rounded-2xl border-[#D5D6D8] text-sm gap-1.5 bg-[#F0F1F2]"><Headset size={15} /> Ligar</Button></div></CardContent></Card>
+            <Card className="mt-4 overflow-hidden rounded-3xl border-border shadow-sm">
+              <CardContent className="p-0">
+                <div className="flex min-h-[140px] items-stretch bg-[#EDE3DC]">
+                  <div className="flex flex-1 flex-col justify-center px-5 py-4">
+                    <p className="text-sm font-semibold leading-tight text-foreground">Ficou alguma dúvida?</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Atendimento seg a sex, 8h às 18h</p>
+                    <div className="mt-4 flex gap-3">
+                      <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border bg-[#ECEEF1] text-sm font-medium text-foreground hover:bg-[#E6E8EB]">
+                        <WhatsappLogo size={18} /> WhatsApp
+                      </Button>
+                      <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border bg-[#ECEEF1] text-sm font-medium text-foreground hover:bg-[#E6E8EB]">
+                        <Headset size={18} /> Ligar
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="relative w-44 shrink-0 self-stretch">
+                    <img src="/images/card-dash-contact.png" alt="Atendente seutudo." className="absolute inset-0 h-full w-full object-cover object-top" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div className="flex items-center justify-center gap-5 py-1">{[{ icon: <LockSimple size={13} />, label: "LGPD" }, { icon: <SealCheck size={13} />, label: "Banco Central" }, { icon: <ShieldCheck size={13} />, label: "Criptografado" }].map((item) => <div key={item.label} className="flex items-center gap-1 text-[11px] text-muted-foreground">{item.icon}{item.label}</div>)}</div>
+            <div className="flex items-center justify-center gap-5 py-1">{[{ icon: <Lock size={13} />, label: "LGPD" }, { icon: <Bank size={13} />, label: "Banco Central" }, { icon: <ShieldCheck size={13} />, label: "Criptografado" }].map((item) => <div key={item.label} className="flex items-center gap-1 text-[11px] text-muted-foreground">{item.icon}{item.label}</div>)}</div>
           </div>
         </div>
 
@@ -2103,7 +2168,6 @@ function App() {
       </AnimatePresence>
 
       <Toaster />
-      <ThemeSwitcher />
     </>
   );
 }
