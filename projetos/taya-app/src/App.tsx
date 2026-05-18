@@ -7,7 +7,9 @@ import {
   Bank,
   Bell,
   Briefcase,
+  CalendarCheck,
   Check,
+  Coins,
   Buildings,
   Cake,
   CaretLeft,
@@ -25,12 +27,14 @@ import {
   EyeSlash,
   FileText,
   Fingerprint,
+  Fire,
   Gear,
   GenderIntersex,
   Headset,
   House,
   IdentificationCard,
   Info,
+  Gift,
   Lightning,
   LockSimple,
   Lock,
@@ -46,14 +50,18 @@ import {
   Sliders,
   SpinnerGap,
   Tag,
+  Trophy,
+  TrendUp,
   Trash,
+  ArrowCircleUp,
+  ArrowCircleDown,
   UserCircle,
   WhatsappLogo,
   X,
   Users,
   User,
 } from "@phosphor-icons/react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 
@@ -71,6 +79,7 @@ import { contratos } from "@/data/contratos";
 import { usePrivacy } from "@/context/PrivacyContext";
 import { useNotificacoes } from "@/context/NotificacoesContext";
 import { CreditCardProvider, useCreditCard } from "@/context/CreditCardContext";
+import { useSeubolso } from "@/context/SeubolsoContext";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
 import Cards from "react-credit-cards-2";
@@ -79,6 +88,81 @@ import "react-credit-cards-2/dist/es/styles-compiled.css";
 type ServiceType = "clt" | "fgts" | "saque-facil";
 type OtpChannel = "whatsapp" | "email" | "sms";
 type StoredUser = { name: string; email: string };
+type RecoveryChannel = "whatsapp" | "sms" | "email";
+type RecoveryRouteState = {
+  cpf?: string;
+  channel?: RecoveryChannel;
+  otpVerified?: boolean;
+  passwordUpdated?: boolean;
+};
+
+function isValidCpf(value: string) {
+  const cpf = value.replace(/\D/g, "");
+  if (cpf.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(cpf)) return false;
+  let sum = 0;
+  for (let i = 0; i < 9; i += 1) sum += Number(cpf[i]) * (10 - i);
+  let digit = (sum * 10) % 11;
+  if (digit === 10) digit = 0;
+  if (digit !== Number(cpf[9])) return false;
+  sum = 0;
+  for (let i = 0; i < 10; i += 1) sum += Number(cpf[i]) * (11 - i);
+  digit = (sum * 10) % 11;
+  if (digit === 10) digit = 0;
+  return digit === Number(cpf[10]);
+}
+
+function isWeakNumericPin(value: string) {
+  if (value.length !== 6) return true;
+  if (/^(\d)\1{5}$/.test(value)) return true;
+  const asc = "01234567890";
+  const desc = "09876543210";
+  return asc.includes(value) || desc.includes(value);
+}
+
+function isValidRg(value: string) {
+  const rg = value.replace(/\D/g, "");
+  if (rg.length !== 9) return false;
+  if (/^(\d)\1{8}$/.test(rg)) return false;
+  return true;
+}
+
+function isAdultBirthDate(value: string) {
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return false;
+  const [d, m, y] = value.split("/").map(Number);
+  const date = new Date(y, m - 1, d);
+  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) return false;
+  const now = new Date();
+  if (date > now) return false;
+  const age = now.getFullYear() - y - (now.getMonth() < m - 1 || (now.getMonth() === m - 1 && now.getDate() < d) ? 1 : 0);
+  return age >= 18 && age <= 100;
+}
+
+function isValidCardNumber(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length < 13 || digits.length > 19) return false;
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    let digit = Number(digits[i]);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
+function isValidExpiry(value: string) {
+  if (!/^\d{2}\/\d{2}$/.test(value)) return false;
+  const [mm, yy] = value.split("/").map(Number);
+  if (mm < 1 || mm > 12) return false;
+  const year = 2000 + yy;
+  const expiryEnd = new Date(year, mm, 0, 23, 59, 59, 999);
+  return expiryEnd >= new Date();
+}
 
 const HERO_IMAGE =
   "https://static.vecteezy.com/ti/fotos-gratis/p1/75899742-o-negocio-mulher-dentro-cidade-feliz-e-retrato-ao-ar-livre-para-trabalhando-em-criativo-carreira-ou-trabalho-face-empreendedor-e-confiante-pessoa-profissional-desenhador-e-empregado-sorrir-em-urbano-telhado-dentro-brasil-foto.jpg";
@@ -167,6 +251,46 @@ function StepHeader({ step, total, title, subtitle, labelWord = "Passo" }: { ste
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span className="font-medium">{labelWord} {step} de {total}</span>
         <span>{pct}%</span>
+      </div>
+      <Progress value={pct} className="h-1 bg-secondary [&>div]:bg-primary [&>div]:transition-all [&>div]:duration-500" />
+      <div className="pt-1">
+        <h2 className="text-lg font-bold leading-snug text-foreground">{title}</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function RecoveryStepHeader({
+  step,
+  title,
+  subtitle,
+  backPath,
+}: {
+  step: 1 | 2 | 3 | 4;
+  title: string;
+  subtitle: string;
+  backPath?: string;
+}) {
+  const navigate = useNavigate();
+  const pct = Math.round((step / 4) * 100);
+
+  return (
+    <div className="mb-5 space-y-2">
+      <div className="flex items-center justify-between">
+        {backPath ? (
+          <button
+            type="button"
+            onClick={() => navigate(backPath)}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F5F4F2]"
+            aria-label="Voltar"
+          >
+            <ArrowLeft size={20} className="text-foreground" />
+          </button>
+        ) : (
+          <div className="h-9 w-9" />
+        )}
+        <span className="text-xs font-medium text-muted-foreground">Passo {step} de 4</span>
       </div>
       <Progress value={pct} className="h-1 bg-secondary [&>div]:bg-primary [&>div]:transition-all [&>div]:duration-500" />
       <div className="pt-1">
@@ -291,7 +415,7 @@ function SubPageLayout({ title, children }: { title: string; children: ReactNode
         <div className="px-4 py-5 pb-28 md:mx-auto md:max-w-[640px] md:px-0 md:py-8">{children}</div>
 
         <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
-          <ul className="grid w-full grid-cols-4 text-center">
+          <ul className="grid w-full grid-cols-5 text-center">
             {navItems.map((item) => (
               <li key={item.path} className="flex flex-col items-center justify-center text-center">
                 <button
@@ -368,7 +492,9 @@ function OptionButton({ selected, onClick, children, fullWidth = false }: { sele
 function SaqueFacilPage() {
   const navigate = useNavigate();
   const { state, setState } = useCreditCard();
+  const { adicionarPontos } = useSeubolso();
   const [step, setStep] = useState<SaqueFacilStep>("intro");
+  const pontosRegistradosRef = useRef(false);
   const [orgaoExpedidor, setOrgaoExpedidor] = useState("SSP");
   const [faixaRenda, setFaixaRenda] = useState("");
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
@@ -493,6 +619,22 @@ function SaqueFacilPage() {
     }
   }, [step]);
 
+  useEffect(() => {
+    if (step !== "success" || pontosRegistradosRef.current) return;
+    if (typeof window !== "undefined" && window.sessionStorage.getItem("seubolso_saque_facil_awarded") === "1") return;
+    pontosRegistradosRef.current = true;
+    if (typeof window !== "undefined") window.sessionStorage.setItem("seubolso_saque_facil_awarded", "1");
+    adicionarPontos(300, "Saque Fácil contratado");
+    const timer = window.setTimeout(() => {
+      toast("seutudo.", {
+        description: "Você ganhou 300 seubônus por contratar o Saque Fácil!",
+        icon: <Coins size={16} className="text-[#E8590A]" />,
+        duration: 4000,
+      });
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [step, adicionarPontos]);
+
   const goBack = () => {
     if (step === "intro") return navigate("/painel");
     if (step === "simulation") return setStep("intro");
@@ -513,8 +655,8 @@ function SaqueFacilPage() {
   const canAdvance = useMemo(() => {
     if (step === "simulation") return limiteCartao > 0 && state.numeroParcelas >= 4;
     if (step === "data_intro") return true;
-    if (step === "rg") return state.rg.length >= 12 && orgaoExpedidor.length > 0;
-    if (step === "birth") return state.dataNascimento.length === 10;
+    if (step === "rg") return isValidRg(state.rg) && orgaoExpedidor.length > 0;
+    if (step === "birth") return isAdultBirthDate(state.dataNascimento);
     if (step === "income") return Boolean(faixaRenda);
     if (step === "civil") return Boolean(state.estadoCivil);
     if (step === "gender") return Boolean(state.sexo);
@@ -523,7 +665,7 @@ function SaqueFacilPage() {
     if (step === "bank") return useOtherBank ? Boolean(bankName && agencia && bankConta && bankDigito) : bankSelected;
     if (step === "stark_analysis") return starkApproved === true && showStarkButton;
     if (step === "card_type") return Boolean(cardType);
-    if (step === "card") return Boolean(state.numeroCartao && state.nomeCartao && state.vencimento && state.cvv);
+    if (step === "card") return Boolean(isValidCardNumber(state.numeroCartao) && state.nomeCartao.trim().length >= 3 && isValidExpiry(state.vencimento) && state.cvv.replace(/\D/g, "").length >= 3);
     if (step === "confirmation") return state.termoAceito;
     return true;
   }, [step, limiteCartao, state, orgaoExpedidor, faixaRenda, cardDueDay, useOtherAddress, addressCep, addressStreet, addressNumber, addressSelected, useOtherBank, bankName, agencia, bankConta, bankDigito, bankSelected, starkApproved, showStarkButton, cardType]);
@@ -796,6 +938,7 @@ function SaqueFacilPage() {
               <h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2>
               <p className="text-sm text-muted-foreground">O dinheiro está a caminho. Deve cair em até 30 minutos.</p>
               <div className="rounded-2xl bg-[#FEF0E7] p-4 text-left"><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-xl font-bold text-[#A33D05]">R$ {toCurrency(valorLiquido)}</p><p className="mt-1 text-xs text-[#A33D05]/70">Cartão final {cardFinal} · {state.numeroParcelas}x</p></div>
+              <Card className="border-border bg-white shadow-sm"><CardContent className="flex items-center justify-between gap-3 p-3"><div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Coins size={16} /></div><p className="text-sm text-foreground">+300 seubônus adicionados ao seu saldo</p></div><button className="text-sm font-medium text-[#E8590A]" onClick={() => navigate("/seubolso")}>Ver meu seubônus <CaretRight size={14} className="inline" /></button></CardContent></Card>
               <div className="grid gap-2 md:flex md:justify-center"><Button className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px]" onClick={() => navigate("/contratos/saque-facil-001")}>Ver meu contrato</Button><Button variant="ghost" className="h-12 rounded-xl md:min-w-[160px]" onClick={() => navigate("/painel")}>Voltar para o início</Button></div>
             </CardContent>
           </Card>
@@ -817,6 +960,7 @@ function MeusDadosPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("cliente@exemplo.com");
   const [celular, setCelular] = useState("(11) 99999-8888");
+  const [error, setError] = useState("");
   const [initial] = useState({ email: "cliente@exemplo.com", celular: "(11) 99999-8888" });
   const changed = email !== initial.email || celular !== initial.celular;
 
@@ -844,8 +988,9 @@ function MeusDadosPage() {
 
         <Card className="border-border shadow-sm">
           <CardContent className="space-y-4 p-4">
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Seu e-mail de contato</Label><Input value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 rounded-xl" /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Seu número com DDD</Label><IMaskInput mask="(00) 00000-0000" value={celular} onAccept={(v) => setCelular(String(v))} className={maskedInputClass} /></div>
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Seu e-mail de contato</Label><Input value={email} onChange={(e) => { setEmail(e.target.value); if (error) setError(""); }} className="h-12 rounded-xl" /></div>
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Seu número com DDD</Label><IMaskInput mask="(00) 00000-0000" value={celular} onAccept={(v) => { setCelular(String(v)); if (error) setError(""); }} className={maskedInputClass} /></div>
+            {error ? <p className="text-xs text-red-600">{error}</p> : null}
           </CardContent>
         </Card>
       </div>
@@ -854,6 +999,18 @@ function MeusDadosPage() {
         <Button
           disabled={!changed}
           onClick={() => {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+              setError("Informe um e-mail válido.");
+              return;
+            }
+            if (celular.replace(/\D/g, "").length < 10) {
+              setError("Informe um celular válido com DDD.");
+              return;
+            }
+            if (email.toLowerCase() === "existente@seutudo.com.br") {
+              setError("Este e-mail já está em uso.");
+              return;
+            }
             toast.success("Dados atualizados.");
             setTimeout(() => navigate("/minha-conta"), 1500);
           }}
@@ -1149,10 +1306,11 @@ function AlterarSenhaPage() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNext, setShowNext] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
   const senhaAtualRef = useRef<HTMLInputElement>(null);
   const novaSenhaRef = useRef<HTMLInputElement>(null);
   const confirmarSenhaRef = useRef<HTMLInputElement>(null);
-  const canSave = current.length > 0 && next.length > 0 && confirm.length > 0 && next === confirm;
+  const canSave = current.length === 6 && next.length === 6 && confirm.length === 6 && next === confirm;
 
   return (
     <SubPageLayout title="Alterar senha">
@@ -1166,14 +1324,31 @@ function AlterarSenhaPage() {
         ))}
       </ul>
       <div className="space-y-3">
-        <PasswordTelField label="Sua senha atual" value={current} onChange={setCurrent} show={showCurrent} onToggle={() => setShowCurrent((v) => !v)} inputRef={senhaAtualRef} />
-        <PasswordTelField label="Escolha uma nova senha" value={next} onChange={setNext} show={showNext} onToggle={() => setShowNext((v) => !v)} inputRef={novaSenhaRef} />
-        <PasswordTelField label="Digite a nova senha de novo" value={confirm} onChange={setConfirm} show={showConfirm} onToggle={() => setShowConfirm((v) => !v)} inputRef={confirmarSenhaRef} />
+        <PasswordTelField label="Sua senha atual" value={current} onChange={(v) => { setCurrent(v); if (error) setError(""); }} show={showCurrent} onToggle={() => setShowCurrent((v) => !v)} inputRef={senhaAtualRef} />
+        <PasswordTelField label="Escolha uma nova senha" value={next} onChange={(v) => { setNext(v); if (error) setError(""); }} show={showNext} onToggle={() => setShowNext((v) => !v)} inputRef={novaSenhaRef} />
+        <PasswordTelField label="Digite a nova senha de novo" value={confirm} onChange={(v) => { setConfirm(v); if (error) setError(""); }} show={showConfirm} onToggle={() => setShowConfirm((v) => !v)} inputRef={confirmarSenhaRef} />
+        {error ? <p className="text-xs text-red-600">{error}</p> : null}
       </div>
       <Button
         className="mt-5 h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] disabled:opacity-40"
         disabled={!canSave}
         onClick={() => {
+          if (current !== "142536") {
+            setError("Senha atual incorreta. Tente novamente.");
+            return;
+          }
+          if (next !== confirm) {
+            setError("As senhas não coincidem.");
+            return;
+          }
+          if (next === current) {
+            setError("A nova senha deve ser diferente da atual.");
+            return;
+          }
+          if (isWeakNumericPin(next)) {
+            setError("Não use sequências simples como 123456.");
+            return;
+          }
           toast.success("Senha alterada com sucesso.");
           setTimeout(() => navigate(-1), 1500);
         }}
@@ -1476,6 +1651,262 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
   );
 }
 
+function SeubolsoPage() {
+  const navigate = useNavigate();
+  const { saldo, streak, extrato } = useSeubolso();
+  const { dataVisible } = usePrivacy();
+  const animated = useMotionValue(0);
+  const [saldoAnimado, setSaldoAnimado] = useState(0);
+
+  const progressoStreak = Math.min(100, Math.round((streak / 30) * 100));
+  const historico = [...extrato].sort((a, b) => +new Date(b.data) - +new Date(a.data));
+  const hoje = new Date().toISOString().slice(0, 10);
+  const temDescricao = (txt: string) => historico.some((t) => t.descricao.toLowerCase().includes(txt.toLowerCase()));
+  const feitoHoje = (txt: string) => historico.some((t) => t.data === hoje && t.descricao.toLowerCase().includes(txt.toLowerCase()));
+
+  useEffect(() => {
+    if (!dataVisible) return;
+    const controls = animate(animated, saldo, { duration: 1.5, ease: "easeOut" });
+    const unsub = animated.on("change", (v) => setSaldoAnimado(Math.round(v)));
+    return () => {
+      controls.stop();
+      unsub();
+    };
+  }, [saldo, dataVisible, animated]);
+
+  const ganhosConcluidos = [
+    { key: "cadastro", nome: "Cadastro completo", valor: "+500 moedas", icon: <UserCircle size={18} />, unica: true, feito: temDescricao("Cadastro completo") },
+    { key: "produto", nome: "Contratar um produto", valor: "+300 moedas", icon: <CreditCard size={18} />, unica: true, feito: temDescricao("contratado") || temDescricao("Contratar") },
+    { key: "parcela", nome: "Parcela paga em dia", valor: "+50 moedas", icon: <CheckCircle size={18} />, diaria: true, feitoHoje: feitoHoje("Parcela paga em dia") },
+    { key: "login", nome: "Login diário", valor: "+10 moedas", icon: <CalendarCheck size={18} />, diaria: true, feitoHoje: feitoHoje("Login diário") },
+  ].filter((x) => (x.unica && x.feito) || (x.diaria && x.feitoHoje));
+
+  const pendentes = [
+    { key: "login", nome: "Login diário", valor: "+10 moedas", icon: <CalendarCheck size={18} /> },
+    { key: "streak7", nome: "Streak de 7 dias", valor: "+100 bônus", icon: <Fire size={18} />, sub: `${streak}/30 dias` },
+    { key: "streak30", nome: "Streak de 30 dias", valor: "+500 bônus", icon: <Fire size={18} />, sub: `${streak}/30 dias` },
+  ];
+
+  return (
+    <SubPageLayout title="seubônus">
+      <div className="space-y-4">
+        <Card className="overflow-hidden border-0 bg-[#E8590A] text-white shadow-sm">
+          <CardContent className="relative p-4">
+            <Coins size={48} className="absolute right-4 top-3 text-white/20" />
+            <button onClick={() => navigate("/seubolso/como-funciona")} className="absolute bottom-4 right-4 inline-flex items-center gap-1 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#E8590A]">Entenda como funciona <CaretRight size={12} /></button>
+            <p className="text-sm text-white/80">Seu saldo</p>
+            <p className="mt-1 text-3xl font-bold">{dataVisible ? saldoAnimado.toLocaleString("pt-BR") : "••••"}</p>
+            <p className="text-sm text-white/80">moedas</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-white shadow-sm">
+          <CardContent className="space-y-3 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Fire size={20} /></div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">{streak} dias seguidos</p>
+                <p className="text-xs text-muted-foreground">Continue abrindo o app todo dia para ganhar mais moedas</p>
+              </div>
+            </div>
+            <div>
+              <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground"><span>{streak}/30 dias</span><span>Bônus de 500</span></div>
+              <Progress value={progressoStreak} className="h-2 bg-secondary [&>div]:bg-[#E8590A]" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-[#FEF0E7] shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-4">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#E8590A]">
+                <Gift size={18} />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="text-sm font-semibold leading-5 text-[#A33D05]">Resgate suas moedas</p>
+                <p className="pb-1 text-xs leading-4 text-[#A33D05]/80">Logo você poderá usar seus pontos para desconto em taxas, assistências e muito mais.</p>
+              </div>
+            </div>
+            <div className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[10px] font-medium leading-[15px] text-[#A33D05]">Em breve</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border bg-white shadow-sm rounded-[14px]">
+          <CardContent className="space-y-3 p-4">
+            <div>
+              <h3 className="mb-2 text-sm font-semibold text-foreground">Meus ganhos</h3>
+              <div className="space-y-2">
+            {ganhosConcluidos.map((item) => (
+              <div key={item.key} className="flex items-center justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-semibold text-foreground leading-tight">{item.nome}</p>
+                    <p className="text-xs font-semibold text-[#E8590A] leading-tight">{item.valor}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">{item.unica ? <Badge className="border-0 bg-[#FEF0E7] text-[#E8590A]">Feito</Badge> : <Badge className="border-0 bg-[#DCFCE7] text-[#16A34A]">Feito hoje</Badge>}<CheckCircle size={18} weight="fill" className={item.unica ? "text-[#E8590A]" : "text-[#16A34A]"} /></div>
+              </div>
+            ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-sm font-semibold text-foreground">Pendentes</h3>
+              <div className="space-y-2">
+            {pendentes.map((item) => (
+              <div key={item.key} className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold leading-tight text-foreground">{item.nome}</p>
+                    {item.sub ? <p className="text-[11px] leading-tight text-[#ABA19A]">{item.sub}</p> : null}
+                  </div>
+                  <p className="text-xs font-semibold leading-tight text-[#E8590A]">{item.valor}</p>
+                </div>
+              </div>
+            ))}
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Users size={18} /></div>
+                  <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+                    <p className="text-xs font-semibold leading-tight text-foreground">Indicar um amigo</p>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right"><p className="text-[11px] text-[#78716C]">Se cadastrou</p><p className="text-xs font-semibold text-[#E8590A]">+200 moedas</p></div>
+                      <div className="text-right"><p className="text-[11px] text-[#78716C]">Contratou um produto</p><p className="text-xs font-semibold text-[#E8590A]">+300 bônus</p></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-white shadow-sm"><button onClick={() => navigate("/seubolso/historico")} className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground">Resgates <CaretRight size={16} className="text-muted-foreground" /></button></Card>
+      </div>
+    </SubPageLayout>
+  );
+}
+
+function SeubolsoComoFuncionaPage() {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState<number | null>(null);
+  const itens = [
+    { icon: <UserCircle size={18} />, nome: "Cadastro completo", valor: "+500 moedas" },
+    { icon: <CalendarCheck size={18} />, nome: "Login diário", valor: "+10 moedas" },
+    { icon: <Fire size={18} />, nome: "Streak de 7 dias", valor: "+100 bônus" },
+    { icon: <Fire size={18} />, nome: "Streak de 30 dias", valor: "+500 bônus" },
+    { icon: <CreditCard size={18} />, nome: "Contratar um produto", valor: "+300 moedas" },
+    { icon: <CheckCircle size={18} />, nome: "Parcela paga em dia", valor: "+50 moedas" },
+    { icon: <Users size={18} />, nome: "Indicar um amigo", valor: "+200 / +300 bônus" },
+  ];
+  const faqs = [
+    ["Quem pode usar?", "Todos os clientes cadastrados no seutudo."],
+    ["As moedas expiram?", "Suas moedas são válidas por 12 meses a partir da data em que foram ganhas."],
+    ["Como faço para resgatar?", "Em breve você poderá trocar suas moedas por descontos em taxas e outros benefícios. Fique de olho!"],
+    ["Perco minhas moedas se cancelar?", "Moedas acumuladas ficam disponíveis por 12 meses independente de cancelamento."],
+  ] as const;
+
+  return (
+    <SubPageLayout title="seubônus">
+      <div className="mx-auto w-full max-w-[608px] space-y-4 pb-20">
+        <Card className="overflow-hidden border-0 shadow-sm rounded-2xl">
+          <CardContent className="relative min-h-[200px] p-0 text-white">
+            <img src="/images/seubolso-hero.jpg-338ee0.png" alt="Pessoa feliz usando celular" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,#A33D05_0%,rgba(232,89,10,0.7)_50%,rgba(232,89,10,0)_100%)]" />
+            <div className="relative flex min-h-[200px] flex-col justify-end px-5 pb-5 pt-[72px]">
+              <p className="pb-1 text-xs font-semibold uppercase tracking-[0.025em] text-white/75">seubônus</p>
+              <h2 className="max-w-[280px] pb-2 text-2xl font-bold leading-[30px]">Ganhe moedas com suas ações no app</h2>
+              <p className="text-sm leading-5 text-white/85">Quanto mais usa, mais ganha</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-wrap gap-3">
+          <div className="flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-foreground">
+            <Coins size={12} className="text-[#E8590A]" />Ganhe usando o app
+          </div>
+          <div className="flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-foreground">
+            <Gift size={12} className="text-[#E8590A]" />Troque por vantagens
+          </div>
+        </div>
+
+        <Card className="border-border bg-white shadow-sm rounded-[14px]">
+          <CardContent className="space-y-3 p-4">
+            <h3 className="text-sm font-semibold leading-5 text-foreground">Como ganhar moedas</h3>
+            <div className="flex flex-wrap gap-3">
+              {itens.slice(0, 6).map((item) => (
+                <div key={item.nome} className="flex min-w-[240px] flex-1 items-start gap-2 rounded-lg border border-border bg-white p-3 shadow-sm">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium leading-4 text-foreground">{item.nome}</p>
+                    <p className="text-xs font-semibold leading-4 text-[#E8590A]">{item.valor}</p>
+                  </div>
+                </div>
+              ))}
+
+              <div className="relative flex w-full items-start gap-2 rounded-lg border border-border bg-white p-3 shadow-sm">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7] text-[#E8590A]"><Users size={20} /></div>
+                <div className="min-w-0 flex-1 pr-[132px]">
+                  <p className="text-xs font-medium leading-4 text-foreground">Indicar um amigo</p>
+                  <div className="mt-1 flex flex-wrap gap-4">
+                    <p className="text-[11px] leading-4 text-[#78716C]">Se cadastrou <span className="font-semibold text-[#E8590A]">+200 moedas</span></p>
+                    <p className="text-[11px] leading-4 text-[#78716C]">Contratou um produto <span className="font-semibold text-[#E8590A]">+300 bônus</span></p>
+                  </div>
+                </div>
+                <Button className="absolute right-3 top-1/2 h-8 -translate-y-1/2 rounded-xl bg-[#E8590A] px-3 text-xs font-semibold text-white hover:bg-[#A33D05]">
+                  Indique e ganhe
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold leading-6 text-foreground">Saiba mais sobre o seubônus</h3>
+          {faqs.map(([q, a], i) => (
+            <Card key={q} className="border-border bg-white shadow-sm rounded-[14px]">
+              <button onClick={() => setOpen(open === i ? null : i)} className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium leading-5 text-foreground">
+                {q}
+                <CaretDown size={16} className={`text-muted-foreground transition-transform ${open === i ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {open === i ? (
+                  <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden px-4 pb-4 text-xs leading-[19.5px] text-[#78716C]">
+                    {a}
+                  </motion.p>
+                ) : null}
+              </AnimatePresence>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-white px-4 py-3 md:left-64">
+        <div className="mx-auto w-full max-w-[608px]">
+          <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={() => navigate("/seubolso")}>
+            Ver minhas moedas <ArrowRight size={16} className="ml-2" />
+          </Button>
+        </div>
+      </div>
+    </SubPageLayout>
+  );
+}
+
+function SeubolsoHistoricoPage() {
+  const { extrato } = useSeubolso();
+  const historico = [...extrato].sort((a, b) => +new Date(b.data) - +new Date(a.data));
+  const formatarData = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+
+  return (
+    <SubPageLayout title="seubônus">
+      <div className="space-y-4">
+        <Card className="border-border bg-white shadow-sm"><CardContent className="p-4"><h3 className="mb-3 text-sm font-semibold text-foreground">Histórico de uso do seubônus</h3><div className="space-y-2.5">{historico.map((tx)=><div key={tx.id} className="flex items-start justify-between gap-3 border-b border-border pb-2 last:border-b-0"><div className="flex items-start gap-2">{tx.tipo==="ganho"?<ArrowCircleUp size={16} className="mt-0.5 text-green-600" />:<ArrowCircleDown size={16} className="mt-0.5 text-red-600" />}<div><p className="text-xs font-medium text-foreground">{tx.descricao}</p><p className="text-[11px] text-muted-foreground">{formatarData(tx.data)}</p></div></div><p className={`text-xs font-semibold ${tx.tipo==="ganho"?"text-green-600":"text-red-600"}`}>{tx.valor>0?`+${tx.valor}`:tx.valor} moedas</p></div>)}</div></CardContent></Card>
+        <Card className="border-0 bg-[#FEF0E7] shadow-sm"><CardContent className="flex items-start gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#E8590A]"><Gift size={18} /></div><div><p className="text-sm font-semibold text-[#A33D05]">Em breve</p><p className="mt-0.5 text-xs text-[#A33D05]/80">Novidades chegando. Você será notificado quando o resgate estiver disponível.</p></div></CardContent></Card>
+      </div>
+    </SubPageLayout>
+  );
+}
+
 function App() {
   const shouldReduce = useReducedMotion();
   const navigate = useNavigate();
@@ -1495,12 +1926,30 @@ function App() {
 
   const [loginCpf, setLoginCpf] = useState("");
   const [loginSenha, setLoginSenha] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [loginLockUntil, setLoginLockUntil] = useState<number | null>(null);
   const [showLoginSenha, setShowLoginSenha] = useState(false);
   const [otpChannel, setOtpChannel] = useState<OtpChannel | null>(null);
   const [otpCode, setOtpCode] = useState("");
   const [loginStep, setLoginStep] = useState<1 | 2 | 3>(1);
   const [otpCountdown, setOtpCountdown] = useState(30);
+  const [recoveryCpf, setRecoveryCpf] = useState("");
+  const [recoveryCpfError, setRecoveryCpfError] = useState("");
+  const [recoveryChannel, setRecoveryChannel] = useState<RecoveryChannel | null>(null);
+  const [recoveryOtpCode, setRecoveryOtpCode] = useState("");
+  const [recoveryOtpError, setRecoveryOtpError] = useState("");
+  const [recoveryOtpAttempts, setRecoveryOtpAttempts] = useState(0);
+  const [recoveryOtpLockUntil, setRecoveryOtpLockUntil] = useState<number | null>(null);
+  const [recoveryCountdown, setRecoveryCountdown] = useState(60);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [newPasswordError, setNewPasswordError] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const { notificacoes, naoLidas, marcarTodasLidas } = useNotificacoes();
+  const { saldo } = useSeubolso();
+  const { dataVisible } = usePrivacy();
 
   const firstName = (storedUser?.name || name || "você").split(" ")[0] || "você";
   const totalSteps = 4;
@@ -1522,15 +1971,27 @@ function App() {
 
   const canGoNext = useMemo(() => {
     if (step === 1) return name.trim().length > 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10;
-    if (step === 2) return cpf.replace(/\D/g, "").length === 11;
+    if (step === 2) return isValidCpf(cpf);
     if (step === 3) return interests.length > 0;
-    if (step === 4) return pin.length === 6;
+    if (step === 4) return pin.length === 6 && !isWeakNumericPin(pin);
     return true;
   }, [step, name, email, phone, cpf, interests, pin]);
 
-  const canContinueLoginStep1 = loginCpf.replace(/\D/g, "").length === 11 && loginSenha.length >= 6;
+  const loginLockedSeconds = loginLockUntil ? Math.max(0, Math.ceil((loginLockUntil - Date.now()) / 1000)) : 0;
+  const recoveryLockedSeconds = recoveryOtpLockUntil ? Math.max(0, Math.ceil((recoveryOtpLockUntil - Date.now()) / 1000)) : 0;
+  const canContinueLoginStep1 = loginCpf.replace(/\D/g, "").length === 11 && loginSenha.length >= 6 && loginLockedSeconds === 0;
   const canSendOtp = Boolean(otpChannel);
   const canConfirmOtp = otpCode.length === 6;
+  const locationState = (location.state as RecoveryRouteState | null) ?? null;
+
+  const passwordStrength = useMemo(() => {
+    const hasLength8 = newPassword.length >= 8;
+    const hasLetters = /[A-Za-z]/.test(newPassword);
+    const hasNumbers = /\d/.test(newPassword);
+    if (hasLength8 && hasLetters && hasNumbers) return { label: "Forte", value: 100, tone: "bg-green-500" };
+    if (newPassword.length >= 6) return { label: "Média", value: 66, tone: "bg-yellow-500" };
+    return { label: "Fraca", value: 33, tone: "bg-red-500" };
+  }, [newPassword]);
 
   const resetApp = () => {
     setStep(1);
@@ -1563,7 +2024,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/saque-facil"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/saque-facil", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/contratos/saque-facil-001"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -1603,6 +2064,66 @@ function App() {
     }, 1000);
     return () => window.clearInterval(timer);
   }, [location.pathname, loginStep]);
+
+  useEffect(() => {
+    if (!loginLockUntil && !recoveryOtpLockUntil) return;
+    const timer = window.setInterval(() => {
+      if (loginLockUntil && Date.now() >= loginLockUntil) setLoginLockUntil(null);
+      if (recoveryOtpLockUntil && Date.now() >= recoveryOtpLockUntil) setRecoveryOtpLockUntil(null);
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [loginLockUntil, recoveryOtpLockUntil]);
+
+  useEffect(() => {
+    if (location.pathname !== "/acesso") return;
+    if (!locationState?.passwordUpdated) return;
+    toast("Senha atualizada. Faça login para continuar.");
+    navigate("/acesso", { replace: true, state: null });
+  }, [location.pathname, locationState?.passwordUpdated, navigate]);
+
+  useEffect(() => {
+    if (location.pathname !== "/recuperar-senha/otp") return;
+    setRecoveryCountdown(60);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (location.pathname !== "/recuperar-senha/otp") return;
+    if (recoveryCountdown <= 0) return;
+    const timer = window.setInterval(() => {
+      setRecoveryCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [location.pathname, recoveryCountdown]);
+
+  useEffect(() => {
+    const cpfFromState = locationState?.cpf;
+    const channelFromState = locationState?.channel;
+    const otpVerified = Boolean(locationState?.otpVerified);
+    if (location.pathname === "/recuperar-senha/canal" && !cpfFromState) {
+      navigate("/recuperar-senha", { replace: true });
+      return;
+    }
+    if (location.pathname === "/recuperar-senha/otp" && (!cpfFromState || !channelFromState)) {
+      navigate("/recuperar-senha", { replace: true });
+      return;
+    }
+    if (location.pathname === "/recuperar-senha/nova-senha" && (!cpfFromState || !channelFromState || !otpVerified)) {
+      navigate("/recuperar-senha", { replace: true });
+    }
+
+    if (location.pathname.startsWith("/recuperar-senha") && getStoredUser()) {
+      navigate("/painel", { replace: true });
+    }
+  }, [location.pathname, locationState?.cpf, locationState?.channel, locationState?.otpVerified, navigate]);
+
+  useEffect(() => {
+    if (location.pathname !== "/recuperar-senha/nova-senha") return;
+    const handlePopState = () => {
+      navigate("/acesso", { replace: true });
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [location.pathname, navigate]);
 
   const goNext = () => {
     setDirection(1);
@@ -1707,23 +2228,65 @@ function App() {
 
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">CPF</Label>
-                <IMaskInput mask="000.000.000-00" value={loginCpf} onAccept={(value) => setLoginCpf(String(value))} placeholder="000.000.000-00" className={maskedInputClass} />
+                <IMaskInput mask="000.000.000-00" value={loginCpf} onAccept={(value) => { setLoginCpf(String(value)); if (loginError) setLoginError(""); }} placeholder="000.000.000-00" className={maskedInputClass} />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">Senha</Label>
                 <div className="relative">
-                  <Input type={showLoginSenha ? "text" : "password"} value={loginSenha} onChange={(e) => setLoginSenha(e.target.value)} className="h-12 rounded-xl pr-10" placeholder="Digite sua senha" />
+                  <Input type={showLoginSenha ? "text" : "password"} value={loginSenha} onChange={(e) => { setLoginSenha(e.target.value); if (loginError) setLoginError(""); }} className="h-12 rounded-xl pr-10" placeholder="Digite sua senha" />
                   <button className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShowLoginSenha((prev) => !prev)}>
                     {showLoginSenha ? <EyeSlash size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
-              <div className="text-right"><button className="text-xs text-primary">Esqueci minha senha</button></div>
+              {loginError ? <p className="text-xs text-red-600">{loginError}</p> : null}
+              {loginLockedSeconds > 0 ? <p className="text-xs text-[#A33D05]">Conta temporariamente bloqueada. Tente novamente em {loginLockedSeconds}s.</p> : null}
+
+              <div className="text-right">
+                <button
+                  type="button"
+                  className="text-xs font-medium text-primary"
+                  onClick={() => navigate("/recuperar-senha")}
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
 
               <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
-                <Button className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40" disabled={!canContinueLoginStep1} onClick={() => { setOtpChannel("whatsapp"); setLoginStep(2); }}>
+                <Button
+                  className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+                  disabled={!canContinueLoginStep1}
+                  onClick={() => {
+                    const cpfDigits = loginCpf.replace(/\D/g, "");
+                    if (!isValidCpf(loginCpf)) {
+                      setLoginError("CPF inválido. Verifique o número.");
+                      return;
+                    }
+                    if (cpfDigits === "00000000000") {
+                      setLoginError("CPF não encontrado. Verifique ou crie sua conta.");
+                      return;
+                    }
+                    if (loginSenha !== "142536") {
+                      const nextAttempts = loginAttempts + 1;
+                      setLoginAttempts(nextAttempts);
+                      setLoginSenha("");
+                      if (nextAttempts >= 5) {
+                        setLoginLockUntil(Date.now() + 60_000);
+                        setLoginAttempts(0);
+                        setLoginError("Conta temporariamente bloqueada. Tente novamente em 60 segundos.");
+                        return;
+                      }
+                      setLoginError("Senha incorreta. Tente novamente.");
+                      return;
+                    }
+                    setLoginError("");
+                    setLoginAttempts(0);
+                    setOtpChannel("whatsapp");
+                    setLoginStep(2);
+                  }}
+                >
                   Entrar
                 </Button>
               </motion.div>
@@ -1854,7 +2417,7 @@ function App() {
               {step === 2 && (
                 <>
                   <StepHeader step={2} total={totalSteps} title="Qual é o seu CPF?" subtitle="A gente usa para encontrar as ofertas certas para você." />
-                  <Card className="border-border shadow-sm"><CardContent className="space-y-4 pt-5"><div className="space-y-1.5"><Label className="text-sm font-medium">CPF</Label><IMaskInput mask="000.000.000-00" value={cpf} onAccept={(value) => setCpf(String(value))} placeholder="000.000.000-00" className={maskedInputClass} /><p className="text-xs text-muted-foreground">Nenhum dado é compartilhado sem sua autorização.</p></div><SecurityStrip /></CardContent></Card>
+                  <Card className="border-border shadow-sm"><CardContent className="space-y-4 pt-5"><div className="space-y-1.5"><Label className="text-sm font-medium">CPF</Label><IMaskInput mask="000.000.000-00" value={cpf} onAccept={(value) => setCpf(String(value))} placeholder="000.000.000-00" className={maskedInputClass} />{cpf.replace(/\D/g,"").length===11 && !isValidCpf(cpf) ? <p className="text-xs text-red-600">CPF inválido. Verifique o número e tente novamente.</p> : <p className="text-xs text-muted-foreground">Nenhum dado é compartilhado sem sua autorização.</p>}</div><SecurityStrip /></CardContent></Card>
                 </>
               )}
 
@@ -1884,7 +2447,7 @@ function App() {
                   <StepHeader step={4} total={totalSteps} title="Crie sua senha de acesso" subtitle="Vai ser usada para entrar no app." />
                   <Card className="border-border shadow-sm">
                     <CardContent className="space-y-4 pt-5">
-                      <div className="space-y-1.5"><Label className="text-sm font-medium">Senha numérica (6 dígitos)</Label><Input type="password" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••" className="h-12 rounded-xl text-center text-lg tracking-[0.5em]" /></div>
+                      <div className="space-y-1.5"><Label className="text-sm font-medium">Senha numérica (6 dígitos)</Label><Input type="password" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••" className="h-12 rounded-xl text-center text-lg tracking-[0.5em]" />{pin.length===6 && isWeakNumericPin(pin) ? <p className="text-xs text-red-600">Evite sequências como 123456 ou números repetidos.</p> : null}</div>
                       <ul className="space-y-1.5">{["Não use sequências (123456)", "Não use sua data de nascimento", "Você poderá ativar biometria na próxima tela"].map((rule) => <li key={rule} className="flex items-center gap-2 text-xs text-muted-foreground"><CheckCircle size={13} className="shrink-0 text-muted-foreground/50" />{rule}</li>)}</ul>
                     </CardContent>
                   </Card>
@@ -1924,12 +2487,310 @@ function App() {
     </main>
   );
 
+  const RecoveryCpfScreen = (
+    <AuthHeroLayout
+      rightContent={
+        <div className="w-full space-y-5 md:w-[380px]">
+          <RecoveryStepHeader
+            step={1}
+            title="Esqueci minha senha"
+            subtitle="Informe seu CPF para continuar"
+            backPath="/acesso"
+          />
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">CPF</Label>
+            <IMaskInput
+              mask="000.000.000-00"
+              value={recoveryCpf}
+              onAccept={(value) => {
+                setRecoveryCpf(String(value));
+                if (recoveryCpfError) setRecoveryCpfError("");
+              }}
+              placeholder="000.000.000-00"
+              className={maskedInputClass}
+            />
+            {recoveryCpfError ? <p className="text-xs text-red-600">{recoveryCpfError}</p> : null}
+          </div>
+
+          <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+              disabled={recoveryCpf.trim().length === 0}
+              onClick={() => {
+                if (!isValidCpf(recoveryCpf)) {
+                  setRecoveryCpfError("CPF inválido. Verifique e tente novamente.");
+                  return;
+                }
+                if (recoveryCpf === "000.000.000-00") {
+                  setRecoveryCpfError("CPF não encontrado. Verifique ou faça seu cadastro.");
+                  return;
+                }
+                setRecoveryCpfError("");
+                setRecoveryChannel(null);
+                navigate("/recuperar-senha/canal", { state: { cpf: recoveryCpf } satisfies RecoveryRouteState });
+              }}
+            >
+              Continuar
+            </Button>
+          </motion.div>
+        </div>
+      }
+    />
+  );
+
+  const RecoveryChannelScreen = (
+    <AuthHeroLayout
+      rightContent={
+        <div className="w-full space-y-5 md:w-[380px]">
+          <RecoveryStepHeader
+            step={2}
+            title="Como quer receber o código?"
+            subtitle="Escolha onde enviaremos o código de verificação"
+            backPath="/recuperar-senha"
+          />
+
+          {[
+            { key: "whatsapp" as const, label: "WhatsApp", detail: "(**) *****-XX34", icon: <WhatsappLogo size={20} /> },
+            { key: "sms" as const, label: "SMS", detail: "(**) *****-XX34", icon: <DeviceMobile size={20} /> },
+            { key: "email" as const, label: "E-mail", detail: "el***@gmail.com", icon: <EnvelopeSimple size={20} /> },
+          ].map((channel) => {
+            const selected = recoveryChannel === channel.key;
+            return (
+              <button
+                key={channel.key}
+                type="button"
+                onClick={() => setRecoveryChannel(channel.key)}
+                className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
+                  selected ? "border-primary bg-primary-light" : "border-border bg-white"
+                }`}
+              >
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${selected ? "bg-primary text-white" : "bg-background text-muted-foreground"}`}>
+                  {channel.icon}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{channel.label}</p>
+                  <p className="text-xs text-muted-foreground">{channel.detail}</p>
+                </div>
+              </button>
+            );
+          })}
+
+          <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+              disabled={!recoveryChannel}
+              onClick={() => {
+                if (!recoveryChannel) return;
+                toast(`Código enviado via ${recoveryChannel === "whatsapp" ? "WhatsApp" : recoveryChannel === "sms" ? "SMS" : "E-mail"}!`);
+                setRecoveryOtpCode("");
+                setRecoveryOtpError("");
+                navigate("/recuperar-senha/otp", {
+                  state: {
+                    cpf: locationState?.cpf,
+                    channel: recoveryChannel,
+                  } satisfies RecoveryRouteState,
+                });
+              }}
+            >
+              Enviar código
+            </Button>
+          </motion.div>
+        </div>
+      }
+    />
+  );
+
+  const RecoveryOtpScreen = (
+    <AuthHeroLayout
+      rightContent={
+        <div className="w-full space-y-5 md:w-[380px]">
+          <RecoveryStepHeader step={3} title="Digite o código" subtitle={
+            locationState?.channel === "whatsapp"
+              ? "Enviamos um código de 6 dígitos para o seu WhatsApp"
+              : locationState?.channel === "sms"
+                ? "Enviamos um código de 6 dígitos por SMS para o seu celular"
+                : "Enviamos um código de 6 dígitos para o seu e-mail"
+          } backPath="/recuperar-senha/canal" />
+
+          <div className="my-3 flex justify-center">
+            <InputOTP
+              maxLength={6}
+              value={recoveryOtpCode}
+              onChange={(value) => {
+                setRecoveryOtpCode(value);
+                if (recoveryOtpError) setRecoveryOtpError("");
+              }}
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
+
+          {recoveryOtpError ? <p className="text-xs text-red-600">{recoveryOtpError}</p> : null}
+          {recoveryLockedSeconds > 0 ? <p className="text-xs text-[#A33D05]">Muitas tentativas. Aguarde {recoveryLockedSeconds}s para tentar novamente.</p> : null}
+
+          <div className="text-sm text-muted-foreground">
+            {recoveryCountdown > 0 ? (
+              <p>Reenviar código em 0:{String(recoveryCountdown).padStart(2, "0")}</p>
+            ) : (
+              <button
+                type="button"
+                className="font-medium text-primary"
+                onClick={() => {
+                  setRecoveryCountdown(60);
+                  toast("Código reenviado!");
+                }}
+              >
+                Reenviar código
+              </button>
+            )}
+          </div>
+
+          <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+              disabled={recoveryOtpCode.length < 6 || recoveryLockedSeconds > 0}
+              onClick={() => {
+                if (recoveryOtpCode === "000000") {
+                  setRecoveryOtpError("Código expirado. Solicite um novo código.");
+                  setRecoveryCountdown(0);
+                  return;
+                }
+                if (recoveryOtpCode !== "123456") {
+                  const nextAttempts = recoveryOtpAttempts + 1;
+                  setRecoveryOtpAttempts(nextAttempts);
+                  if (nextAttempts >= 3) {
+                    setRecoveryOtpLockUntil(Date.now() + 60_000);
+                    setRecoveryOtpAttempts(0);
+                    setRecoveryOtpCode("");
+                    setRecoveryOtpError("Muitas tentativas. Aguarde 60 segundos para tentar novamente.");
+                    return;
+                  }
+                  setRecoveryOtpError("Código incorreto. Verifique e tente novamente.");
+                  setRecoveryOtpCode("");
+                  return;
+                }
+                setRecoveryOtpAttempts(0);
+                setRecoveryOtpError("");
+                navigate("/recuperar-senha/nova-senha", {
+                  state: {
+                    cpf: locationState?.cpf,
+                    channel: locationState?.channel,
+                    otpVerified: true,
+                  } satisfies RecoveryRouteState,
+                });
+              }}
+            >
+              Verificar
+            </Button>
+          </motion.div>
+        </div>
+      }
+    />
+  );
+
+  const RecoveryNewPasswordScreen = (
+    <AuthHeroLayout
+      rightContent={
+        <div className="w-full space-y-5 md:w-[380px]">
+          <RecoveryStepHeader
+            step={4}
+            title="Crie uma nova senha"
+            subtitle="Sua nova senha precisa ser diferente da anterior"
+          />
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Nova senha</Label>
+            <div className="relative">
+              <Input
+                type={showNewPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  if (newPasswordError) setNewPasswordError("");
+                }}
+                className="h-12 rounded-xl pr-10"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+              >
+                {showNewPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#F5F4F2]">
+                <div className={`h-full rounded-full transition-all ${passwordStrength.tone}`} style={{ width: `${passwordStrength.value}%` }} />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">{passwordStrength.label}</span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Confirmar nova senha</Label>
+            <div className="relative">
+              <Input
+                type={showConfirmNewPassword ? "text" : "password"}
+                value={confirmNewPassword}
+                onChange={(e) => {
+                  setConfirmNewPassword(e.target.value);
+                  if (newPasswordError) setNewPasswordError("");
+                }}
+                className="h-12 rounded-xl pr-10"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                onClick={() => setShowConfirmNewPassword((prev) => !prev)}
+              >
+                {showConfirmNewPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {newPasswordError ? <p className="text-xs text-red-600">{newPasswordError}</p> : null}
+          </div>
+
+          <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+              disabled={newPassword.length < 6}
+              onClick={() => {
+                if (newPassword === "senha123") {
+                  setNewPasswordError("A nova senha deve ser diferente da anterior.");
+                  return;
+                }
+                if (newPassword !== confirmNewPassword) {
+                  setNewPasswordError("As senhas não coincidem.");
+                  return;
+                }
+                setNewPasswordError("");
+                toast("Senha alterada com sucesso!");
+                window.setTimeout(() => {
+                  navigate("/acesso", { state: { passwordUpdated: true } satisfies RecoveryRouteState });
+                }, 1500);
+              }}
+            >
+              Salvar nova senha
+            </Button>
+          </motion.div>
+        </div>
+      }
+    />
+  );
+
   const HomeScreen = (
     <div className="min-h-screen w-full md:flex">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -1949,6 +2810,11 @@ function App() {
             </div>
             <div className="flex items-center gap-1">
               <PrivacyToggle variant="light" />
+              {/* TODO(dev): seubolso está em andamento e foi escondido da navegação. Reativar este atalho após QA/signoff. */}
+              <div className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1.5 text-white/80" aria-hidden="true">
+                <Coins size={15} />
+                <span className="text-xs font-semibold">{dataVisible ? saldo.toLocaleString("pt-BR") : "••••"}</span>
+              </div>
               <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 transition-colors hover:bg-white/25">
                 <Bell size={20} className="text-white" />
                 {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold text-[#E8590A]">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
@@ -2042,7 +2908,7 @@ function App() {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -2148,6 +3014,10 @@ function App() {
             />
             <Route path="/boas-vindas" element={WelcomeScreen} />
             <Route path="/acesso" element={LoginScreen} />
+            <Route path="/recuperar-senha" element={RecoveryCpfScreen} />
+            <Route path="/recuperar-senha/canal" element={RecoveryChannelScreen} />
+            <Route path="/recuperar-senha/otp" element={RecoveryOtpScreen} />
+            <Route path="/recuperar-senha/nova-senha" element={RecoveryNewPasswordScreen} />
             <Route path="/cadastro" element={renderOnboarding} />
             <Route path="/painel" element={getStoredUser() ? HomeScreen : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta" element={getStoredUser() ? AccountScreen : <Navigate to="/boas-vindas" replace />} />
@@ -2159,6 +3029,10 @@ function App() {
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/saque-facil-001" element={getStoredUser() ? <ContratoSaqueFacilPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* TODO(dev): seubolso está em andamento e escondido da navegação pública. */}
+            <Route path="/seubolso" element={getStoredUser() ? <SeubolsoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/seubolso/como-funciona" element={getStoredUser() ? <SeubolsoComoFuncionaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/seubolso/historico" element={getStoredUser() ? <SeubolsoHistoricoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/saque-facil" element={getStoredUser() ? <CreditCardProvider><SaqueFacilPage /></CreditCardProvider> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
