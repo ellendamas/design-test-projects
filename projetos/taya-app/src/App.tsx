@@ -6,6 +6,7 @@ import {
   ArrowSquareOut,
   Bank,
   Bell,
+  Brain,
   Briefcase,
   CalendarCheck,
   Check,
@@ -30,6 +31,7 @@ import {
   Fire,
   Gear,
   GenderIntersex,
+  Heartbeat,
   Headset,
   House,
   IdentificationCard,
@@ -53,6 +55,10 @@ import {
   Trophy,
   TrendUp,
   Trash,
+  Stethoscope,
+  Tooth,
+  PawPrint,
+  Umbrella,
   ArrowCircleUp,
   ArrowCircleDown,
   UserCircle,
@@ -74,11 +80,13 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ParaVoceAgora } from "@/components/ParaVoceAgora";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { contratos } from "@/data/contratos";
 import { usePrivacy } from "@/context/PrivacyContext";
 import { useNotificacoes } from "@/context/NotificacoesContext";
 import { CreditCardProvider, useCreditCard } from "@/context/CreditCardContext";
+import { useInteresse } from "@/context/InteresseContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
@@ -1569,6 +1577,8 @@ function NotificacoesPage() {
 }
 
 function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "default" }) {
+  const navigate = useNavigate();
+  const { assistencias, energia } = useInteresse();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState(false);
   const [canLeft, setCanLeft] = useState(false);
@@ -1577,7 +1587,9 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
     { id: "fgts", title: "Antecipe seu FGTS", desc: "Taxa a partir de 1,39% ao mês", icon: <FgtsCustomIcon size={16} /> },
     { id: "clt", title: "Crédito CLT disponível", desc: "Parcelas fixas com desconto em folha", icon: <Briefcase size={16} /> },
     { id: "saque", title: "Saque Fácil no cartão", desc: "Aprovação em minutos", icon: <CreditCard size={16} /> },
-  ];
+    { id: "assistencias", title: "Assistências seutudo.", desc: "Saúde, odonto, pet e muito mais", icon: <Heartbeat size={16} />, path: "/assistencias", hide: assistencias },
+    { id: "energia", title: "Economize na luz", desc: "Reduza até 20% todo mês", icon: <Lightning size={16} />, path: "/energia", hide: energia },
+  ].filter((item) => !("hide" in item && item.hide));
 
   if (items.length === 0) return null;
 
@@ -1612,7 +1624,11 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {items.map((item) => (
-          <Card key={item.id} className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] shadow-sm`}>
+          <Card
+            key={item.id}
+            className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] shadow-sm ${"path" in item ? "cursor-pointer" : ""}`}
+            onClick={() => ("path" in item ? navigate(item.path) : undefined)}
+          >
             <CardContent className="flex h-full flex-col justify-between p-3">
               <div className="mb-2">
                 <div>
@@ -1648,6 +1664,176 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
         </button>
       </div>
     </div>
+  );
+}
+
+function FakeDoorCTA({
+  registrado,
+  onRegister,
+  label,
+}: {
+  registrado: boolean;
+  onRegister: () => void;
+  label: string;
+}) {
+  if (registrado) {
+    return (
+      <Button disabled variant="outline" className="h-12 w-full rounded-xl border-[#E8590A] bg-[#FEF0E7] text-[#E8590A] opacity-100">
+        <CheckCircle size={18} className="mr-2" weight="fill" />
+        Interesse registrado
+      </Button>
+    );
+  }
+
+  return (
+    <Button className="h-12 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={onRegister}>
+      {label}
+    </Button>
+  );
+}
+
+function AssistenciasPage() {
+  const navigate = useNavigate();
+  const { assistencias, registrarInteresse } = useInteresse();
+
+  const categorias = [
+    { nome: "Saúde", icon: <Stethoscope size={32} className="text-[#E8590A]" /> },
+    { nome: "Odonto", icon: <Tooth size={32} className="text-[#E8590A]" /> },
+    { nome: "Pet", icon: <PawPrint size={32} className="text-[#E8590A]" /> },
+    { nome: "Psicologia", icon: <Brain size={32} className="text-[#E8590A]" /> },
+    { nome: "Previdência", icon: <Umbrella size={32} className="text-[#E8590A]" /> },
+  ];
+
+  const handleInteresse = () => {
+    registrarInteresse("assistencias");
+    toast("Em breve!", {
+      duration: 5000,
+      icon: <Bell size={16} className="text-[#E8590A]" />,
+      description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
+    });
+  };
+
+  return (
+    <SubPageLayout title="Assistências">
+      <div className="space-y-4">
+        <Card className="border-0 bg-[#A33D05] text-white shadow-sm">
+          <CardContent className="relative p-5">
+            <Heartbeat size={52} className="absolute right-4 top-4 text-white/35" />
+            <h2 className="max-w-[290px] text-2xl font-bold leading-tight">Cuide de quem você ama sem pesar no bolso</h2>
+            <p className="mt-2 max-w-[280px] text-sm text-white/90">Descontos reais em saúde, odonto, pet e muito mais</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-white shadow-sm">
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">O que está incluído</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {categorias.map((item, idx) => (
+                <div key={item.nome} className={`rounded-xl border border-border bg-white p-3 text-center ${idx === categorias.length - 1 ? "col-span-2 mx-auto w-full max-w-[180px]" : ""}`}>
+                  <div className="mb-2 flex justify-center">{item.icon}</div>
+                  <p className="text-xs font-medium text-foreground">{item.nome}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-white shadow-sm">
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Como vai funcionar</h3>
+            <div className="space-y-2.5">
+              {[
+                "Escolha as assistências que fazem sentido para você",
+                "Pague uma mensalidade acessível sem sair do app",
+                "Use quando precisar com descontos de até 85%",
+              ].map((texto, idx) => (
+                <div key={texto} className="flex items-start gap-2">
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-[11px] font-semibold text-[#E8590A]">{idx + 1}</div>
+                  <p className="text-xs leading-5 text-foreground">{texto}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
+
+        <Button variant="ghost" className="h-10 w-full rounded-xl" onClick={() => navigate("/painel")}>Voltar para o início</Button>
+      </div>
+    </SubPageLayout>
+  );
+}
+
+function EnergiaPage() {
+  const navigate = useNavigate();
+  const { energia, registrarInteresse } = useInteresse();
+
+  const handleInteresse = () => {
+    registrarInteresse("energia");
+    toast("Em breve!", {
+      duration: 5000,
+      icon: <Bell size={16} className="text-[#E8590A]" />,
+      description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
+    });
+  };
+
+  return (
+    <SubPageLayout title="Energia">
+      <div className="space-y-4">
+        <Card className="border-0 bg-[#A33D05] text-white shadow-sm">
+          <CardContent className="relative p-5">
+            <Lightning size={52} className="absolute right-4 top-4 text-white/35" />
+            <Badge className="border-0 bg-white/15 text-[#FEF0E7]">CONDUTIVE</Badge>
+            <h2 className="mt-3 max-w-[290px] text-2xl font-bold leading-tight">Sua conta de luz pode ser menor. Todo mês.</h2>
+            <p className="mt-2 max-w-[280px] text-sm text-white/90">Sem obras. Sem trocar equipamentos. Sem custo.</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-[#FEF0E7] shadow-sm">
+          <CardContent className="p-5 text-center">
+            <p className="text-4xl font-bold text-[#E8590A]">20%</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">de economia média na conta de luz</p>
+            <p className="mt-1 text-xs text-muted-foreground">Com base nos clientes já atendidos pela Condutive</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-white shadow-sm">
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Como funciona</h3>
+            <div className="space-y-2.5">
+              {[
+                "Você nos envia sua conta de luz",
+                "Analisamos as melhores opções disponíveis para o seu perfil",
+                "Você começa a economizar sem mudar nada na sua casa",
+              ].map((texto, idx) => (
+                <div key={texto} className="flex items-start gap-2">
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-[11px] font-semibold text-[#E8590A]">{idx + 1}</div>
+                  <p className="text-xs leading-5 text-foreground">{texto}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-white shadow-sm">
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Por que vale a pena</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {["Sem obras", "Sem fidelidade", "100% gratuito"].map((item) => (
+                <div key={item} className="flex flex-col items-center gap-1 rounded-xl border border-border bg-white px-2 py-3 text-center">
+                  <CheckCircle size={20} className="text-[#E8590A]" weight="fill" />
+                  <p className="text-[11px] font-medium leading-4 text-foreground">{item}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
+
+        <Button variant="ghost" className="h-10 w-full rounded-xl" onClick={() => navigate("/painel")}>Voltar para o início</Button>
+      </div>
+    </SubPageLayout>
   );
 }
 
@@ -2025,7 +2211,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/saque-facil", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/contratos/saque-facil-001"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/saque-facil", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/contratos/saque-facil-001", "/assistencias", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -2822,7 +3008,7 @@ function App() {
               </button>
             </div>
           </div>
-          <RecomendacoesCarousel variant="light" />
+          <ParaVoceAgora />
         </header>
 
         <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
@@ -2832,6 +3018,8 @@ function App() {
                 "clt",
                 "saque-facil",
                 "fgts",
+                "assistencias",
+                "energia",
                 "seguro",
               ] as const).map((interest) => {
                 const currentService =
@@ -2844,8 +3032,34 @@ function App() {
                         icon: <ShieldCheck size={20} />,
                         highlight: "Inserir copy",
                         photo: "/images/card-dash-security.png",
+                        path: undefined,
                       }
-                    : serviceCopy[interest as ServiceType];
+                    : interest === "assistencias"
+                      ? {
+                          title: "Assistências seutudo.",
+                          subtitle: "Saúde, odonto, pet e muito mais",
+                          description: "Cuide de você e da sua família com descontos de até 85% em consultas e exames.",
+                          cta: "Conhecer planos",
+                          icon: <Heartbeat size={20} />,
+                          highlight: "Saúde, odonto, pet e muito mais",
+                          photo: "/images/card-dash-seguro.png",
+                          path: "/assistencias",
+                        }
+                      : interest === "energia"
+                        ? {
+                            title: "Economize na conta de luz",
+                            subtitle: "Reduza até 20% todo mês",
+                            description: "Sem trocar equipamentos. Sem obras. Sem custo. Só economia na sua fatura.",
+                            cta: "Simular economia",
+                            icon: <Lightning size={20} />,
+                            highlight: "Reduza até 20% todo mês",
+                            photo: "/images/card-dash-clt.png",
+                            path: "/energia",
+                          }
+                        : {
+                            ...serviceCopy[interest as ServiceType],
+                            path: interest === "saque-facil" ? "/saque-facil" : undefined,
+                      }
                 return (
                   <motion.div key={interest} variants={cardVariants}>
                     <Card className="relative overflow-hidden rounded-2xl border border-[#DADADA] bg-white shadow-sm">
@@ -2859,7 +3073,7 @@ function App() {
                             {currentService.highlight ? <p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{interest === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p> : null}
                             <p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{currentService.description}</p>
                           </div>
-                          <button onClick={() => interest === "saque-facil" ? navigate("/saque-facil") : undefined} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
+                          <button onClick={() => (currentService.path ? navigate(currentService.path) : undefined)} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
                             {currentService.cta} <CaretRight size={14} className="ml-1" />
                           </button>
                         </div>
@@ -3030,6 +3244,8 @@ function App() {
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/saque-facil-001" element={getStoredUser() ? <ContratoSaqueFacilPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias" element={getStoredUser() ? <AssistenciasPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />
             {/* TODO(dev): seubolso está em andamento e escondido da navegação pública. */}
             <Route path="/seubolso" element={getStoredUser() ? <SeubolsoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seubolso/como-funciona" element={getStoredUser() ? <SeubolsoComoFuncionaPage /> : <Navigate to="/boas-vindas" replace />} />
