@@ -3043,8 +3043,8 @@ function App() {
       </AnimatePresence>
 
       {isDesignPlayground ? (
-        <div className="fixed bottom-3 left-3 z-[100] rounded-full border border-[#FDBA74] bg-[#7C2D12] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[#FFEDD5] shadow-lg">
-          Playground de design - nao oficial
+        <div className="fixed bottom-3 left-3 z-[100] rounded-full border border-[#FDBA74] bg-[#7C2D12] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#FFEDD5] shadow-lg">
+          Not Production
         </div>
       ) : null}
 
