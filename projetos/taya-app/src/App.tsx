@@ -1911,6 +1911,7 @@ function App() {
   const shouldReduce = useReducedMotion();
   const navigate = useNavigate();
   const location = useLocation();
+  const isDesignPlayground = import.meta.env.VITE_APP_ENV === "playground";
 
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -3040,6 +3041,12 @@ function App() {
           </Routes>
         </motion.div>
       </AnimatePresence>
+
+      {isDesignPlayground ? (
+        <div className="fixed bottom-3 left-3 z-[100] rounded-full border border-[#FDBA74] bg-[#7C2D12] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[#FFEDD5] shadow-lg">
+          Playground de design - nao oficial
+        </div>
+      ) : null}
 
       <Toaster />
     </>
