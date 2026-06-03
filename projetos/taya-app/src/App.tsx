@@ -1574,8 +1574,10 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
   const items = [
-    { id: "fgts", title: "Antecipe seu FGTS", desc: "Taxa a partir de 1,39% ao mês", icon: <FgtsCustomIcon size={16} /> },
-    { id: "clt", title: "Crédito CLT disponível", desc: "Parcelas fixas com desconto em folha", icon: <Briefcase size={16} /> },
+    // TODO: reativar quando FGTS estiver disponível
+    // { id: "fgts", title: "Antecipe seu FGTS", desc: "Taxa a partir de 1,39% ao mês", icon: <FgtsCustomIcon size={16} /> },
+    // TODO: reativar quando CLT estiver disponível
+    // { id: "clt", title: "Crédito CLT disponível", desc: "Parcelas fixas com desconto em folha", icon: <Briefcase size={16} /> },
     { id: "saque", title: "Saque Fácil no cartão", desc: "Aprovação em minutos", icon: <CreditCard size={16} /> },
   ];
 
@@ -2425,7 +2427,7 @@ function App() {
                 <>
                   <StepHeader step={3} total={totalSteps} title="O que você está precisando?" subtitle="Pode escolher mais de um." />
                   <div className="space-y-2">
-                    {(Object.keys(serviceCopy) as ServiceType[]).map((service) => {
+                    {(Object.keys(serviceCopy) as ServiceType[]).filter((s) => s !== "clt" && s !== "fgts").map((service) => {
                       const checked = interests.includes(service);
                       const currentService = serviceCopy[service];
                       return (
@@ -2790,7 +2792,7 @@ function App() {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -2810,11 +2812,6 @@ function App() {
             </div>
             <div className="flex items-center gap-1">
               <PrivacyToggle variant="light" />
-              {/* TODO(dev): seubolso está em andamento e foi escondido da navegação. Reativar este atalho após QA/signoff. */}
-              <div className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1.5 text-white/80" aria-hidden="true">
-                <Coins size={15} />
-                <span className="text-xs font-semibold">{dataVisible ? saldo.toLocaleString("pt-BR") : "••••"}</span>
-              </div>
               <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 transition-colors hover:bg-white/25">
                 <Bell size={20} className="text-white" />
                 {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold text-[#E8590A]">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
@@ -2828,9 +2825,11 @@ function App() {
           <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
             <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
               {([
-                "clt",
+                // TODO: reativar quando CLT estiver disponível
+                // "clt",
                 "saque-facil",
-                "fgts",
+                // TODO: reativar quando FGTS estiver disponível
+                // "fgts",
                 "seguro",
               ] as const).map((interest) => {
                 const currentService =
@@ -2908,7 +2907,7 @@ function App() {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
