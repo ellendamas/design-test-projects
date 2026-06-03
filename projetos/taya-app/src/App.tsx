@@ -6,62 +6,75 @@ import {
   ArrowSquareOut,
   Bank,
   Bell,
+  BookOpen,
+  Brain,
   Briefcase,
-  CalendarCheck,
-  Check,
-  Coins,
   Buildings,
   Cake,
+  CalendarCheck,
+  Car,
   CaretLeft,
   CaretRight,
+  CaretDown,
   ChatCircle,
+  Check,
   CheckCircle,
   ClipboardText,
-  CaretDown,
   Clock,
+  Coins,
   CreditCard,
   CurrencyCircleDollar,
   DeviceMobile,
+  DownloadSimple,
   EnvelopeSimple,
   Eye,
   EyeSlash,
   FileText,
   Fingerprint,
   Fire,
+  FirstAid,
+  ForkKnife,
   Gear,
   GenderIntersex,
+  Gift,
+  HandHeart,
   Headset,
   Heartbeat,
   House,
+  HouseLine,
   IdentificationCard,
+  Image,
   Info,
-  Gift,
   Lightning,
-  LockSimple,
+  ListChecks,
   Lock,
+  LockSimple,
   MagnifyingGlass,
   MapPin,
+  Newspaper,
+  PawPrint,
   PencilSimple,
   Plus,
-  ShoppingBag,
   SealCheck,
   ShieldCheck,
-  DownloadSimple,
+  ShoppingBag,
   SignOut,
   Sliders,
   SpinnerGap,
+  Stethoscope,
   Tag,
-  Trophy,
+  Tooth,
   TrendUp,
-  Wallet,
+  Trophy,
   Trash,
-  ArrowCircleUp,
-  ArrowCircleDown,
+  Umbrella,
+  User,
   UserCircle,
+  Users,
+  Wallet,
+  Warning,
   WhatsappLogo,
   X,
-  Users,
-  User,
 } from "@phosphor-icons/react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
@@ -357,6 +370,39 @@ function ComingSoon({ title }: { title: string }) {
         <Button variant="outline" className="rounded-xl border-border" onClick={() => navigate("/painel")}>Voltar para o início</Button>
       </div>
     </main>
+  );
+}
+
+function FakeDoorCTA({
+  registrado,
+  onRegister,
+  label,
+}: {
+  registrado: boolean;
+  onRegister: () => void;
+  label: string;
+}) {
+  if (registrado) {
+    return (
+      <Button disabled variant="outline" className="h-12 w-full rounded-xl border-[#E8590A] bg-[#FEF0E7] text-[#E8590A] opacity-100">
+        <CheckCircle size={18} className="mr-2" weight="fill" />
+        Interesse registrado
+      </Button>
+    );
+  }
+  return (
+    <Button className="h-12 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={onRegister}>
+      {label}
+    </Button>
+  );
+}
+
+function PlaceholderImagem({ icon, className = "h-full w-full" }: { icon: ReactNode; className?: string }) {
+  return (
+    <div className={`flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#E5E7EB] ${className}`}>
+      <div className="text-[#9CA3AF]">{icon}</div>
+      <p className="text-xs text-[#9CA3AF]">Imagem em breve</p>
+    </div>
   );
 }
 
@@ -1698,6 +1744,299 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
   );
 }
 
+function AssistenciasPage() {
+  const navigate = useNavigate();
+  const { assistencias, registrarInteresse } = useInteresse();
+  const categoriasRef = useRef<HTMLDivElement>(null);
+  const [draggingCategorias, setDraggingCategorias] = useState(false);
+  const [canCategoriasLeft, setCanCategoriasLeft] = useState(false);
+  const [canCategoriasRight, setCanCategoriasRight] = useState(false);
+  const dragStartX = useRef(0);
+  const dragStartScroll = useRef(0);
+
+  const categorias = [
+    { nome: "Saúde", icon: <Stethoscope size={20} className="text-[#E8590A]" />, hero: <Stethoscope size={48} />, beneficio: "Consultas a partir de R$ 39,90", tag: "Clínico geral e 5 especialidades" },
+    { nome: "Odonto", icon: <Tooth size={20} className="text-[#E8590A]" />, hero: <Tooth size={48} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
+    { nome: "Pet", icon: <PawPrint size={20} className="text-[#E8590A]" />, hero: <PawPrint size={48} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
+    { nome: "Psicologia", icon: <Brain size={20} className="text-[#E8590A]" />, hero: <Brain size={48} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
+    { nome: "Previdência", icon: <Umbrella size={20} className="text-[#E8590A]" />, hero: <Umbrella size={48} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
+    { nome: "Bem-estar", icon: <Heartbeat size={20} className="text-[#E8590A]" />, hero: <Heartbeat size={48} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
+    { nome: "Educação", icon: <BookOpen size={20} className="text-[#E8590A]" />, hero: <BookOpen size={48} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
+    { nome: "Tecnologia", icon: <DeviceMobile size={20} className="text-[#E8590A]" />, hero: <DeviceMobile size={48} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
+    { nome: "Residência", icon: <House size={20} className="text-[#E8590A]" />, hero: <House size={48} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
+    { nome: "Prevenção", icon: <FirstAid size={20} className="text-[#E8590A]" />, hero: <FirstAid size={48} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
+    { nome: "Notícias", icon: <Newspaper size={20} className="text-[#E8590A]" />, hero: <Newspaper size={48} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
+    { nome: "Recompensa", icon: <Gift size={20} className="text-[#E8590A]" />, hero: <Gift size={48} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
+    { nome: "Sorteio", icon: <Trophy size={20} className="text-[#E8590A]" />, hero: <Trophy size={48} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
+  ];
+
+  const faqItems = [
+    { pergunta: "Quem pode contratar?", resposta: "Todos os clientes cadastrados no seutudo. com CPF validado." },
+    { pergunta: "Preciso contratar todas as categorias?", resposta: "Não. Você escolhe apenas as assistências que fazem sentido para você e sua família." },
+    { pergunta: "Como funciona o pagamento?", resposta: "Uma mensalidade acessível debitada diretamente pelo app. Sem fidelidade, sem surpresa." },
+    { pergunta: "Posso incluir minha família?", resposta: "Sim. Algumas categorias permitem até 8 dependentes sem necessidade de grau de parentesco." },
+  ];
+
+  const updateCategoriasControls = () => {
+    const el = categoriasRef.current;
+    if (!el) return;
+    setCanCategoriasLeft(el.scrollLeft > 2);
+    setCanCategoriasRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  };
+
+  useEffect(() => {
+    updateCategoriasControls();
+    const el = categoriasRef.current;
+    if (!el) return;
+    const onScroll = () => updateCategoriasControls();
+    el.addEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  const handleInteresse = () => {
+    registrarInteresse("assistencias");
+    toast("Em breve!", {
+      duration: 5000,
+      icon: <Bell size={16} className="text-[#E8590A]" />,
+      description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
+    });
+  };
+
+  return (
+    <SubPageLayout title="Assistências">
+      <div className="min-w-0 max-w-full space-y-4 overflow-x-hidden pb-6">
+        <Card className="overflow-hidden rounded-2xl border-0 shadow-sm">
+          <CardContent className="relative h-[220px] p-0">
+            <PlaceholderImagem icon={<Image size={34} />} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-4">
+              <Badge className="mb-2 border-0 bg-white/15 text-[11px] text-white">ASSISTÊNCIAS SEUTUDO.</Badge>
+              <h2 className="max-w-[290px] text-[26px] font-bold leading-tight text-white">Cuide de quem você ama sem pesar no bolso</h2>
+              <p className="mt-2 max-w-[290px] text-sm text-white/80">Descontos reais em saúde, odonto, pet e muito mais</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-[#FEF0E7] shadow-sm">
+          <CardContent className="p-6 text-center">
+            <p className="text-4xl font-bold text-[#E8590A]">R$ 4.600</p>
+            <p className="mt-2 text-sm font-semibold text-foreground">de economia média por ano em saúde e bem-estar</p>
+            <p className="mt-1 text-xs text-muted-foreground">Comparado à contratação individual dos serviços no mercado</p>
+          </CardContent>
+        </Card>
+
+        <div className="relative">
+          <h3 className="text-sm font-semibold text-foreground">O que está incluído</h3>
+          <p className="mt-1 text-xs text-muted-foreground">13 categorias de assistência para você e sua família</p>
+          <div
+            ref={categoriasRef}
+            className={`mt-3 flex w-full gap-3 overflow-x-auto pb-1 touch-pan-x select-none [&::-webkit-scrollbar]:hidden ${draggingCategorias ? "cursor-grabbing" : "cursor-grab"}`}
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
+            onPointerDown={(e) => {
+              const el = categoriasRef.current;
+              if (!el) return;
+              setDraggingCategorias(true);
+              dragStartX.current = e.clientX;
+              dragStartScroll.current = el.scrollLeft;
+              el.setPointerCapture(e.pointerId);
+            }}
+            onPointerMove={(e) => {
+              const el = categoriasRef.current;
+              if (!el || !draggingCategorias) return;
+              const deltaX = e.clientX - dragStartX.current;
+              el.scrollLeft = dragStartScroll.current - deltaX;
+            }}
+            onPointerUp={(e) => {
+              const el = categoriasRef.current;
+              if (!el) return;
+              setDraggingCategorias(false);
+              if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+            }}
+            onPointerCancel={(e) => {
+              const el = categoriasRef.current;
+              if (!el) return;
+              setDraggingCategorias(false);
+              if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+            }}
+          >
+            {categorias.map((item) => (
+              <Card key={item.nome} className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
+                <div className="h-[120px] p-3">
+                  <PlaceholderImagem icon={item.hero} />
+                </div>
+                <CardContent className="p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    {item.icon}
+                    <p className="text-sm font-semibold text-foreground">{item.nome}</p>
+                  </div>
+                  <p className="line-clamp-2 text-xs leading-5 text-[#374151]">{item.beneficio}</p>
+                  <span className="mt-2 inline-flex rounded-full bg-[#FEF0E7] px-2 py-1 text-[11px] text-[#E8590A]">{item.tag}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="pointer-events-none absolute left-0 top-[58%] hidden -translate-y-1/2 md:flex">
+            <button
+              type="button"
+              onClick={() => categoriasRef.current?.scrollBy({ left: -220, behavior: "smooth" })}
+              disabled={!canCategoriasLeft}
+              className="pointer-events-auto -ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#E8590A] shadow disabled:opacity-40"
+              aria-label="Ver categorias anteriores"
+            >
+              <CaretLeft size={16} />
+            </button>
+          </div>
+          <div className="pointer-events-none absolute right-0 top-[58%] hidden -translate-y-1/2 md:flex">
+            <button
+              type="button"
+              onClick={() => categoriasRef.current?.scrollBy({ left: 220, behavior: "smooth" })}
+              disabled={!canCategoriasRight}
+              className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#E8590A] shadow disabled:opacity-40"
+              aria-label="Ver próximas categorias"
+            >
+              <CaretRight size={16} />
+            </button>
+          </div>
+        </div>
+
+        <Card className="border-border bg-white shadow-sm">
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Como vai funcionar</h3>
+            <div className="space-y-3">
+              {[
+                { icon: <ListChecks size={32} className="text-[#E8590A]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
+                { icon: <CreditCard size={32} className="text-[#E8590A]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do seutudo., simples e sem burocracia." },
+                { icon: <HandHeart size={32} className="text-[#E8590A]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
+              ].map((item, idx, arr) => (
+                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
+                  <div className="shrink-0">{item.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-foreground">Dúvidas frequentes</h3>
+          <FaqAcordeon items={faqItems} />
+        </div>
+
+        <div className="rounded-2xl bg-white px-4 pb-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+          <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
+          {assistencias ? (
+            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#E8590A]">
+              Voltar para o início
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </SubPageLayout>
+  );
+}
+
+function EnergiaPage() {
+  const navigate = useNavigate();
+  const { energia, registrarInteresse } = useInteresse();
+
+  const handleInteresse = () => {
+    registrarInteresse("energia");
+    toast("Em breve!", {
+      duration: 5000,
+      icon: <Bell size={16} className="text-[#E8590A]" />,
+      description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
+    });
+  };
+
+  const faqItems = [
+    { pergunta: "Isso é gratuito?", resposta: "Sim. Você não paga nada para fazer a análise. A economia começa a aparecer diretamente na sua conta de luz." },
+    { pergunta: "Precisa trocar algo em casa?", resposta: "Não. Nenhuma obra, nenhum equipamento novo. Tudo acontece na negociação da sua energia, sem impacto no seu dia a dia." },
+    { pergunta: "Funciona para apartamento?", resposta: "Sim, funciona para residências, apartamentos e comércios de pequeno porte em todo o Brasil." },
+    { pergunta: "Quanto tempo leva para começar a economizar?", resposta: "Após a análise, o processo costuma levar de 30 a 60 dias para a economia aparecer na sua fatura." },
+  ];
+
+  return (
+    <SubPageLayout title="Energia">
+      <div className="min-w-0 max-w-full space-y-4 pb-6">
+        <Card className="overflow-hidden rounded-2xl border-0 shadow-sm">
+          <CardContent className="relative h-[220px] p-0">
+            <PlaceholderImagem icon={<Image size={34} />} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-4">
+              <Badge className="mb-2 border-0 bg-white/15 text-[11px] text-white">ECONOMIA DE ENERGIA</Badge>
+              <h2 className="max-w-[290px] text-[26px] font-bold leading-tight text-white">Sua conta de luz pode ser menor. Todo mês.</h2>
+              <p className="mt-2 max-w-[290px] text-sm text-white/80">Sem obras. Sem trocar equipamentos. Sem custo.</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div
+          className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {["Sem obras", "Sem fidelidade", "100% gratuito"].map((item) => (
+            <div key={item} className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-white px-3 py-1.5 text-[13px] text-foreground">
+              <CheckCircle size={16} className="text-[#E8590A]" weight="fill" />
+              {item}
+            </div>
+          ))}
+        </div>
+
+        <Card className="border-0 bg-[#FEF0E7] shadow-sm">
+          <CardContent className="p-5 text-center">
+            <p className="text-4xl font-bold text-[#E8590A]">R$ 80</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">de economia média por mês na conta de luz</p>
+            <p className="mt-1 text-xs text-muted-foreground">Com base nos clientes já atendidos pelo nosso parceiro</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-white shadow-sm">
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Como funciona</h3>
+            <div className="space-y-3">
+              {[
+                { icon: <FileText size={32} className="text-[#E8590A]" />, titulo: "Você envia sua conta de luz", sub: "Basta fotografar ou enviar o PDF da sua fatura." },
+                { icon: <MagnifyingGlass size={32} className="text-[#E8590A]" />, titulo: "Analisamos as melhores opções para o seu perfil", sub: "Nossa equipe identifica as alternativas disponíveis na sua região." },
+                { icon: <CurrencyCircleDollar size={32} className="text-[#E8590A]" />, titulo: "Você começa a economizar sem mudar nada em casa", sub: "Sem obras, sem contratos complicados, sem custo de adesão." },
+              ].map((item, idx, arr) => (
+                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
+                  <div className="shrink-0">{item.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-foreground">Dúvidas frequentes</h3>
+          <FaqAcordeon items={faqItems} />
+        </div>
+
+        <div className="rounded-2xl bg-white px-4 pb-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+          <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
+          {energia ? (
+            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#E8590A]">
+              Voltar para o início
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </SubPageLayout>
+  );
+}
+
 function SeubolsoPage() {
   const navigate = useNavigate();
   const { saldo, streak, extrato } = useSeubolso();
@@ -2071,7 +2410,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/saque-facil", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/contratos/saque-facil-001"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/saque-facil", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/contratos/saque-facil-001", "/assistencias", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -2875,6 +3214,8 @@ function App() {
                 "saque-facil",
                 // TODO: reativar quando FGTS estiver disponível
                 // "fgts",
+                "assistencias",
+                "energia",
                 "seguro",
               ] as const).map((interest) => {
                 const currentService =
@@ -2888,6 +3229,26 @@ function App() {
                         highlight: "Proteção para sua família",
                         photo: "/images/card-dash-security.png",
                       }
+                    : interest === "assistencias"
+                    ? {
+                        title: "Assistências seutudo.",
+                        subtitle: "Saúde, odonto, pet e muito mais",
+                        description: "Cuide de você e da sua família com descontos de até 85% em consultas e exames.",
+                        cta: "Conhecer planos",
+                        icon: <Heartbeat size={20} />,
+                        highlight: "Saúde, odonto, pet e muito mais",
+                        photo: "/images/card-dash-security.png",
+                      }
+                    : interest === "energia"
+                    ? {
+                        title: "Economize na conta de luz",
+                        subtitle: "Reduza até 20% todo mês",
+                        description: "Sem trocar equipamentos. Sem obras. Sem custo. Só economia na sua fatura.",
+                        cta: "Simular economia",
+                        icon: <Lightning size={20} />,
+                        highlight: "Reduza até 20% todo mês",
+                        photo: "/images/card-dash-clt.png",
+                      }
                     : serviceCopy[interest as ServiceType];
                 return (
                   <motion.div key={interest} variants={cardVariants}>
@@ -2899,10 +3260,14 @@ function App() {
                               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{currentService.icon}</div>
                               <p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{currentService.title}</p>
                             </div>
-                            {currentService.highlight ? <p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{interest === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p> : null}
+                            {currentService.highlight ? <p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{currentService.highlight}</p> : null}
                             <p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{currentService.description}</p>
                           </div>
-                          <button onClick={() => interest === "saque-facil" ? navigate("/saque-facil") : undefined} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
+                          <button onClick={() => {
+                            if (interest === "saque-facil") navigate("/saque-facil");
+                            else if (interest === "assistencias") navigate("/assistencias");
+                            else if (interest === "energia") navigate("/energia");
+                          }} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
                             {currentService.cta} <CaretRight size={14} className="ml-1" />
                           </button>
                         </div>
@@ -3078,6 +3443,8 @@ function App() {
             <Route path="/seubolso/como-funciona" element={getStoredUser() ? <SeubolsoComoFuncionaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seubolso/historico" element={getStoredUser() ? <SeubolsoHistoricoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias" element={getStoredUser() ? <AssistenciasPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/saque-facil" element={getStoredUser() ? <CreditCardProvider><SaqueFacilPage /></CreditCardProvider> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
