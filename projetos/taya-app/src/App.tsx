@@ -1773,10 +1773,10 @@ function AssistenciasPage() {
   ];
 
   const faqItems = [
-    { pergunta: "Quem pode contratar?", resposta: "Todos os clientes cadastrados no seutudo. com CPF validado." },
-    { pergunta: "Preciso contratar todas as categorias?", resposta: "Não. Você escolhe apenas as assistências que fazem sentido para você e sua família." },
-    { pergunta: "Como funciona o pagamento?", resposta: "Uma mensalidade acessível debitada diretamente pelo app. Sem fidelidade, sem surpresa." },
-    { pergunta: "Posso incluir minha família?", resposta: "Sim. Algumas categorias permitem até 8 dependentes sem necessidade de grau de parentesco." },
+    { q: "Quem pode contratar?", a: "Todos os clientes cadastrados no seutudo. com CPF validado." },
+    { q: "Preciso contratar todas as categorias?", a: "Não. Você escolhe apenas as assistências que fazem sentido para você e sua família." },
+    { q: "Como funciona o pagamento?", a: "Uma mensalidade acessível debitada diretamente pelo app. Sem fidelidade, sem surpresa." },
+    { q: "Posso incluir minha família?", a: "Sim. Algumas categorias permitem até 8 dependentes sem necessidade de grau de parentesco." },
   ];
 
   const updateCategoriasControls = () => {
@@ -1959,10 +1959,10 @@ function EnergiaPage() {
   };
 
   const faqItems = [
-    { pergunta: "Isso é gratuito?", resposta: "Sim. Você não paga nada para fazer a análise. A economia começa a aparecer diretamente na sua conta de luz." },
-    { pergunta: "Precisa trocar algo em casa?", resposta: "Não. Nenhuma obra, nenhum equipamento novo. Tudo acontece na negociação da sua energia, sem impacto no seu dia a dia." },
-    { pergunta: "Funciona para apartamento?", resposta: "Sim, funciona para residências, apartamentos e comércios de pequeno porte em todo o Brasil." },
-    { pergunta: "Quanto tempo leva para começar a economizar?", resposta: "Após a análise, o processo costuma levar de 30 a 60 dias para a economia aparecer na sua fatura." },
+    { q: "Isso é gratuito?", a: "Sim. Você não paga nada para fazer a análise. A economia começa a aparecer diretamente na sua conta de luz." },
+    { q: "Precisa trocar algo em casa?", a: "Não. Nenhuma obra, nenhum equipamento novo. Tudo acontece na negociação da sua energia, sem impacto no seu dia a dia." },
+    { q: "Funciona para apartamento?", a: "Sim, funciona para residências, apartamentos e comércios de pequeno porte em todo o Brasil." },
+    { q: "Quanto tempo leva para começar a economizar?", a: "Após a análise, o processo costuma levar de 30 a 60 dias para a economia aparecer na sua fatura." },
   ];
 
   return (
