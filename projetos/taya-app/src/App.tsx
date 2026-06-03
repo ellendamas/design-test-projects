@@ -52,6 +52,7 @@ import {
   Tag,
   Trophy,
   TrendUp,
+  Wallet,
   Trash,
   ArrowCircleUp,
   ArrowCircleDown,
@@ -65,6 +66,7 @@ import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } fr
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 
+import { useRecomendacoes } from "@/context/RecomendacoesContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1573,15 +1575,22 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
   const [canScroll, setCanScroll] = useState(false);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
-  const items = [
-    // TODO: reativar quando FGTS estiver disponível
-    // { id: "fgts", title: "Antecipe seu FGTS", desc: "Taxa a partir de 1,39% ao mês", icon: <FgtsCustomIcon size={16} /> },
-    // TODO: reativar quando CLT estiver disponível
-    // { id: "clt", title: "Crédito CLT disponível", desc: "Parcelas fixas com desconto em folha", icon: <Briefcase size={16} /> },
-    { id: "saque", title: "Saque Fácil no cartão", desc: "Aprovação em minutos", icon: <CreditCard size={16} /> },
-  ];
+  const { cards, dispensar } = useRecomendacoes();
+  const [exiting, setExiting] = useState<string | null>(null);
 
-  if (items.length === 0) return null;
+  const iconMap: Record<string, ReactNode> = {
+    CalendarCheck: <CalendarCheck size={16} />,
+    MapPin: <MapPin size={16} />,
+    Bank: <Bank size={16} />,
+    CreditCard: <CreditCard size={16} />,
+    Coins: <Coins size={16} />,
+    Heartbeat: <Heartbeat size={16} />,
+    Lightning: <Lightning size={16} />,
+    Wallet: <Wallet size={16} />,
+    Fire: <Fire size={16} />,
+  };
+
+  if (cards.length === 0) return null;
 
   const updateScrollState = () => {
     const el = scrollRef.current;
@@ -1603,7 +1612,15 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
       el.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [cards]);
+
+  const handleDismiss = (id: string) => {
+    setExiting(id);
+    setTimeout(() => {
+      dispensar(id);
+      setExiting(null);
+    }, 200);
+  };
 
   return (
     <div className="relative">
@@ -1613,19 +1630,46 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
         className={`flex gap-2 ${canScroll ? "overflow-x-auto" : "overflow-x-hidden"} ${variant === "light" ? "px-0" : "px-1"} md:[&::-webkit-scrollbar]:hidden`}
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {items.map((item) => (
-          <Card key={item.id} className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] shadow-sm`}>
-            <CardContent className="flex h-full flex-col justify-between p-3">
-              <div className="mb-2">
-                <div>
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
-                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+        <AnimatePresence>
+          {cards.map((card) => (
+            <motion.div
+              key={card.id}
+              animate={exiting === card.id ? { x: -20, opacity: 0 } : { x: 0, opacity: 1 }}
+              transition={{ duration: 0.2 }}
+              className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] rounded-xl shadow-sm ${variant === "light" ? "" : "border"}`}
+            >
+              <div className="relative flex h-full flex-col justify-between p-3">
+                {card.dispensavel && (
+                  <button
+                    type="button"
+                    onClick={() => handleDismiss(card.id)}
+                    className="absolute right-2 top-2 flex items-center justify-center rounded-md transition-colors hover:bg-[#F3F4F6]"
+                    style={{ width: 24, height: 24, padding: 4 }}
+                    aria-label={`Dispensar ${card.texto}`}
+                  >
+                    <X size={14} color="#9CA3AF" />
+                  </button>
+                )}
+                <div className="mb-2">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{iconMap[card.icone]}</div>
+                  <p className="text-sm font-semibold text-foreground">{card.texto}</p>
                 </div>
+                {card.cta && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (card.destino) window.location.hash = card.destino;
+                    }}
+                    className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]"
+                  >
+                    {card.cta} <CaretRight size={12} />
+                  </button>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
       <div className={`pointer-events-none absolute left-0 top-1/2 hidden -translate-y-1/2 md:flex ${canScroll ? "" : "opacity-0"}`}>
         <button
@@ -1643,7 +1687,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
           type="button"
           onClick={() => scrollRef.current?.scrollBy({ left: 280, behavior: "smooth" })}
           disabled={!canRight}
-          className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#E8590A] shadow disabled:opacity-40"
+          className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#E8590A] shadow disabled:opacity-50"
           aria-label="Ver próximas recomendações"
         >
           <CaretRight size={16} />
