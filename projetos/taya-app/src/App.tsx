@@ -80,6 +80,7 @@ import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } fr
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 
+import { useInteresse } from "@/context/InteresseContext";
 import { useRecomendacoes } from "@/context/RecomendacoesContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
