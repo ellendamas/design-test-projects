@@ -1748,7 +1748,8 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
 
 function AssistenciasPage() {
   const navigate = useNavigate();
-  const { assistencias, registrarInteresse } = useInteresse();
+  const { interesses, registrarInteresse } = useInteresse();
+  const assistencias = interesses.includes("assistencias");
   const categoriasRef = useRef<HTMLDivElement>(null);
   const [draggingCategorias, setDraggingCategorias] = useState(false);
   const [canCategoriasLeft, setCanCategoriasLeft] = useState(false);
@@ -1947,7 +1948,8 @@ function AssistenciasPage() {
 
 function EnergiaPage() {
   const navigate = useNavigate();
-  const { energia, registrarInteresse } = useInteresse();
+  const { interesses, registrarInteresse } = useInteresse();
+  const energia = interesses.includes("energia");
 
   const handleInteresse = () => {
     registrarInteresse("energia");
