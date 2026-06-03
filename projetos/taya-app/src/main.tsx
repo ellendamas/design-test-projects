@@ -12,17 +12,17 @@ import { RecomendacoesProvider } from "./context/RecomendacoesContext";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <InteresseProvider>
-      <RecomendacoesProvider>
-        <PrivacyProvider>
-          <NotificacoesProvider>
-            <SeubolsoProvider>
+      <SeubolsoProvider>
+        <RecomendacoesProvider>
+          <PrivacyProvider>
+            <NotificacoesProvider>
               <BrowserRouter>
                 <App />
               </BrowserRouter>
-            </SeubolsoProvider>
-          </NotificacoesProvider>
-        </PrivacyProvider>
-      </RecomendacoesProvider>
+            </NotificacoesProvider>
+          </PrivacyProvider>
+        </RecomendacoesProvider>
+      </SeubolsoProvider>
     </InteresseProvider>
   </React.StrictMode>
 );
