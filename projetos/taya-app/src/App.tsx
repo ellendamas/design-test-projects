@@ -31,6 +31,7 @@ import {
   Gear,
   GenderIntersex,
   Headset,
+  Heartbeat,
   House,
   IdentificationCard,
   Info,
