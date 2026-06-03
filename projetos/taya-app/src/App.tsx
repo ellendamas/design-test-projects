@@ -2836,11 +2836,11 @@ function App() {
                   interest === "seguro"
                     ? {
                         title: "Seguro de vida",
-                        subtitle: "Inserir copy",
-                        description: "Inserir copy",
+                        subtitle: "Proteção para sua família",
+                        description: "Seguro de vida acessível com contratação simples e sem burocracia.",
                         cta: "Contratar seguro",
                         icon: <ShieldCheck size={20} />,
-                        highlight: "Inserir copy",
+                        highlight: "Proteção para sua família",
                         photo: "/images/card-dash-security.png",
                       }
                     : serviceCopy[interest as ServiceType];
