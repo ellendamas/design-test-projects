@@ -3118,12 +3118,14 @@ function App() {
   // DESIGN ONLY — estados controlados por query params
   // TODO: substituir por dados reais da API antes do deploy
   const [searchParams] = useSearchParams();
-  const cltStatus = (searchParams.get("clt") ?? "none") as "none" | "consultando" | "oferta" | "contrato";
+  // DESIGN ONLY — default "oferta" para visualização da dashboard no ambiente de design
+  // TODO: substituir por estado real da API antes do deploy
+  const cltStatus = (searchParams.get("clt") ?? "oferta") as "none" | "consultando" | "oferta" | "contrato";
 
-  // DESIGN ONLY — ?paravocê=0 → seção vazia | ?paravocê=1 → card oferta CLT
-  // fallback ?paravoc= para evitar problema de encoding na URL
+  // DESIGN ONLY — ?paravocê=0 → oculto | ?paravocê=1 → card CLT | ?paravocê=2 → CLT + Saque Fácil
+  // fallback ?paravoc= para evitar problema de encoding na URL | default "1"
   // TODO: controlar por API
-  const paravocemParam = searchParams.get("paravocê") ?? searchParams.get("paravoc") ?? null;
+  const paravocemParam = searchParams.get("paravocê") ?? searchParams.get("paravoc") ?? "1";
 
   const cltHighlight =
     cltStatus === "consultando"
@@ -3179,33 +3181,56 @@ function App() {
               </button>
             </div>
           </div>
-          {/* DESIGN ONLY — paravocê param substitui o carousel quando presente */}
-          {paravocemParam !== null ? (
-            paravocemParam === "1" ? (
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
-                <div className="flex gap-2">
-                  {/* Card oferta CLT */}
+          {/* DESIGN ONLY — paravocê param controla o "Para você agora"
+              "0" = oculto | "1" = card CLT | "2" = CLT + Saque Fácil (seção cheia)
+              TODO: controlar por API */}
+          {paravocemParam === "0" ? null : (paravocemParam === "1" || paravocemParam === "2") ? (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
+              <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+
+                {/* Card oferta CLT */}
+                <button
+                  type="button"
+                  onClick={() => navigate("/consignado-clt/oferta")}
+                  className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                >
+                  <div className="flex h-full flex-col justify-between p-4">
+                    <div>
+                      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
+                        <CurrencyCircleDollar size={20} />
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">Você tem até R$ 32.533,83 para receber.</p>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                      Ver minha oferta <CaretRight size={12} />
+                    </div>
+                  </div>
+                </button>
+
+                {/* Card Saque Fácil — exibido apenas quando paravoc=2 */}
+                {paravocemParam === "2" && (
                   <button
                     type="button"
-                    onClick={() => navigate("/consignado-clt/oferta")}
+                    onClick={() => navigate("/saque-facil")}
                     className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
                   >
                     <div className="flex h-full flex-col justify-between p-4">
                       <div>
                         <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
-                          <CurrencyCircleDollar size={20} />
+                          <CreditCard size={20} />
                         </div>
-                        <p className="text-sm font-semibold text-foreground">Você tem até R$ 32.533,83 para receber.</p>
+                        <p className="text-sm font-semibold text-foreground">Dinheiro rápido no seu cartão.</p>
                       </div>
                       <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
-                        Ver minha oferta <CaretRight size={12} />
+                        Saque Fácil <CaretRight size={12} />
                       </div>
                     </div>
                   </button>
-                </div>
+                )}
+
               </div>
-            ) : null /* paravocemParam === "0": seção oculta */
+            </div>
           ) : (
             <RecomendacoesCarousel variant="light" />
           )}
