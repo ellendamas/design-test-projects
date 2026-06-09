@@ -77,7 +77,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 
 import FaqAcordeon from "@/components/FaqAcordeon";
@@ -100,6 +100,17 @@ import { CreditCardProvider, useCreditCard } from "@/context/CreditCardContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
+import ConsignadoCLTLandingPage from "@/pages/consignado-clt/LandingPage";
+import ConsignadoCLTLoadingPage from "@/pages/consignado-clt/LoadingPage";
+import ConsignadoCLTAguardandoPage from "@/pages/consignado-clt/AguardandoPage";
+import ConsignadoCLTOfertaPage from "@/pages/consignado-clt/OfertaPage";
+import ConsignadoCLTSimuladorPage from "@/pages/consignado-clt/SimuladorPage";
+import ConsignadoCLTRevisaoPage from "@/pages/consignado-clt/RevisaoPage";
+import ConsignadoCLTDadosPage from "@/pages/consignado-clt/DadosPage";
+import ConsignadoCLTAssinaturaPage from "@/pages/consignado-clt/AssinaturaPage";
+import ConsignadoCLTConfirmacaoPage from "@/pages/consignado-clt/ConfirmacaoPage";
+import EnderecoSelector from "@/components/EnderecoSelector";
+import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
 import Cards from "react-credit-cards-2";
 import "react-credit-cards-2/dist/es/styles-compiled.css";
 
@@ -198,12 +209,12 @@ const serviceCopy: Record<
   }
 > = {
   clt: {
-    title: "Crédito com desconto em folha",
+    title: "Crédito CLT",
     subtitle: "Para quem tem carteira assinada",
     description: "Parcelas fixas descontadas direto do seu salário. Sem susto no fim do mês.",
     cta: "Consultar crédito CLT",
     icon: <Briefcase size={20} />,
-    highlight: "Até R$ 18.000 disponíveis",
+    highlight: "Descubra quanto você pode ter",
     photo: "/images/card-dash-clt.png",
   },
   fgts: {
@@ -240,7 +251,7 @@ function FgtsCustomIcon({ size = 20, className = "" }: { size?: number; classNam
   );
 }
 
-function getStoredUser(): StoredUser | null {
+export function getStoredUser(): StoredUser | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem("seutudo_user");
@@ -408,7 +419,7 @@ function PlaceholderImagem({ icon, className = "h-full w-full" }: { icon: ReactN
   );
 }
 
-function SubPageLayout({ title, children }: { title: string; children: ReactNode }) {
+export function SubPageLayout({ title, children }: { title: string; children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { naoLidas } = useNotificacoes();
@@ -1076,24 +1087,34 @@ function MeusDadosPage() {
 
 function EditarEnderecoPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [success, setSuccess] = useState(false);
-  const [cep, setCep] = useState("");
-  const [logradouro, setLogradouro] = useState("Avenida Paulista");
-  const [bairro, setBairro] = useState("Bela Vista");
-  const [cidade] = useState("São Paulo");
-  const [estado] = useState("SP");
-  const [numero, setNumero] = useState("");
-  const [complemento, setComplemento] = useState("");
+
+  // DESIGN ONLY — TODO: substituir por dados reais do StoredUser
+  const enderecoExemplo = {
+    logradouro: "Rua Dona Ana Neri",
+    numero: "581",
+    complemento: "de 501/502 ao fim",
+    bairro: "Cambuci",
+    cidade: "São Paulo",
+    estado: "SP",
+    cep: "01522-000",
+  };
 
   if (success) {
     return (
       <SubPageLayout title="Editar endereço">
         <div className="flex flex-col items-center space-y-4 py-12 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><CheckCircle size={32} className="text-[#E8590A]" weight="fill" /></div>
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
+            <CheckCircle size={32} className="text-[#E8590A]" weight="fill" />
+          </div>
           <h2 className="text-lg font-bold text-foreground">Endereço atualizado.</h2>
           <p className="text-sm text-muted-foreground">Suas informações foram salvas com sucesso.</p>
-          <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={() => navigate("/minha-conta")}>Voltar para minha conta</Button>
+          <Button
+            className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]"
+            onClick={() => navigate("/minha-conta")}
+          >
+            Voltar para minha conta
+          </Button>
         </div>
       </SubPageLayout>
     );
@@ -1101,148 +1122,66 @@ function EditarEnderecoPage() {
 
   return (
     <SubPageLayout title="Editar endereço">
-      {step === 1 && (
-        <div className="space-y-4">
-          <div className="mb-6">
-            <h2 className="mb-4 text-xl font-bold leading-snug text-foreground">Confirme se esse é o seu endereço residencial.</h2>
-            <div className="space-y-0.5 text-sm leading-relaxed text-foreground">
-              <p>Rua Dona Ana Neri, 581</p><p>de 501/502 ao fim</p><p>Cambuci</p><p>São Paulo / SP</p><p>CEP: 01522-000</p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-3 md:flex-row">
-            <Button variant="outline" className="h-11 w-full rounded-xl border-border md:w-auto md:min-w-[160px]" onClick={() => setStep(2)}><PencilSimple size={16} className="mr-2" />Alterar endereço</Button>
-            <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:w-auto md:min-w-[160px]" onClick={() => navigate("/minha-conta")}>Confirmar endereço</Button>
-          </div>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="space-y-4">
-          <h2 className="mb-1 text-xl font-bold leading-snug text-foreground">Para começar, informe o CEP da sua residência.</h2>
-          <p className="mb-5 text-sm text-muted-foreground">A gente preenche o endereço automaticamente para você.</p>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">CEP</Label><IMaskInput mask="00000-000" value={cep} onAccept={(v) => setCep(String(v))} className={maskedInputClass} placeholder="00000-000" /></div>
-          <button className="text-sm text-primary underline" onClick={() => window.open("https://buscacepinter.correios.com.br", "_blank")}>Não sei o meu CEP</button>
-          <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={() => setStep(3)}>Buscar</Button>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="space-y-3">
-          <h2 className="mb-1 text-lg font-bold text-foreground">Complete os dados e confirme o endereço.</h2>
-          <p className="mb-5 text-sm text-muted-foreground">Verifique se está tudo certo antes de salvar.</p>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Logradouro</Label><Input value={logradouro} onChange={(e) => setLogradouro(e.target.value)} className="h-12 rounded-xl" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Bairro</Label><Input value={bairro} onChange={(e) => setBairro(e.target.value)} className="h-12 rounded-xl" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Cidade</Label><Input value={cidade} readOnly className="h-12 rounded-xl bg-muted" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Estado</Label><Input value={estado} readOnly className="h-12 rounded-xl bg-muted" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Número</Label><Input placeholder="Ex: 42" autoFocus value={numero} onChange={(e) => setNumero(e.target.value)} className="h-12 rounded-xl" /></div>
-          <label className="flex items-center gap-2 text-sm text-foreground"><Checkbox />Sem número</label>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Complemento</Label><Input value={complemento} onChange={(e) => setComplemento(e.target.value)} className="h-12 rounded-xl" /></div>
-          <Button className="mt-2 h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" disabled={!numero.trim()} onClick={() => setSuccess(true)}>Confirmar endereço</Button>
-        </div>
-      )}
+      <EnderecoSelector
+        enderecos={[enderecoExemplo]}
+        onConfirmar={() => setSuccess(true)}
+      />
     </SubPageLayout>
   );
 }
 
 function DadosBancariosPage() {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<{ cod: string; nome: string } | null>(null);
-  const [agencia, setAgencia] = useState("");
-  const [conta, setConta] = useState("");
-  const [digito, setDigito] = useState("");
-  const [tipo, setTipo] = useState<"corrente" | "poupanca">("corrente");
-  const [saved, setSaved] = useState<{ banco: string; agencia: string; conta: string; digito: string; tipo: string } | null>(null);
-  const [confirmando, setConfirmando] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [success, setSuccess] = useState(false);
+  const [contaSalva, setContaSalva] = useState<ContaSelectorData | null>(null);
 
-  const bancosPrincipais = [
-    { cod: "001", nome: "Banco do Brasil S.A." },
-    { cod: "237", nome: "Banco Bradesco S.A." },
-    { cod: "341", nome: "Itaú Unibanco S.A." },
-    { cod: "104", nome: "Caixa Econômica Federal" },
-    { cod: "033", nome: "Banco Santander S.A." },
-    { cod: "260", nome: "Nu Pagamentos S.A. (Nubank)" },
-    { cod: "077", nome: "Banco Inter S.A." },
-    { cod: "290", nome: "PagSeguro Internet S.A." },
-    { cod: "323", nome: "Mercado Pago" },
-    { cod: "748", nome: "Banco Cooperativo Sicredi S.A." },
+  // DESIGN ONLY — simular N contas cadastradas via query param
+  // ?conta=0 → sem conta (abre formulário direto)
+  // ?conta=1 → 1 conta salva (pré-selecionada)
+  // ?conta=3 → 3 contas salvas (última pré-selecionada)
+  // TODO: substituir por dados reais do StoredUser / API
+  const CONTAS_MOCK_BANCARIOS: ContaSelectorData[] = [
+    { banco: { codigo: "077", nome: "Banco Inter" }, tipoConta: "Conta corrente", agencia: "1234", conta: "12345", digito: "6" },
+    { banco: { codigo: "260", nome: "Nubank" }, tipoConta: "Conta corrente", agencia: "0001", conta: "987654", digito: "3" },
+    { banco: { codigo: "341", nome: "Itaú Unibanco" }, tipoConta: "Conta poupança", agencia: "5678", conta: "11111", digito: "0" },
+    { banco: { codigo: "237", nome: "Bradesco" }, tipoConta: "Conta corrente", agencia: "0123", conta: "55555", digito: "9" },
+    { banco: { codigo: "033", nome: "Santander" }, tipoConta: "Conta corrente", agencia: "9999", conta: "66666", digito: "1" },
   ];
+  const nContas = Math.min(5, Math.max(0, parseInt(searchParams.get("conta") ?? "0", 10) || 0));
+  const contasMock = CONTAS_MOCK_BANCARIOS.slice(0, nContas);
 
-  const bancosFiltrados = bancosPrincipais.filter((b) => `${b.cod} ${b.nome}`.toLowerCase().includes(search.toLowerCase()));
+  if (success && contaSalva) {
+    return (
+      <SubPageLayout title="Dados bancários">
+        <div className="flex flex-col items-center space-y-4 py-12 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
+            <Check size={28} className="text-[#E8590A]" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-foreground">Conta salva com sucesso</p>
+            <p className="text-sm text-muted-foreground">{contaSalva.banco.nome} · {contaSalva.tipoConta}</p>
+            <p className="text-sm text-muted-foreground">Ag {contaSalva.agencia} · {contaSalva.conta}-{contaSalva.digito}</p>
+          </div>
+          <Button
+            className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]"
+            onClick={() => navigate("/minha-conta")}
+          >
+            Voltar para minha conta
+          </Button>
+        </div>
+      </SubPageLayout>
+    );
+  }
 
   return (
     <SubPageLayout title="Dados bancários">
-      {!saved ? (
-        <>
-          <div className="flex flex-col items-center space-y-3 py-10 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><Bank size={28} className="text-[#E8590A]" /></div>
-            <h3 className="text-base font-semibold text-foreground">Nenhuma conta cadastrada.</h3>
-            <p className="text-sm text-muted-foreground">Adicione uma conta para receber seus pagamentos.</p>
-          </div>
-          <Button className="h-11 w-full rounded-xl bg-[#E8590A] font-semibold text-white hover:bg-[#A33D05]" onClick={() => setOpen(true)}><Plus size={16} className="mr-2" />Adicionar conta</Button>
-        </>
-      ) : (
-        <div className="rounded-xl border border-border p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-foreground">{saved.banco}</p>
-              <p className="text-xs text-muted-foreground">Agência · <SensitiveData value={saved.agencia} type="text" /></p>
-              <p className="text-xs text-muted-foreground">{saved.tipo} · <SensitiveData value={`${saved.conta}-${saved.digito}`} type="text" /></p>
-            </div>
-            <button onClick={() => setSaved(null)} className="flex items-center gap-1.5 text-xs text-red-500 transition-colors hover:text-red-700">
-              <Trash size={14} />
-              Remover esta conta
-            </button>
-          </div>
-        </div>
-      )}
-
-      {open && (isDesktop ? (
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-[480px] rounded-2xl p-6">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-foreground">Em qual banco deseja receber?</DialogTitle>
-            </DialogHeader>
-            {!selected ? (
-              <>
-                <div className="mb-3 flex items-center gap-2 rounded-xl border border-border px-3"><MagnifyingGlass size={16} className="text-muted-foreground" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar banco" className="h-10 w-full text-sm outline-none" /></div>
-                <div className="max-h-[45vh] space-y-1 overflow-auto">
-                  {bancosFiltrados.map((b) => (
-                    <button key={b.cod} className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-[#F5F4F2]" onClick={() => setSelected(b)}>{b.cod} · {b.nome}</button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <BankFormContent selected={selected} agencia={agencia} conta={conta} digito={digito} tipo={tipo} setAgencia={setAgencia} setConta={setConta} setDigito={setDigito} setTipo={setTipo} confirmando={confirmando} setConfirmando={setConfirmando} onConfirmSave={() => { setSaved({ banco: selected.nome, agencia, conta, digito, tipo: tipo === "corrente" ? "Conta corrente" : "Conta poupança" }); setOpen(false); setSelected(null); setSearch(""); setConfirmando(false); }} />
-            )}
-          </DialogContent>
-        </Dialog>
-      ) : (
-        <div className="fixed inset-0 z-50 bg-black/40">
-          <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-white p-4">
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" />
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Em qual banco deseja receber?</h3>
-            {!selected ? (
-              <>
-                <div className="mb-3 flex items-center gap-2 rounded-xl border border-border px-3"><MagnifyingGlass size={16} className="text-muted-foreground" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar banco" className="h-10 w-full text-sm outline-none" /></div>
-                <div className="max-h-[45vh] space-y-1 overflow-auto">
-                  {bancosFiltrados.map((b) => (
-                    <button key={b.cod} className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-[#F5F4F2]" onClick={() => setSelected(b)}>{b.cod} · {b.nome}</button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <BankFormContent selected={selected} agencia={agencia} conta={conta} digito={digito} tipo={tipo} setAgencia={setAgencia} setConta={setConta} setDigito={setDigito} setTipo={setTipo} confirmando={confirmando} setConfirmando={setConfirmando} onConfirmSave={() => { setSaved({ banco: selected.nome, agencia, conta, digito, tipo: tipo === "corrente" ? "Conta corrente" : "Conta poupança" }); setOpen(false); setSelected(null); setSearch(""); setConfirmando(false); }} />
-            )}
-          </div>
-        </div>
-      ))}
-      {saved && (
-        <div className="mt-3">
-          <Button variant="outline" className="mt-3 w-full rounded-xl border-border md:w-auto" onClick={() => setOpen(true)}><Plus size={16} className="mr-2" />Adicionar outra conta</Button>
-        </div>
-      )}
+      <div className="pb-6">
+        <ContaSelector
+          contas={contasMock}
+          onConfirmar={(c) => { setContaSalva(c); setSuccess(true); }}
+        />
+      </div>
     </SubPageLayout>
   );
 }
@@ -3175,6 +3114,32 @@ function App() {
     />
   );
 
+  // DESIGN ONLY — estado controlado por query param (?clt=none|consultando|oferta|contrato)
+  // TODO: substituir por estado real da API antes do deploy
+  const [searchParams] = useSearchParams();
+  const cltStatus = (searchParams.get("clt") ?? "none") as "none" | "consultando" | "oferta" | "contrato";
+
+  const cltHighlight =
+    cltStatus === "none"
+      ? "Descubra quanto você pode ter"
+      : cltStatus === "consultando"
+        ? "Consultando sua oferta..."
+        : cltStatus === "oferta"
+          ? "Você tem até R$ 32.533,83 disponíveis"
+          : "Parcela de R$ 533,65 · vence em 12 dias";
+
+  const cltCta =
+    cltStatus === "none"
+      ? "Consultar crédito CLT"
+      : cltStatus === "consultando"
+        ? "Ver status"
+        : cltStatus === "oferta"
+          ? "Pegar agora"
+          : "Ver contrato";
+
+  const cltPath =
+    cltStatus === "contrato" ? "/contratos" : "/consignado-clt/simular";
+
   const HomeScreen = (
     <div className="min-h-screen w-full md:flex">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
@@ -3213,8 +3178,7 @@ function App() {
           <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
             <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
               {([
-                // TODO: reativar quando CLT estiver disponível
-                // "clt",
+                "clt",
                 "saque-facil",
                 // TODO: reativar quando FGTS estiver disponível
                 // "fgts",
@@ -3253,29 +3217,35 @@ function App() {
                         highlight: "Reduza até 20% todo mês",
                         photo: "/images/card-dash-clt.png",
                       }
+                    : interest === "clt"
+                    ? { ...serviceCopy.clt, highlight: cltHighlight, cta: cltCta }
                     : serviceCopy[interest as ServiceType];
+                const isOfertaDestaque = interest === "clt" && cltStatus === "oferta";
                 return (
                   <motion.div key={interest} variants={cardVariants}>
-                    <Card className="relative overflow-hidden rounded-2xl border border-[#DADADA] bg-white shadow-sm">
+                    <Card className={`relative overflow-hidden rounded-2xl border shadow-sm ${isOfertaDestaque ? "border-[#E8590A] bg-[#E8590A]" : "border-[#DADADA] bg-white"}`}>
                       <CardContent className="flex min-h-[158px] items-stretch p-0">
                         <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
                           <div>
                             <div className="mb-3 flex items-center gap-2">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{currentService.icon}</div>
-                              <p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{currentService.title}</p>
+                              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${isOfertaDestaque ? "bg-white/20 text-white" : "bg-[#FEF0E7] text-[#E8590A]"}`}>{currentService.icon}</div>
+                              <p className={`line-clamp-2 text-[16px] font-semibold leading-tight ${isOfertaDestaque ? "text-white" : "text-foreground"}`}>{currentService.title}</p>
                             </div>
-                            {currentService.highlight ? <p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{currentService.highlight}</p> : null}
-                            <p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{currentService.description}</p>
+                            {currentService.highlight ? <p className={`mb-2 font-semibold ${interest === "clt" && (cltStatus === "consultando" || cltStatus === "oferta") ? "text-[16px]" : "text-[14px]"} ${isOfertaDestaque ? "text-white" : "text-[#E8590A]"}`}>{currentService.highlight}</p> : null}
+                            {!(interest === "clt" && cltStatus !== "none") && (
+                              <p className={`mb-3 line-clamp-2 text-[14px] leading-snug ${isOfertaDestaque ? "text-white/80" : "text-muted-foreground"}`}>{currentService.description}</p>
+                            )}
                           </div>
                           <button onClick={() => {
-                            if (interest === "saque-facil") navigate("/saque-facil");
+                            if (interest === "clt") navigate(cltStatus === "none" ? "/consignado-clt" : cltPath);
+                            else if (interest === "saque-facil") navigate("/saque-facil");
                             else if (interest === "assistencias") navigate("/assistencias");
                             else if (interest === "energia") navigate("/energia");
-                          }} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
+                          }} className={`inline-flex w-fit items-center text-[16px] font-semibold ${isOfertaDestaque ? "text-white" : "text-[#E8590A]"}`}>
                             {currentService.cta} <CaretRight size={14} className="ml-1" />
                           </button>
                         </div>
-                        <div className="w-36 shrink-0 overflow-hidden bg-white">
+                        <div className="w-36 shrink-0 overflow-hidden bg-transparent">
                           <img src={currentService.photo} alt="" className="h-full w-full object-contain object-bottom" />
                         </div>
                       </CardContent>
@@ -3451,6 +3421,16 @@ function App() {
             <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/saque-facil" element={getStoredUser() ? <CreditCardProvider><SaqueFacilPage /></CreditCardProvider> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/loading" element={getStoredUser() ? <ConsignadoCLTLoadingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/aguardando" element={getStoredUser() ? <ConsignadoCLTAguardandoPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* Rota mantida mas fora do fluxo — OfertaPage substituída pela dashboard do card na home */}
+            <Route path="/consignado-clt/oferta" element={getStoredUser() ? <ConsignadoCLTOfertaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/simular" element={getStoredUser() ? <ConsignadoCLTSimuladorPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/revisao" element={getStoredUser() ? <ConsignadoCLTRevisaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/dados" element={getStoredUser() ? <ConsignadoCLTDadosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/assinar" element={getStoredUser() ? <ConsignadoCLTAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/confirmacao" element={getStoredUser() ? <ConsignadoCLTConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </motion.div>
