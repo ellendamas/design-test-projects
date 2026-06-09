@@ -109,6 +109,7 @@ import ConsignadoCLTRevisaoPage from "@/pages/consignado-clt/RevisaoPage";
 import ConsignadoCLTDadosPage from "@/pages/consignado-clt/DadosPage";
 import ConsignadoCLTAssinaturaPage from "@/pages/consignado-clt/AssinaturaPage";
 import ConsignadoCLTConfirmacaoPage from "@/pages/consignado-clt/ConfirmacaoPage";
+import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
 import EnderecoSelector from "@/components/EnderecoSelector";
 import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
 import Cards from "react-credit-cards-2";
@@ -3114,19 +3115,22 @@ function App() {
     />
   );
 
-  // DESIGN ONLY — estado controlado por query param (?clt=none|consultando|oferta|contrato)
-  // TODO: substituir por estado real da API antes do deploy
+  // DESIGN ONLY — estados controlados por query params
+  // TODO: substituir por dados reais da API antes do deploy
   const [searchParams] = useSearchParams();
   const cltStatus = (searchParams.get("clt") ?? "none") as "none" | "consultando" | "oferta" | "contrato";
 
+  // DESIGN ONLY — ?paravocê=0 → seção vazia | ?paravocê=1 → card oferta CLT
+  // fallback ?paravoc= para evitar problema de encoding na URL
+  // TODO: controlar por API
+  const paravocemParam = searchParams.get("paravocê") ?? searchParams.get("paravoc") ?? null;
+
   const cltHighlight =
-    cltStatus === "none"
-      ? "Descubra quanto você pode ter"
-      : cltStatus === "consultando"
-        ? "Consultando sua oferta..."
-        : cltStatus === "oferta"
-          ? "Você tem até R$ 32.533,83 disponíveis"
-          : "Parcela de R$ 533,65 · vence em 12 dias";
+    cltStatus === "consultando"
+      ? "Consultando sua oferta..."
+      : cltStatus === "contrato"
+        ? "Parcela de R$ 533,65 · vence em 12 dias"
+        : "Descubra quanto você pode ter"; // none e oferta: mesmo highlight padrão
 
   const cltCta =
     cltStatus === "none"
@@ -3134,11 +3138,15 @@ function App() {
       : cltStatus === "consultando"
         ? "Ver status"
         : cltStatus === "oferta"
-          ? "Pegar agora"
+          ? "Consultar agora"
           : "Ver contrato";
 
   const cltPath =
-    cltStatus === "contrato" ? "/contratos" : "/consignado-clt/simular";
+    cltStatus === "contrato"
+      ? "/contratos"
+      : cltStatus === "oferta"
+        ? "/consignado-clt/oferta"
+        : "/consignado-clt/simular";
 
   const HomeScreen = (
     <div className="min-h-screen w-full md:flex">
@@ -3171,7 +3179,36 @@ function App() {
               </button>
             </div>
           </div>
-          <RecomendacoesCarousel variant="light" />
+          {/* DESIGN ONLY — paravocê param substitui o carousel quando presente */}
+          {paravocemParam !== null ? (
+            paravocemParam === "1" ? (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
+                <div className="flex gap-2">
+                  {/* Card oferta CLT */}
+                  <button
+                    type="button"
+                    onClick={() => navigate("/consignado-clt/oferta")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
+                          <CurrencyCircleDollar size={20} />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Você tem até R$ 32.533,83 para receber.</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                        Ver minha oferta <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            ) : null /* paravocemParam === "0": seção oculta */
+          ) : (
+            <RecomendacoesCarousel variant="light" />
+          )}
         </header>
 
         <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
@@ -3220,20 +3257,19 @@ function App() {
                     : interest === "clt"
                     ? { ...serviceCopy.clt, highlight: cltHighlight, cta: cltCta }
                     : serviceCopy[interest as ServiceType];
-                const isOfertaDestaque = interest === "clt" && cltStatus === "oferta";
                 return (
                   <motion.div key={interest} variants={cardVariants}>
-                    <Card className={`relative overflow-hidden rounded-2xl border shadow-sm ${isOfertaDestaque ? "border-[#E8590A] bg-[#E8590A]" : "border-[#DADADA] bg-white"}`}>
+                    <Card className="relative overflow-hidden rounded-2xl border border-[#DADADA] bg-white shadow-sm">
                       <CardContent className="flex min-h-[158px] items-stretch p-0">
                         <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
                           <div>
                             <div className="mb-3 flex items-center gap-2">
-                              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${isOfertaDestaque ? "bg-white/20 text-white" : "bg-[#FEF0E7] text-[#E8590A]"}`}>{currentService.icon}</div>
-                              <p className={`line-clamp-2 text-[16px] font-semibold leading-tight ${isOfertaDestaque ? "text-white" : "text-foreground"}`}>{currentService.title}</p>
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{currentService.icon}</div>
+                              <p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{currentService.title}</p>
                             </div>
-                            {currentService.highlight ? <p className={`mb-2 font-semibold ${interest === "clt" && (cltStatus === "consultando" || cltStatus === "oferta") ? "text-[16px]" : "text-[14px]"} ${isOfertaDestaque ? "text-white" : "text-[#E8590A]"}`}>{currentService.highlight}</p> : null}
-                            {!(interest === "clt" && cltStatus !== "none") && (
-                              <p className={`mb-3 line-clamp-2 text-[14px] leading-snug ${isOfertaDestaque ? "text-white/80" : "text-muted-foreground"}`}>{currentService.description}</p>
+                            {currentService.highlight ? <p className={`mb-2 font-semibold text-[#E8590A] ${interest === "clt" && cltStatus === "consultando" ? "text-[16px]" : "text-[14px]"}`}>{currentService.highlight}</p> : null}
+                            {!(interest === "clt" && (cltStatus === "consultando" || cltStatus === "contrato")) && (
+                              <p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{currentService.description}</p>
                             )}
                           </div>
                           <button onClick={() => {
@@ -3241,7 +3277,7 @@ function App() {
                             else if (interest === "saque-facil") navigate("/saque-facil");
                             else if (interest === "assistencias") navigate("/assistencias");
                             else if (interest === "energia") navigate("/energia");
-                          }} className={`inline-flex w-fit items-center text-[16px] font-semibold ${isOfertaDestaque ? "text-white" : "text-[#E8590A]"}`}>
+                          }} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
                             {currentService.cta} <CaretRight size={14} className="ml-1" />
                           </button>
                         </div>
@@ -3424,6 +3460,7 @@ function App() {
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/loading" element={getStoredUser() ? <ConsignadoCLTLoadingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/aguardando" element={getStoredUser() ? <ConsignadoCLTAguardandoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/sem-oferta" element={getStoredUser() ? <ConsignadoCLTSemOfertaPage /> : <Navigate to="/boas-vindas" replace />} />
             {/* Rota mantida mas fora do fluxo — OfertaPage substituída pela dashboard do card na home */}
             <Route path="/consignado-clt/oferta" element={getStoredUser() ? <ConsignadoCLTOfertaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/simular" element={getStoredUser() ? <ConsignadoCLTSimuladorPage /> : <Navigate to="/boas-vindas" replace />} />

@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  CurrencyCircleDollar,
-  ArrowRight,
   Check,
+  CheckCircle,
   Receipt,
   CalendarBlank,
   Coins,
@@ -169,6 +168,34 @@ export default function ConsignadoCLTOfertaPage() {
         {/* ── Estado: oferta ────────────────────────────────────────────── */}
         {estado === "oferta" && (
           <>
+            {/* Card de boas-vindas positivo */}
+            <div className="rounded-2xl border border-border bg-white p-6 text-center shadow-sm">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <CheckCircle size={32} className="text-green-600" weight="fill" />
+              </div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Oferta encontrada
+              </p>
+              <p className="text-xl font-semibold leading-snug text-foreground">
+                Encontramos a melhor oferta para você
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Consultamos várias instituições ao mesmo tempo e garantimos a menor taxa
+                disponível para o seu perfil.
+              </p>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {["Menor taxa encontrada", "Sem burocracia", "100% digital"].map((pill) => (
+                  <div
+                    key={pill}
+                    className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs"
+                  >
+                    <CheckCircle size={11} className="text-[#E8590A]" weight="fill" />
+                    {pill}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Bloco — limite disponível em destaque */}
             <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -180,38 +207,14 @@ export default function ConsignadoCLTOfertaPage() {
               <p className="mt-1 text-xs text-muted-foreground">Atualizado em hoje</p>
             </div>
 
-            {/* Bloco — ações disponíveis */}
-            <div className="space-y-3">
-              <p className="text-sm font-semibold text-foreground">Disponível para você</p>
-
-              {/* Card de ação — Novo Empréstimo */}
-              <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7]">
-                    <CurrencyCircleDollar size={20} className="text-[#E8590A]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-foreground">Novo Empréstimo</p>
-                    <p className="text-sm text-[#E8590A]">
-                      Receba até R$ {formatCurrency(LIMITE_DISPONIVEL_MOCK)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="my-3 border-t border-border" />
-
-                <button
-                  type="button"
-                  onClick={() => navigate("/consignado-clt/simular")}
-                  className="flex items-center gap-1 text-sm font-semibold text-[#E8590A] transition-colors hover:text-[#d04e08]"
-                >
-                  Simular agora
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-
-              {/* TODO V1: adicionar cards de Portabilidade e Refinanciamento aqui */}
-            </div>
+            {/* CTA principal */}
+            <button
+              type="button"
+              onClick={() => navigate("/consignado-clt/simular")}
+              className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+            >
+              Pegar agora
+            </button>
           </>
         )}
 

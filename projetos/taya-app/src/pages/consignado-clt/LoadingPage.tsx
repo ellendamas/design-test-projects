@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { SubPageLayout } from "@/App";
@@ -12,8 +12,19 @@ const stages = [
 
 export default function ConsignadoCLTLoadingPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activeStage, setActiveStage] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
+
+  // DESIGN ONLY — simular retorno negativo do leilão via query param
+  // URL de teste: /consignado-clt/loading?resultado=negativo
+  // TODO: substituir por lógica real da API
+  const semOferta = searchParams.get("resultado") === "negativo";
+  useEffect(() => {
+    if (semOferta) {
+      navigate("/consignado-clt/sem-oferta", { replace: true });
+    }
+  }, [semOferta, navigate]);
 
   useEffect(() => {
     // TODO: substituir setTimeout mock por polling real da API
