@@ -110,6 +110,16 @@ import ConsignadoCLTDadosPage from "@/pages/consignado-clt/DadosPage";
 import ConsignadoCLTAssinaturaPage from "@/pages/consignado-clt/AssinaturaPage";
 import ConsignadoCLTConfirmacaoPage from "@/pages/consignado-clt/ConfirmacaoPage";
 import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
+import FGTSLandingPage from "@/pages/fgts/LandingPage";
+import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
+import FGTSLoadingPage from "@/pages/fgts/LoadingPage";
+import FGTSSemSaldoPage from "@/pages/fgts/SemSaldoPage";
+import FGTSSimuladorPage from "@/pages/fgts/SimuladorPage";
+import FGTSRevisaoPage from "@/pages/fgts/RevisaoPage";
+import FGTSDadosPage from "@/pages/fgts/DadosPage";
+import FGTSAssinaturaPage from "@/pages/fgts/AssinaturaPage";
+import FGTSSaldoDisponivelPage from "@/pages/fgts/SaldoDisponivelPage";
+import FGTSConfirmacaoPage from "@/pages/fgts/ConfirmacaoPage";
 import EnderecoSelector from "@/components/EnderecoSelector";
 import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
 import Cards from "react-credit-cards-2";
@@ -224,7 +234,7 @@ const serviceCopy: Record<
     description: "Receba em minutos com simulação clara e sem burocracia.",
     cta: "Simular antecipação",
     icon: <FgtsCustomIcon size={20} />,
-    highlight: "Taxa a partir de 1,39% a.m.",
+    highlight: "Receba seu saldo em até 15 minutos",
     photo: "/images/card-dash-fgts.png",
   },
   "saque-facil": {
@@ -478,7 +488,7 @@ export function SubPageLayout({ title, children }: { title: string; children: Re
         <div className="px-4 py-5 pb-28 md:mx-auto md:max-w-[640px] md:px-0 md:py-8">{children}</div>
 
         <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
-          <ul className="grid w-full grid-cols-5 text-center">
+          <ul className="grid w-full grid-cols-4 text-center">
             {navItems.map((item) => (
               <li key={item.path} className="flex flex-col items-center justify-center text-center">
                 <button
@@ -1371,7 +1381,9 @@ function ContratosPage() {
           {lista.map((contrato) => (
             <button key={contrato.id} onClick={() => navigate(`/contratos/${contrato.id}`)} className="w-full rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#E8590A]/40">
               <div className="mb-3 flex items-center justify-between">
-                <span className="rounded-full bg-[#FEF0E7] px-2.5 py-1 text-xs font-semibold text-[#A33D05]">{contrato.tipo === "seguro" ? "Seguro de Vida" : contrato.tipo === "saque-facil" ? "Saque Fácil" : "Crédito CLT"}</span>
+                <span className="rounded-full bg-[#FEF0E7] px-2.5 py-1 text-xs font-semibold text-[#A33D05]">
+                  {contrato.tipo === "seguro" ? "Seguro de Vida" : contrato.tipo === "saque-facil" ? "Saque Fácil" : contrato.tipo === "fgts" ? "Antecipação FGTS" : "Crédito CLT"}
+                </span>
                 <span className="flex items-center gap-1.5 text-xs font-medium text-green-700"><div className="h-1.5 w-1.5 rounded-full bg-green-500" />Ativo</span>
               </div>
               <p className="mb-2 text-sm font-bold text-foreground">{contrato.produto}</p>
@@ -1379,6 +1391,11 @@ function ContratosPage() {
                 <div className="flex items-center justify-between">
                   <div><p className="text-xs text-muted-foreground">Valor mensal</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorMensal.toFixed(2).replace(".", ",")}</p></div>
                   <div className="text-right"><p className="text-xs text-muted-foreground">Vigência até</p><p className="text-sm font-semibold text-foreground">{contrato.vigencia}</p></div>
+                </div>
+              ) : contrato.tipo === "fgts" ? (
+                <div className="flex items-center justify-between">
+                  <div><p className="text-xs text-muted-foreground">Próximo desconto</p><p className="text-sm font-semibold text-foreground">{contrato.proximoDesconto}</p></div>
+                  <div className="text-right"><p className="text-xs text-muted-foreground">Parcela anual</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorParcela.toFixed(2).replace(".", ",")}</p></div>
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
@@ -1457,6 +1474,114 @@ function ContratoCLTPage() {
       <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-3 text-sm font-bold text-foreground">Dados para depósito</h3><div className="space-y-3">{[{ label: "Banco", value: contrato.banco }, { label: "Agência", value: contrato.agencia }, { label: "Conta", value: contrato.conta }, { label: "Chave Pix", value: contrato.chavePix }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p><SensitiveData value={item.value} type="text" /></div>)}</div></div>
       <div className="mb-5 rounded-2xl border border-dashed border-border bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-foreground">Quitar antecipadamente</p><p className="mt-0.5 text-xs text-muted-foreground">Pague o saldo devedor e encerre o contrato antes do prazo.</p></div><span className="rounded-full bg-[#E7E5E4] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#78716C]">Em breve</span></div></div>
       <AccordionItemContrato hideValue cobertura={{ nome: "Informações do FIDC endossatário", valor: 0, descricao: `Fundo de Investimento em Direitos Creditórios responsável pela operação. Preço de aquisição: R$ ${contrato.precoAquisicao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. Data de aquisição: ${contrato.dataAquisicao}. Nome do FIDC: ${contrato.fidcNome}. CNPJ: ${contrato.fidcCnpj}.` }} />
+    </SubPageLayout>
+  );
+}
+
+function ContratoFGTSPage() {
+  const contrato = contratos.find((c) => c.id === "fgts-001" && c.tipo === "fgts");
+  if (!contrato) return <Navigate to="/contratos" replace />;
+  return (
+    <SubPageLayout title="Antecipação FGTS">
+      {/* Banner demo */}
+      <div className="mb-5 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+        <Info size={15} className="mt-0.5 shrink-0 text-amber-600" />
+        <p className="text-xs leading-snug text-amber-700">Este é um contrato de exemplo para fins de demonstração.</p>
+      </div>
+
+      {/* Status + título */}
+      <div className="mb-5">
+        <div className="mb-1 flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-green-500" /><span className="text-sm font-medium text-green-700">Ativo</span></div>
+        <h2 className="text-2xl font-bold text-foreground">Antecipação Saque Aniversário</h2>
+      </div>
+
+      {/* Dados básicos */}
+      <div className="mb-5 grid grid-cols-2 gap-x-4 gap-y-4">
+        <div><p className="text-xs text-muted-foreground">Número da CCB</p><p className="text-sm font-semibold text-foreground">{contrato.numeroCCB}{/* TODO: receber da API BMP */}</p></div>
+        <div><p className="text-xs text-muted-foreground">Data de emissão</p><p className="text-sm font-semibold text-foreground">{contrato.dataEmissao}</p></div>
+        <div><p className="text-xs text-muted-foreground">Modalidade</p><p className="text-sm font-semibold leading-snug text-foreground">{contrato.modalidade}</p></div>
+        <div><p className="text-xs text-muted-foreground">Valor líquido recebido</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
+      </div>
+
+      {/* Card Parcelas */}
+      <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm">
+        <h3 className="mb-3 text-sm font-bold text-[#A33D05]">{contrato.numParcelas} parcela{contrato.numParcelas !== 1 ? "s" : ""} anuais{/* TODO: receber da API BMP */}</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div><p className="text-xs text-[#A33D05]/70">Próxima parcela</p><p className="text-sm font-bold text-[#A33D05]">{contrato.proximoDesconto}{/* TODO: receber da API BMP */}</p></div>
+          <div><p className="text-xs text-[#A33D05]/70">Valor da parcela</p><p className="text-sm font-bold text-[#A33D05]">R$ {contrato.valorParcela.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}{/* TODO: receber da API BMP */}</p></div>
+          <div><p className="text-xs text-[#A33D05]/70">Saldo a descontar</p><SensitiveData value={`R$ ${contrato.saldoADescontar.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} type="currency" />{/* TODO: receber da API BMP */}</div>
+          <div><p className="text-xs text-[#A33D05]/70">Data do desconto</p><p className="text-sm font-bold text-[#A33D05]">{contrato.dataDesconto}</p></div>
+        </div>
+      </div>
+
+      {/* Card Taxas e custos */}
+      <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm">
+        <h3 className="mb-3 text-sm font-bold text-foreground">Taxas e custos</h3>
+        <div className="space-y-2.5">
+          {[
+            { label: "Taxa de juros", value: `${contrato.taxaJurosMes}% a.m. / ${contrato.taxaJurosAno}% a.a.` },
+            { label: "CET", value: `${contrato.cet}% a.m.` },
+            { label: "IOF", value: `R$ ${contrato.iof.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` },
+            { label: "Tarifa de Cadastro", value: `R$ ${contrato.tarifaCadastro.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` },
+            { label: "Valor total a descontar", value: `R$ ${contrato.valorTotalADescontar.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{item.label}</p>
+              <p className="text-xs font-semibold text-foreground">{item.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Card Dados do emitente */}
+      <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm">
+        <h3 className="mb-3 text-sm font-bold text-foreground">Dados do emitente</h3>
+        <div className="space-y-3">
+          {[
+            { label: "Nome completo", value: contrato.nomeCliente, sensitive: true },
+            { label: "CPF", value: contrato.cpfCliente, sensitive: true, type: "cpf" as const },
+            { label: "Data de nascimento", value: contrato.dataNascimento, sensitive: false },
+            { label: "Município", value: contrato.municipio, sensitive: false },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{item.label}</p>
+              {item.sensitive ? (
+                <SensitiveData value={item.value} type={item.type ?? "text"} />
+              ) : (
+                <p className="text-xs font-semibold text-foreground">{item.value}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Card Dados para depósito */}
+      <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm">
+        <h3 className="mb-3 text-sm font-bold text-foreground">Dados para depósito</h3>
+        <div className="space-y-3">
+          {[
+            { label: "Banco", value: contrato.banco },
+            { label: "Agência", value: contrato.agencia },
+            { label: "Conta", value: contrato.conta },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{item.label}</p>
+              <SensitiveData value={item.value} type="text" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Card Quitar antecipadamente */}
+      <div className="mb-5 rounded-2xl border border-dashed border-border bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Quitar antecipadamente</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Pague o saldo e encerre o contrato antes do prazo.</p>
+          </div>
+          <span className="rounded-full bg-[#E7E5E4] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#78716C]">Em breve</span>
+        </div>
+      </div>
     </SubPageLayout>
   );
 }
@@ -2354,7 +2479,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/saque-facil", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/contratos/saque-facil-001", "/assistencias", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/saque-facil", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/contratos/saque-facil-001", "/assistencias", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -3122,6 +3247,14 @@ function App() {
   // TODO: substituir por estado real da API antes do deploy
   const cltStatus = (searchParams.get("clt") ?? "oferta") as "none" | "consultando" | "oferta" | "contrato";
 
+  // DESIGN ONLY — ?fgts=none|autorizado|contrato — estado do card FGTS na home
+  // TODO: substituir por estado real da API antes do deploy
+  const fgtsStatus = (searchParams.get("fgts") ?? "none") as "none" | "autorizado" | "contrato";
+  // Card do produto sempre igual — status afeta apenas o "Para você agora"
+  const fgtsHighlight = "Receba seu saldo em até 15 minutos";
+  const fgtsCta = "Antecipar agora";
+  const fgtsPath = "/fgts";
+
   // DESIGN ONLY — ?paravocê=0 → oculto | ?paravocê=1 → card CLT | ?paravocê=2 → CLT + Saque Fácil
   // fallback ?paravoc= para evitar problema de encoding na URL | default "1"
   // TODO: controlar por API
@@ -3182,31 +3315,34 @@ function App() {
             </div>
           </div>
           {/* DESIGN ONLY — paravocê param controla o "Para você agora"
-              "0" = oculto | "1" = card CLT | "2" = CLT + Saque Fácil (seção cheia)
+              "0" = oculto (exceto se fgts=autorizado|contrato) | "1" = card CLT | "2" = CLT + Saque Fácil
+              fgts=autorizado|contrato → sempre exibe card FGTS (independente de paravoc)
               TODO: controlar por API */}
-          {paravocemParam === "0" ? null : (paravocemParam === "1" || paravocemParam === "2") ? (
+          {paravocemParam === "0" && fgtsStatus === "none" ? null : (paravocemParam === "1" || paravocemParam === "2" || fgtsStatus !== "none") ? (
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
               <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
 
-                {/* Card oferta CLT */}
-                <button
-                  type="button"
-                  onClick={() => navigate("/consignado-clt/oferta")}
-                  className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
-                >
-                  <div className="flex h-full flex-col justify-between p-4">
-                    <div>
-                      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
-                        <CurrencyCircleDollar size={20} />
+                {/* Card oferta CLT — visível apenas quando paravoc=1 ou paravoc=2 */}
+                {(paravocemParam === "1" || paravocemParam === "2") && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/consignado-clt/oferta")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
+                          <CurrencyCircleDollar size={20} />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Você tem até R$ 32.533,83 para receber.</p>
                       </div>
-                      <p className="text-sm font-semibold text-foreground">Você tem até R$ 32.533,83 para receber.</p>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                        Ver minha oferta <CaretRight size={12} />
+                      </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
-                      Ver minha oferta <CaretRight size={12} />
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                )}
 
                 {/* Card Saque Fácil — exibido apenas quando paravoc=2 */}
                 {paravocemParam === "2" && (
@@ -3229,6 +3365,51 @@ function App() {
                   </button>
                 )}
 
+                {/* DESIGN ONLY — card FGTS no "Para você agora" quando fgts=autorizado ou fgts=contrato
+                    TODO: controlar por estado real da API BMP */}
+                {fgtsStatus === "autorizado" && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/fgts/simular")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
+                          <Coins size={20} />
+                        </div>
+                        {/* TODO: receber saldo da API BMP */}
+                        <p className="text-sm font-semibold text-foreground">Seu saldo FGTS está disponível!</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Você tem R$ 5.841,09 para antecipar. Simule agora e receba em minutos.</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                        Simular agora <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+                {fgtsStatus === "contrato" && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/contratos/fgts-001")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
+                          <CalendarCheck size={20} />
+                        </div>
+                        {/* TODO: receber data e valor da API BMP */}
+                        <p className="text-sm font-semibold text-foreground">Próxima parcela FGTS em setembro</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Seu saldo de R$ 4.703,82 será descontado automaticamente.</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                        Ver contrato <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
               </div>
             </div>
           ) : (
@@ -3242,8 +3423,7 @@ function App() {
               {([
                 "clt",
                 "saque-facil",
-                // TODO: reativar quando FGTS estiver disponível
-                // "fgts",
+                "fgts",
                 "assistencias",
                 "energia",
                 "seguro",
@@ -3281,6 +3461,8 @@ function App() {
                       }
                     : interest === "clt"
                     ? { ...serviceCopy.clt, highlight: cltHighlight, cta: cltCta }
+                    : interest === "fgts"
+                    ? { ...serviceCopy.fgts, highlight: fgtsHighlight, cta: fgtsCta }
                     : serviceCopy[interest as ServiceType];
                 return (
                   <motion.div key={interest} variants={cardVariants}>
@@ -3299,6 +3481,7 @@ function App() {
                           </div>
                           <button onClick={() => {
                             if (interest === "clt") navigate(cltStatus === "none" ? "/consignado-clt" : cltPath);
+                            else if (interest === "fgts") navigate(fgtsPath);
                             else if (interest === "saque-facil") navigate("/saque-facil");
                             else if (interest === "assistencias") navigate("/assistencias");
                             else if (interest === "energia") navigate("/energia");
@@ -3472,6 +3655,7 @@ function App() {
             <Route path="/contratos" element={getStoredUser() ? <ContratosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/contratos/fgts-001" element={getStoredUser() ? <ContratoFGTSPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/saque-facil-001" element={getStoredUser() ? <ContratoSaqueFacilPage /> : <Navigate to="/boas-vindas" replace />} />
             {/* TODO(dev): seubolso está em andamento e escondido da navegação pública. */}
             <Route path="/seubolso" element={getStoredUser() ? <SeubolsoPage /> : <Navigate to="/boas-vindas" replace />} />
@@ -3493,6 +3677,16 @@ function App() {
             <Route path="/consignado-clt/dados" element={getStoredUser() ? <ConsignadoCLTDadosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/assinar" element={getStoredUser() ? <ConsignadoCLTAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/confirmacao" element={getStoredUser() ? <ConsignadoCLTConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts" element={getStoredUser() ? <FGTSLandingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/copiloto" element={getStoredUser() ? <FGTSCopilotoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/loading" element={getStoredUser() ? <FGTSLoadingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/sem-saldo" element={getStoredUser() ? <FGTSSemSaldoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/saldo-disponivel" element={getStoredUser() ? <FGTSSaldoDisponivelPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/simular" element={getStoredUser() ? <FGTSSimuladorPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/revisao" element={getStoredUser() ? <FGTSRevisaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/dados" element={getStoredUser() ? <FGTSDadosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/assinar" element={getStoredUser() ? <FGTSAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/confirmacao" element={getStoredUser() ? <FGTSConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </motion.div>
