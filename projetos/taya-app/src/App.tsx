@@ -204,8 +204,7 @@ function isValidExpiry(value: string) {
   return expiryEnd >= new Date();
 }
 
-const HERO_IMAGE =
-  "https://static.vecteezy.com/ti/fotos-gratis/p1/75899742-o-negocio-mulher-dentro-cidade-feliz-e-retrato-ao-ar-livre-para-trabalhando-em-criativo-carreira-ou-trabalho-face-empreendedor-e-confiante-pessoa-profissional-desenhador-e-empregado-sorrir-em-urbano-telhado-dentro-brasil-foto.jpg";
+const HERO_IMAGE = "/images/bem-vindo.png";
 
 const serviceCopy: Record<
   ServiceType,
@@ -252,14 +251,7 @@ const maskedInputClass =
   "flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
 function FgtsCustomIcon({ size = 20, className = "" }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <rect x="4" y="4" width="2" height="12" rx="1" fill="currentColor" />
-      <rect x="4" y="4" width="10" height="2" rx="1" fill="currentColor" />
-      <path d="M8 6H14L8 12V6Z" fill="currentColor" />
-      <circle cx="7.2" cy="7.4" r="1" fill="#EFE2D9" />
-    </svg>
-  );
+  return <img src="/images/icon-fgts.svg" alt="FGTS" width={14} height={20} className={className} />;
 }
 
 export function getStoredUser(): StoredUser | null {
@@ -612,9 +604,9 @@ function SaqueFacilPage() {
     return Number(normalized) || 0;
   };
 
-  const limiteCartao = state.valorDesejado || 0;
-  const valorLiquido = useMemo(() => limiteCartao / 1.1315, [limiteCartao]);
-  const valorParcela = useMemo(() => (state.numeroParcelas > 0 ? limiteCartao / state.numeroParcelas : 0), [limiteCartao, state.numeroParcelas]);
+  const valorReceber = state.valorDesejado || 0;
+  const limiteCartaoNecessario = valorReceber * 1.1315;
+  const valorParcela = useMemo(() => (state.numeroParcelas > 0 ? limiteCartaoNecessario / state.numeroParcelas : 0), [limiteCartaoNecessario, state.numeroParcelas]);
   const cardFinal = state.numeroCartao.replace(/\s/g, "").slice(-4) || "----";
 
   const stepMap: Record<SaqueFacilStep, string> = {
@@ -726,7 +718,7 @@ function SaqueFacilPage() {
   const displayStep = step === "simulation" ? 1 : ["rg", "birth", "income", "civil", "gender", "card_due_day", "address", "bank"].includes(step) ? 2 : ["stark_analysis", "card_type", "card"].includes(step) ? 3 : ["selfie_ownership", "selfie_identity"].includes(step) ? 4 : 5;
 
   const canAdvance = useMemo(() => {
-    if (step === "simulation") return limiteCartao > 0 && state.numeroParcelas >= 4;
+    if (step === "simulation") return valorReceber > 0 && state.numeroParcelas >= 4;
     if (step === "data_intro") return true;
     if (step === "rg") return isValidRg(state.rg) && orgaoExpedidor.length > 0;
     if (step === "birth") return isAdultBirthDate(state.dataNascimento);
@@ -741,7 +733,7 @@ function SaqueFacilPage() {
     if (step === "card") return Boolean(isValidCardNumber(state.numeroCartao) && state.nomeCartao.trim().length >= 3 && isValidExpiry(state.vencimento) && state.cvv.replace(/\D/g, "").length >= 3);
     if (step === "confirmation") return state.termoAceito;
     return true;
-  }, [step, limiteCartao, state, orgaoExpedidor, faixaRenda, cardDueDay, useOtherAddress, addressCep, addressStreet, addressNumber, addressSelected, useOtherBank, bankName, agencia, bankConta, bankDigito, bankSelected, starkApproved, showStarkButton, cardType]);
+  }, [step, valorReceber, state, orgaoExpedidor, faixaRenda, cardDueDay, useOtherAddress, addressCep, addressStreet, addressNumber, addressSelected, useOtherBank, bankName, agencia, bankConta, bankDigito, bankSelected, starkApproved, showStarkButton, cardType]);
 
   const faq = [
     { q: "Quem pode usar o Saque Fácil?", a: "Qualquer pessoa com cartão de crédito com bandeira reconhecida (Visa, Mastercard, Elo, Hipercard ou Amex), função crédito ativa e limite disponível. Cartões Alelo, Sodexo e VR não são aceitos." },
@@ -895,8 +887,8 @@ function SaqueFacilPage() {
 
         {step === "simulation" && (
           <div className="space-y-4">
-            <div><h2 className="text-xl font-bold text-foreground">Qual é o limite disponível no seu cartão?</h2><p className="mt-1 text-sm text-muted-foreground">Informe o limite que está disponível agora para usarmos na simulação.</p></div>
-            <IMaskInput mask={Number} scale={2} signed={false} thousandsSeparator="." radix="," mapToRadix={["."]} normalizeZeros padFractionalZeros value={limiteCartao.toString()} onAccept={(v) => setState((prev) => ({ ...prev, valorDesejado: parseCurrency(String(v)) }))} className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold" placeholder="R$ 0,00" />
+            <div><h2 className="text-xl font-bold text-foreground">Quanto você quer receber?</h2><p className="mt-1 text-sm text-muted-foreground">Informe o valor e veja quanto de limite você vai precisar no cartão.</p></div>
+            <IMaskInput mask={Number} scale={2} signed={false} thousandsSeparator="." radix="," mapToRadix={["."]} normalizeZeros padFractionalZeros value={valorReceber.toString()} onAccept={(v) => setState((prev) => ({ ...prev, valorDesejado: parseCurrency(String(v)) }))} className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold" placeholder="R$ 0,00" />
             <div>
               <p className="mb-2 text-sm font-medium text-foreground">Número de parcelas</p>
               <input type="range" min={4} max={12} step={1} value={state.numeroParcelas} onChange={(e) => setState((prev) => ({ ...prev, numeroParcelas: Number(e.target.value) }))} className="w-full accent-[#E8590A]" />
@@ -905,8 +897,8 @@ function SaqueFacilPage() {
             <div className="mt-4">
               <div className="rounded-2xl bg-[#FEF0E7] p-4">
                 <p className="mb-1 text-xs font-medium text-[#A33D05]">Você precisa ter este limite disponível no cartão</p>
-                <p className="text-3xl font-bold text-[#E8590A]">R$ {toCurrency(limiteCartao)}</p>
-                <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-base font-bold text-[#A33D05]">R$ {toCurrency(valorLiquido)}</p></div><div><p className="text-xs text-[#A33D05]/70">Parcelas de</p><p className="text-base font-bold text-[#A33D05]">{state.numeroParcelas}x R$ {toCurrency(valorParcela)}</p></div></div>
+                <p className="text-3xl font-bold text-[#E8590A]">R$ {toCurrency(limiteCartaoNecessario)}</p>
+                <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-base font-bold text-[#A33D05]">R$ {toCurrency(valorReceber)}</p></div><div><p className="text-xs text-[#A33D05]/70">Parcelas de</p><p className="text-base font-bold text-[#A33D05]">{state.numeroParcelas}x R$ {toCurrency(valorParcela)}</p></div></div>
               </div>
               <button className="mt-3 flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm" onClick={() => setTaxasOpen((p) => !p)}>
                 Ver taxas da operação
@@ -980,7 +972,7 @@ function SaqueFacilPage() {
           <Card className="border-border">
             <CardContent className="space-y-4 p-4">
               <div className="flex flex-col items-center text-center"><CheckCircle size={42} className="text-[#E8590A]" /><h2 className="mt-2 text-xl font-bold">Tudo pronto. Só falta confirmar.</h2><p className="text-sm text-muted-foreground">Revise os dados e confirme para liberar o dinheiro.</p></div>
-              <div className="space-y-2.5 rounded-2xl bg-[#FEF0E7] p-4">{[{label:"Você vai receber",value:`R$ ${toCurrency(valorLiquido)}`},{label:"Limite usado no cartão",value:`R$ ${toCurrency(limiteCartao)}`},{label:"Parcelas",value:`${state.numeroParcelas}x de R$ ${toCurrency(valorParcela)}`},{label:"Cartão",value:`Final ${cardFinal}`},{label:"Conta de destino",value:`Banco ag. ${agencia}`},{label:"Na fatura aparece como",value:"STARK*SeuTudo"}].map((item)=><div key={item.label} className="flex items-center justify-between gap-2"><p className="text-xs text-[#A33D05]/70">{item.label}</p><p className="text-xs font-semibold text-[#A33D05]">{item.value}</p></div>)}</div>
+              <div className="space-y-2.5 rounded-2xl bg-[#FEF0E7] p-4">{[{label:"Você vai receber",value:`R$ ${toCurrency(valorReceber)}`},{label:"Limite usado no cartão",value:`R$ ${toCurrency(limiteCartaoNecessario)}`},{label:"Parcelas",value:`${state.numeroParcelas}x de R$ ${toCurrency(valorParcela)}`},{label:"Cartão",value:`Final ${cardFinal}`},{label:"Conta de destino",value:`Banco ag. ${agencia}`},{label:"Na fatura aparece como",value:"STARK*SeuTudo"}].map((item)=><div key={item.label} className="flex items-center justify-between gap-2"><p className="text-xs text-[#A33D05]/70">{item.label}</p><p className="text-xs font-semibold text-[#A33D05]">{item.value}</p></div>)}</div>
               <button
                 type="button"
                 onClick={() => setState((p) => ({ ...p, termoAceito: !p.termoAceito }))}
@@ -1010,7 +1002,7 @@ function SaqueFacilPage() {
               <CheckCircle size={48} weight="fill" className="mx-auto text-[#E8590A]" />
               <h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2>
               <p className="text-sm text-muted-foreground">O dinheiro está a caminho. Deve cair em até 30 minutos.</p>
-              <div className="rounded-2xl bg-[#FEF0E7] p-4 text-left"><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-xl font-bold text-[#A33D05]">R$ {toCurrency(valorLiquido)}</p><p className="mt-1 text-xs text-[#A33D05]/70">Cartão final {cardFinal} · {state.numeroParcelas}x</p></div>
+              <div className="rounded-2xl bg-[#FEF0E7] p-4 text-left"><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-xl font-bold text-[#A33D05]">R$ {toCurrency(valorReceber)}</p><p className="mt-1 text-xs text-[#A33D05]/70">Cartão final {cardFinal} · {state.numeroParcelas}x</p></div>
               <Card className="border-border bg-white shadow-sm"><CardContent className="flex items-center justify-between gap-3 p-3"><div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Coins size={16} /></div><p className="text-sm text-foreground">+300 seubônus adicionados ao seu saldo</p></div><button className="text-sm font-medium text-[#E8590A]" onClick={() => navigate("/seubolso")}>Ver meu seubônus <CaretRight size={14} className="inline" /></button></CardContent></Card>
               <div className="grid gap-2 md:flex md:justify-center"><Button className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px]" onClick={() => navigate("/contratos/saque-facil-001")}>Ver meu contrato</Button><Button variant="ghost" className="h-12 rounded-xl md:min-w-[160px]" onClick={() => navigate("/painel")}>Voltar para o início</Button></div>
             </CardContent>

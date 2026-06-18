@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Check,
@@ -9,7 +8,6 @@ import {
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { SubPageLayout } from "@/App";
-import { cn } from "@/lib/utils";
 
 // TODO: receber valor real da API do leilão
 const LIMITE_DISPONIVEL_MOCK = 32533.83;
@@ -40,31 +38,12 @@ export default function ConsignadoCLTOfertaPage() {
   // TODO: substituir por estado real da API antes do deploy
   const [searchParams] = useSearchParams();
   const estadoParam = searchParams.get("estado") as DashboardEstado | null;
-  const [estado, setEstado] = useState<DashboardEstado>(estadoParam ?? "oferta");
+  const estado: DashboardEstado = estadoParam ?? "oferta";
 
   return (
     <SubPageLayout title="Consignado CLT">
       <div className="space-y-4 pb-24">
 
-        {/* Seletor de estado — visível apenas em DEV */}
-        {import.meta.env.DEV && (
-          <div className="flex gap-2 p-4">
-            {(["consultando", "oferta", "contrato"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setEstado(s)}
-                className={cn(
-                  "rounded-full px-3 py-1 text-xs border",
-                  estado === s
-                    ? "bg-[#E8590A] text-white border-[#E8590A]"
-                    : "border-border text-muted-foreground",
-                )}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* ── Estado: consultando ────────────────────────────────────────── */}
         {estado === "consultando" && (
