@@ -21,6 +21,12 @@ const formatCurrency = (v: number) =>
 const parseCurrency = (v: string) =>
   Number(v.replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "")) || 0;
 
+const calcParcela = (val: number, p: number) => {
+  if (val <= 0 || p <= 0) return 0;
+  const r = TAXA_MENSAL / 100;
+  return (val * r * Math.pow(1 + r, p)) / (Math.pow(1 + r, p) - 1);
+};
+
 const proximoMes = () => {
   const meses = [
     "janeiro", "fevereiro", "março", "abril", "maio", "junho",
@@ -82,7 +88,7 @@ export default function ConsignadoCLTSimuladorPage() {
   };
 
   return (
-    <SubPageLayout title="Simular Consignado CLT">
+    <SubPageLayout title="Simular Consignado CLT" hideNav>
       <div className="space-y-4 pb-32">
 
         {/* Bloco 1 — Input de valor */}
@@ -133,7 +139,7 @@ export default function ConsignadoCLTSimuladorPage() {
               >
                 <span className="font-semibold">{p}x</span>
                 <span className="text-xs text-muted-foreground">
-                  R$ {formatCurrency(valorParcela)}
+                  R$ {formatCurrency(calcParcela(valor, p))}
                 </span>
               </button>
             ))}

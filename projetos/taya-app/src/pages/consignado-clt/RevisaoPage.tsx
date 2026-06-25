@@ -94,7 +94,7 @@ export default function ConsignadoCLTRevisaoPage() {
   ];
 
   return (
-    <SubPageLayout title="Revise sua oferta">
+    <SubPageLayout title="Revise sua oferta" hideNav>
       <div className="space-y-4 pb-32">
 
         {/* Bloco 1 — Composição do empréstimo */}

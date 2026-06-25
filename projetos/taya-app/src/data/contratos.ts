@@ -133,4 +133,29 @@ export const contratos = [
     modalidade: "Empréstimo Consignado — Lei nº 10.820/2003",
     dataEmissao: "29/04/2026",
   },
+  {
+    // TODO: receber da API Zema
+    id: "credito-pessoal-001",
+    tipo: "credito-pessoal",
+    produto: "Crédito Pessoal",
+    status: "ativo",
+    numeroCCB: "0011113541",        // campo 3.0 — TODO: receber da API
+    dataEmissao: "10/06/2026",      // TODO: receber da API
+    modalidade: "EP – Empréstimo Pessoal",
+    valorLiquido: 1700.00,          // campo 3.2 — TODO: receber da API
+    totalParcelas: 6,               // TODO: receber da API
+    parcelasPagas: 1,               // TODO: receber da API
+    valorParcela: 458.83,           // campo 3.6 — TODO: receber da API
+    proximoDesconto: "10/07/2026",  // campo 3.4 — TODO: receber da API
+    taxaJurosMes: 13.0,             // campo 3.8 — TODO: receber da API
+    taxaJurosAno: 333.45,           // campo 3.9 — TODO: receber da API
+    valorIof: 24.20,                // campo 3.18.3 — TODO: receber da API
+    tac: 110.00,                    // campo 3.18.1 — TODO: receber da API
+    nomeCliente: "DADO SENSÍVEL — Nome completo do emitente",
+    cpfCliente: "DADO SENSÍVEL — CPF do emitente",
+    dataNascimento: "23/06/1985",
+    banco: "DADO SENSÍVEL — Banco para depósito",
+    agencia: "DADO SENSÍVEL — Agência",
+    conta: "DADO SENSÍVEL — Número da conta",
+  },
 ] as const;

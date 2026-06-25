@@ -178,7 +178,7 @@ export default function ConsignadoCLTDadosPage() {
   };
 
   return (
-    <SubPageLayout title="Dados para recebimento">
+    <SubPageLayout title="Dados para recebimento" hideNav>
       <div className="space-y-4 pb-6">
 
         {/* Indicador de progresso */}

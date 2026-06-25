@@ -314,7 +314,7 @@ export default function FGTSCopilotoPage() {
   };
 
   return (
-    <SubPageLayout title="Autorizar consulta">
+    <SubPageLayout title="Autorizar consulta" hideNav>
       <div className="pb-6">
         {subPasso === "intro" && (
           <SubPassoIntro

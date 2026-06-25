@@ -45,7 +45,7 @@ export default function ConsignadoCLTLoadingPage() {
   }, []);
 
   return (
-    <SubPageLayout title="Consultando oferta">
+    <SubPageLayout title="Consultando oferta" hideNav>
       <div className="space-y-4 pb-24">
 
         {/* Bloco — identidade e status */}

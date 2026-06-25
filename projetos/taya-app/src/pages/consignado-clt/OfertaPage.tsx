@@ -41,7 +41,7 @@ export default function ConsignadoCLTOfertaPage() {
   const estado: DashboardEstado = estadoParam ?? "oferta";
 
   return (
-    <SubPageLayout title="Consignado CLT">
+    <SubPageLayout title="Consignado CLT" hideNav>
       <div className="space-y-4 pb-24">
 
 

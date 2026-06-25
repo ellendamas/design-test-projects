@@ -41,7 +41,7 @@ export default function FGTSLoadingPage() {
   }, []);
 
   return (
-    <SubPageLayout title="">
+    <SubPageLayout title="" hideNav>
       <div className="space-y-4 pb-24">
 
         {/* Bloco — identidade e status */}

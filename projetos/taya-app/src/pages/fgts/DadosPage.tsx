@@ -148,7 +148,7 @@ export default function FGTSDadosPage() {
   };
 
   return (
-    <SubPageLayout title="Dados para contratação">
+    <SubPageLayout title="Dados para contratação" hideNav>
       <div className="space-y-4 pb-6">
 
         {/* Indicador de progresso */}

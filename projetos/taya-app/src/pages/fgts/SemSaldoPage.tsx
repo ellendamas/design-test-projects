@@ -57,7 +57,7 @@ export default function FGTSSemSaldoPage() {
   ];
 
   return (
-    <SubPageLayout title="">
+    <SubPageLayout title="" hideNav>
       <div className="space-y-6 pb-6">
 
         {/* Hero */}

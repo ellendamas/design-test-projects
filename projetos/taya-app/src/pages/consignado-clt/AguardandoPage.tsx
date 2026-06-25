@@ -13,7 +13,7 @@ export default function ConsignadoCLTAguardandoPage() {
   };
 
   return (
-    <SubPageLayout title="Aguardando retorno">
+    <SubPageLayout title="Aguardando retorno" hideNav>
       <div className="space-y-4 pb-24">
 
         {/* Bloco — status da solicitação */}

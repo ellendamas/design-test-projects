@@ -97,7 +97,7 @@ export default function FGTSAssinaturaPage() {
   ];
 
   return (
-    <SubPageLayout title="Verificação de identidade">
+    <SubPageLayout title="Verificação de identidade" hideNav>
       <div className="space-y-4 pb-32">
 
         {/* ── Sub-passo: unico_intro ── */}

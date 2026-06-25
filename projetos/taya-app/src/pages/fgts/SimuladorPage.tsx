@@ -91,7 +91,7 @@ export default function FGTSSimuladorPage() {
   };
 
   return (
-    <SubPageLayout title="Simular antecipação">
+    <SubPageLayout title="Simular antecipação" hideNav>
       <div className="space-y-4 pb-32">
 
         {/* Bloco 1 — Saldo disponível em destaque */}

@@ -16,7 +16,7 @@ export default function ConsignadoCLTSemOfertaPage() {
   const navigate = useNavigate();
 
   return (
-    <SubPageLayout title="">
+    <SubPageLayout title="" hideNav>
       <div className="space-y-6 pb-6">
 
         {/* ── Hero ── */}

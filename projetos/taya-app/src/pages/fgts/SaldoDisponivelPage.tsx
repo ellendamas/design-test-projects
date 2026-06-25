@@ -15,7 +15,7 @@ export default function FGTSSaldoDisponivelPage() {
   const navigate = useNavigate();
 
   return (
-    <SubPageLayout title="">
+    <SubPageLayout title="" hideNav>
       <div className="space-y-4 pb-32">
 
         {/* Card de celebração */}

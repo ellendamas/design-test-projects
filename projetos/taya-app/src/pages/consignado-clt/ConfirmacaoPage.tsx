@@ -73,7 +73,7 @@ export default function ConsignadoCLTConfirmacaoPage() {
   ];
 
   return (
-    <SubPageLayout title="">
+    <SubPageLayout title="" hideNav>
       <div className="flex flex-col items-center gap-5 px-6 pb-24 pt-10">
 
         {/* Animação de sucesso */}
