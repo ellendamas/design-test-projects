@@ -8,6 +8,7 @@ import { NotificacoesProvider } from "./context/NotificacoesContext";
 import { SeubolsoProvider } from "./context/SeubolsoContext";
 import { InteresseProvider } from "./context/InteresseContext";
 import { RecomendacoesProvider } from "./context/RecomendacoesContext";
+import { OpenFinanceProvider } from "./context/OpenFinanceContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -15,11 +16,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <NotificacoesProvider>
         <SeubolsoProvider>
           <InteresseProvider>
-            <RecomendacoesProvider>
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
-            </RecomendacoesProvider>
+            <OpenFinanceProvider>
+              <RecomendacoesProvider>
+                <BrowserRouter>
+                  <App />
+                </BrowserRouter>
+              </RecomendacoesProvider>
+            </OpenFinanceProvider>
           </InteresseProvider>
         </SeubolsoProvider>
       </NotificacoesProvider>

@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { useInteresse } from "@/context/InteresseContext";
+import { useOpenFinance } from "@/context/OpenFinanceContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
 
-type GrupoCard = "P" | "O" | "G";
+type GrupoCard = "P" | "O" | "G" | "I";
 
 export type IconeRecomendacao =
   | "CalendarCheck"
@@ -14,7 +15,10 @@ export type IconeRecomendacao =
   | "Heartbeat"
   | "Lightning"
   | "Wallet"
-  | "Fire";
+  | "Fire"
+  | "DeviceMobile"
+  | "Warning"
+  | "ForkKnife";
 
 export type RecomendacaoCard = {
   id: string;
@@ -27,6 +31,7 @@ export type RecomendacaoCard = {
   dispensavel: boolean;
   reexibirApos?: number;
   persistirDispensa?: boolean;
+  categoria?: "ECONOMIA" | "DESPESAS" | "RENDA";
 };
 
 type DispensadoPersistido = {
@@ -60,6 +65,7 @@ function getDispensadosStorage(): DispensadoPersistido[] {
 export function RecomendacoesProvider({ children }: { children: ReactNode }) {
   const { assistencias, energia } = useInteresse();
   const { streak, saldo } = useSeubolso();
+  const { insights, dismissedInsightIds } = useOpenFinance();
 
   const [dispensados, setDispensados] = useState<DispensadoPersistido[]>(() => getDispensadosStorage());
   const [dispensadosSessao, setDispensadosSessao] = useState<string[]>([]);
@@ -116,6 +122,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         destino: "/saque-facil",
         dispensavel: true,
         reexibirApos: 30,
+        categoria: "RENDA",
       },
       {
         id: "O2",
@@ -126,6 +133,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         cta: "Conhecer",
         destino: "/assistencias",
         dispensavel: true,
+        categoria: "RENDA",
       },
       {
         id: "O3",
@@ -136,6 +144,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         cta: "Simular",
         destino: "/energia",
         dispensavel: true,
+        categoria: "RENDA",
       },
       {
         id: "O4",
@@ -147,6 +156,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         destino: "/painel",
         dispensavel: true,
         reexibirApos: 30,
+        categoria: "RENDA",
       },
       {
         id: "G1",
@@ -173,6 +183,28 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     ],
     [saldo, streak],
   );
+
+  const insightCards = useMemo<RecomendacaoCard[]>(() => {
+    const byIcon: Record<string, IconeRecomendacao> = {
+      DeviceMobile: "DeviceMobile",
+      Warning: "Warning",
+      ForkKnife: "ForkKnife",
+    };
+
+    return insights
+      .filter((ins) => !dismissedInsightIds.includes(ins.id))
+      .map((ins, idx) => ({
+        id: ins.id,
+        grupo: "I" as const,
+        prioridade: idx + 1,
+        icone: byIcon[ins.icone] ?? "Wallet",
+        texto: ins.titulo,
+        cta: ins.cta,
+        destino: ins.destino,
+        dispensavel: true,
+        categoria: ins.onda === "onda1" ? "ECONOMIA" : ins.onda === "onda2" ? "DESPESAS" : "RENDA",
+      }));
+  }, [dismissedInsightIds, insights]);
 
   const cards = useMemo(() => {
     const now = Date.now();
@@ -207,8 +239,23 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
       ativos = ativos.filter((card) => card.grupo !== "G");
     }
 
-    return ativos.sort((a, b) => a.prioridade - b.prioridade);
-  }, [assistencias, cardsBase, dispensados, dispensadosSessao, energia, saldo, streak]);
+    const all = [...insightCards, ...ativos];
+    const order = (card: RecomendacaoCard) => {
+      if (card.categoria === "ECONOMIA") return 1;
+      if (card.categoria === "DESPESAS") return 2;
+      if (card.grupo === "O") return 3;
+      if (card.grupo === "P") return 4;
+      if (card.grupo === "G") return 5;
+      return 6;
+    };
+
+    return all.sort((a, b) => {
+      const oa = order(a);
+      const ob = order(b);
+      if (oa !== ob) return oa - ob;
+      return a.prioridade - b.prioridade;
+    });
+  }, [assistencias, cardsBase, dispensados, dispensadosSessao, energia, insightCards, saldo, streak]);
 
   const dispensar = (id: string) => {
     const card = cardsBase.find((item) => item.id === id);

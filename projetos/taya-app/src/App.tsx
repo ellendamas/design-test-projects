@@ -6,6 +6,8 @@ import {
   ArrowSquareOut,
   Bank,
   Bell,
+  BellRinging,
+  BookOpen,
   Brain,
   Briefcase,
   CalendarCheck,
@@ -17,16 +19,20 @@ import {
   CaretRight,
   ChatCircle,
   CheckCircle,
+  Car,
   ClipboardText,
   CaretDown,
   Clock,
   CreditCard,
   CurrencyCircleDollar,
+  ChartLineUp,
   DeviceMobile,
   EnvelopeSimple,
   Eye,
   EyeSlash,
   FileText,
+  ForkKnife,
+  FirstAid,
   Fingerprint,
   Fire,
   Gear,
@@ -34,22 +40,31 @@ import {
   Heartbeat,
   Headset,
   House,
+  HouseLine,
   IdentificationCard,
   Info,
+  Image,
   Gift,
+  HandHeart,
   Lightning,
   LockSimple,
   Lock,
+  Lightbulb,
   MagnifyingGlass,
   MapPin,
+  Newspaper,
   PencilSimple,
   Plus,
+  PlusCircle,
+  Receipt,
   ShoppingBag,
   SealCheck,
   ShieldCheck,
   DownloadSimple,
   SignOut,
   Sliders,
+  Shapes,
+  ListChecks,
   SpinnerGap,
   Tag,
   Trophy,
@@ -59,6 +74,11 @@ import {
   Tooth,
   PawPrint,
   Umbrella,
+  Warning,
+  ArrowsClockwise,
+  DotsThree,
+  ArrowDown,
+  ArrowUp,
   ArrowCircleUp,
   ArrowCircleDown,
   UserCircle,
@@ -68,7 +88,7 @@ import {
   User,
 } from "@phosphor-icons/react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +100,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FaqAcordeon } from "@/components/FaqAcordeon";
+import { JornadaFinanceira } from "@/components/JornadaFinanceira";
 import { ParaVoceAgora } from "@/components/ParaVoceAgora";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { contratos } from "@/data/contratos";
@@ -88,6 +110,7 @@ import { useNotificacoes } from "@/context/NotificacoesContext";
 import { CreditCardProvider, useCreditCard } from "@/context/CreditCardContext";
 import { useInteresse } from "@/context/InteresseContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
+import { useOpenFinance } from "@/context/OpenFinanceContext";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
 import Cards from "react-credit-cards-2";
@@ -103,6 +126,106 @@ type RecoveryRouteState = {
   otpVerified?: boolean;
   passwordUpdated?: boolean;
 };
+
+type OpenFinanceBankId = "nubank" | "caixa" | "bb" | "bradesco" | "itau";
+
+const openFinanceBanks: Array<{ id: OpenFinanceBankId; name: string; color: string; initials: string; eta: string; steps: string[] }> = [
+  {
+    id: "nubank",
+    name: "Nubank",
+    color: "#820AD1",
+    initials: "N",
+    eta: "Menos de 1 minuto",
+    steps: [
+      "O app do Nubank vai abrir automaticamente",
+      "Toque em 'Permitir' na tela de autorização",
+      "Confirme com sua senha ou biometria do Nubank",
+      "Pronto — você volta para o seutudo. automaticamente",
+    ],
+  },
+  {
+    id: "caixa",
+    name: "Caixa Econômica",
+    color: "#005CA9",
+    initials: "C",
+    eta: "Cerca de 2 minutos",
+    steps: [
+      "O app Caixa vai abrir automaticamente",
+      "Faça login com sua senha do app Caixa",
+      "Na tela de compartilhamento, toque em 'Autorizar'",
+      "Selecione os dados e confirme",
+      "Você volta para o seutudo. automaticamente",
+    ],
+  },
+  {
+    id: "bb",
+    name: "Banco do Brasil",
+    color: "#F9BB00",
+    initials: "BB",
+    eta: "Cerca de 2 minutos",
+    steps: [
+      "O app do Banco do Brasil vai abrir",
+      "Digite sua senha de 8 dígitos",
+      "Toque em 'Compartilhar dados' e confirme",
+      "Você volta para o seutudo. automaticamente",
+    ],
+  },
+  {
+    id: "bradesco",
+    name: "Bradesco",
+    color: "#CC092F",
+    initials: "B",
+    eta: "Cerca de 2 minutos",
+    steps: [
+      "O app Bradesco vai abrir automaticamente",
+      "Use sua senha ou biometria para entrar",
+      "Toque em 'Autorizar compartilhamento'",
+      "Confirme os dados e toque em 'Concluir'",
+      "Você volta para o seutudo. automaticamente",
+    ],
+  },
+  {
+    id: "itau",
+    name: "Itaú",
+    color: "#EC7000",
+    initials: "I",
+    eta: "Cerca de 2 minutos",
+    steps: [
+      "O app Itaú vai abrir automaticamente",
+      "Entre com sua senha eletrônica",
+      "Toque em 'Permitir acesso' no Open Finance",
+      "Confirme com token ou biometria",
+      "Você volta para o seutudo. automaticamente",
+    ],
+  },
+];
+
+const tier1BankIds: OpenFinanceBankId[] = ["nubank", "caixa", "bb", "bradesco", "itau"];
+
+const openFinanceBankDirectory: Array<{ id: string; name: string; color: string; initials: string; available: boolean; group: "top" | "other" }> = [
+  { id: "nubank", name: "Nubank", color: "#820AD1", initials: "N", available: true, group: "top" },
+  { id: "caixa", name: "Caixa Econômica", color: "#005CA9", initials: "C", available: true, group: "top" },
+  { id: "bb", name: "Banco do Brasil", color: "#F9BB00", initials: "BB", available: true, group: "top" },
+  { id: "bradesco", name: "Bradesco", color: "#CC092F", initials: "B", available: true, group: "top" },
+  { id: "itau", name: "Itaú", color: "#EC7000", initials: "I", available: true, group: "top" },
+  { id: "santander", name: "Santander", color: "#EC0000", initials: "S", available: false, group: "top" },
+  { id: "inter", name: "Inter", color: "#FF7A00", initials: "I", available: false, group: "top" },
+  { id: "c6", name: "C6 Bank", color: "#111827", initials: "C6", available: false, group: "top" },
+  { id: "picpay", name: "PicPay", color: "#21C25E", initials: "P", available: false, group: "top" },
+  { id: "mercado-pago", name: "Mercado Pago", color: "#009EE3", initials: "MP", available: false, group: "top" },
+  { id: "btg", name: "BTG Pactual", color: "#0A3D91", initials: "B", available: false, group: "other" },
+  { id: "sicredi", name: "Sicredi", color: "#62BB46", initials: "S", available: false, group: "other" },
+  { id: "sicoob", name: "Sicoob", color: "#005A49", initials: "S", available: false, group: "other" },
+  { id: "bv", name: "BV", color: "#7E3AF2", initials: "BV", available: false, group: "other" },
+  { id: "next", name: "Next", color: "#00F2A9", initials: "N", available: false, group: "other" },
+  { id: "neon", name: "Neon", color: "#00B9FF", initials: "N", available: false, group: "other" },
+  { id: "ame", name: "Ame Digital", color: "#E11D48", initials: "A", available: false, group: "other" },
+  { id: "pagbank", name: "PagBank", color: "#16A34A", initials: "P", available: false, group: "other" },
+  { id: "original", name: "Original", color: "#00A859", initials: "O", available: false, group: "other" },
+  { id: "banrisul", name: "Banrisul", color: "#0057B8", initials: "B", available: false, group: "other" },
+  { id: "safra", name: "Safra", color: "#1D4ED8", initials: "S", available: false, group: "other" },
+  { id: "modal", name: "Modal", color: "#6B7280", initials: "M", available: false, group: "other" },
+];
 
 function isValidCpf(value: string) {
   const cpf = value.replace(/\D/g, "");
@@ -365,7 +488,7 @@ function ComingSoon({ title }: { title: string }) {
   );
 }
 
-function SubPageLayout({ title, children }: { title: string; children: ReactNode }) {
+function SubPageLayout({ title, children, wide = false }: { title: string; children: ReactNode; wide?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { naoLidas } = useNotificacoes();
@@ -374,8 +497,10 @@ function SubPageLayout({ title, children }: { title: string; children: ReactNode
 
   const navItems = [
     { path: "/painel", icon: <House size={18} />, label: "Início" },
+    { path: "/solucoes", icon: <Shapes size={18} />, label: "Soluções" },
+    { path: "/credito", icon: <CreditCard size={18} />, label: "Crédito" },
+    { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" },
     { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" },
-    { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" },
     { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" },
   ];
 
@@ -408,7 +533,7 @@ function SubPageLayout({ title, children }: { title: string; children: ReactNode
         </div>
       </aside>
 
-      <main className="flex-1 bg-background">
+      <main className="min-w-0 flex-1 overflow-x-hidden bg-background">
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-white px-4 py-4 md:px-8">
           <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F5F4F2]">
             <ArrowLeft size={20} className="text-foreground" />
@@ -420,10 +545,10 @@ function SubPageLayout({ title, children }: { title: string; children: ReactNode
             {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#E8590A] text-[9px] font-bold text-white">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
           </button>
         </header>
-        <div className="px-4 py-5 pb-28 md:mx-auto md:max-w-[640px] md:px-0 md:py-8">{children}</div>
+        <div className={`min-w-0 overflow-x-hidden px-4 py-5 pb-28 md:mx-auto md:px-0 md:py-8 ${wide ? "md:max-w-[860px]" : "md:max-w-[640px]"}`}>{children}</div>
 
         <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
-          <ul className="grid w-full grid-cols-5 text-center">
+          <ul className="grid w-full grid-cols-6 text-center">
             {navItems.map((item) => (
               <li key={item.path} className="flex flex-col items-center justify-center text-center">
                 <button
@@ -547,9 +672,9 @@ function SaqueFacilPage() {
     return Number(normalized) || 0;
   };
 
-  const limiteCartao = state.valorDesejado || 0;
-  const valorLiquido = useMemo(() => limiteCartao / 1.1315, [limiteCartao]);
-  const valorParcela = useMemo(() => (state.numeroParcelas > 0 ? limiteCartao / state.numeroParcelas : 0), [limiteCartao, state.numeroParcelas]);
+  const valorReceber = state.valorDesejado || 0;
+  const limiteCartaoNecessario = useMemo(() => valorReceber * 1.1315, [valorReceber]);
+  const valorParcela = useMemo(() => (state.numeroParcelas > 0 ? limiteCartaoNecessario / state.numeroParcelas : 0), [limiteCartaoNecessario, state.numeroParcelas]);
   const cardFinal = state.numeroCartao.replace(/\s/g, "").slice(-4) || "----";
 
   const stepMap: Record<SaqueFacilStep, string> = {
@@ -661,7 +786,7 @@ function SaqueFacilPage() {
   const displayStep = step === "simulation" ? 1 : ["rg", "birth", "income", "civil", "gender", "card_due_day", "address", "bank"].includes(step) ? 2 : ["stark_analysis", "card_type", "card"].includes(step) ? 3 : ["selfie_ownership", "selfie_identity"].includes(step) ? 4 : 5;
 
   const canAdvance = useMemo(() => {
-    if (step === "simulation") return limiteCartao > 0 && state.numeroParcelas >= 4;
+    if (step === "simulation") return valorReceber > 0 && state.numeroParcelas >= 4;
     if (step === "data_intro") return true;
     if (step === "rg") return isValidRg(state.rg) && orgaoExpedidor.length > 0;
     if (step === "birth") return isAdultBirthDate(state.dataNascimento);
@@ -676,7 +801,7 @@ function SaqueFacilPage() {
     if (step === "card") return Boolean(isValidCardNumber(state.numeroCartao) && state.nomeCartao.trim().length >= 3 && isValidExpiry(state.vencimento) && state.cvv.replace(/\D/g, "").length >= 3);
     if (step === "confirmation") return state.termoAceito;
     return true;
-  }, [step, limiteCartao, state, orgaoExpedidor, faixaRenda, cardDueDay, useOtherAddress, addressCep, addressStreet, addressNumber, addressSelected, useOtherBank, bankName, agencia, bankConta, bankDigito, bankSelected, starkApproved, showStarkButton, cardType]);
+  }, [step, valorReceber, state, orgaoExpedidor, faixaRenda, cardDueDay, useOtherAddress, addressCep, addressStreet, addressNumber, addressSelected, useOtherBank, bankName, agencia, bankConta, bankDigito, bankSelected, starkApproved, showStarkButton, cardType]);
 
   const faq = [
     { q: "Quem pode usar o Saque Fácil?", a: "Qualquer pessoa com cartão de crédito com bandeira reconhecida (Visa, Mastercard, Elo, Hipercard ou Amex), função crédito ativa e limite disponível. Cartões Alelo, Sodexo e VR não são aceitos." },
@@ -830,8 +955,8 @@ function SaqueFacilPage() {
 
         {step === "simulation" && (
           <div className="space-y-4">
-            <div><h2 className="text-xl font-bold text-foreground">Qual é o limite disponível no seu cartão?</h2><p className="mt-1 text-sm text-muted-foreground">Informe o limite que está disponível agora para usarmos na simulação.</p></div>
-            <IMaskInput mask={Number} scale={2} signed={false} thousandsSeparator="." radix="," mapToRadix={["."]} normalizeZeros padFractionalZeros value={limiteCartao.toString()} onAccept={(v) => setState((prev) => ({ ...prev, valorDesejado: parseCurrency(String(v)) }))} className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold" placeholder="R$ 0,00" />
+            <div><h2 className="text-xl font-bold text-foreground">Quanto você quer receber?</h2><p className="mt-1 text-sm text-muted-foreground">Informe o valor e veja quanto de limite você vai precisar no cartão.</p></div>
+            <IMaskInput mask={Number} scale={2} signed={false} thousandsSeparator="." radix="," mapToRadix={["."]} normalizeZeros padFractionalZeros value={valorReceber.toString()} onAccept={(v) => setState((prev) => ({ ...prev, valorDesejado: parseCurrency(String(v)) }))} className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold" placeholder="R$ 0,00" />
             <div>
               <p className="mb-2 text-sm font-medium text-foreground">Número de parcelas</p>
               <input type="range" min={4} max={12} step={1} value={state.numeroParcelas} onChange={(e) => setState((prev) => ({ ...prev, numeroParcelas: Number(e.target.value) }))} className="w-full accent-[#E8590A]" />
@@ -840,8 +965,8 @@ function SaqueFacilPage() {
             <div className="mt-4">
               <div className="rounded-2xl bg-[#FEF0E7] p-4">
                 <p className="mb-1 text-xs font-medium text-[#A33D05]">Você precisa ter este limite disponível no cartão</p>
-                <p className="text-3xl font-bold text-[#E8590A]">R$ {toCurrency(limiteCartao)}</p>
-                <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-base font-bold text-[#A33D05]">R$ {toCurrency(valorLiquido)}</p></div><div><p className="text-xs text-[#A33D05]/70">Parcelas de</p><p className="text-base font-bold text-[#A33D05]">{state.numeroParcelas}x R$ {toCurrency(valorParcela)}</p></div></div>
+                <p className="text-3xl font-bold text-[#E8590A]">R$ {toCurrency(limiteCartaoNecessario)}</p>
+                <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-base font-bold text-[#A33D05]">R$ {toCurrency(valorReceber)}</p></div><div><p className="text-xs text-[#A33D05]/70">Parcelas de</p><p className="text-base font-bold text-[#A33D05]">{state.numeroParcelas}x R$ {toCurrency(valorParcela)}</p></div></div>
               </div>
               <button className="mt-3 flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm" onClick={() => setTaxasOpen((p) => !p)}>
                 Ver taxas da operação
@@ -915,7 +1040,7 @@ function SaqueFacilPage() {
           <Card className="border-border">
             <CardContent className="space-y-4 p-4">
               <div className="flex flex-col items-center text-center"><CheckCircle size={42} className="text-[#E8590A]" /><h2 className="mt-2 text-xl font-bold">Tudo pronto. Só falta confirmar.</h2><p className="text-sm text-muted-foreground">Revise os dados e confirme para liberar o dinheiro.</p></div>
-              <div className="space-y-2.5 rounded-2xl bg-[#FEF0E7] p-4">{[{label:"Você vai receber",value:`R$ ${toCurrency(valorLiquido)}`},{label:"Limite usado no cartão",value:`R$ ${toCurrency(limiteCartao)}`},{label:"Parcelas",value:`${state.numeroParcelas}x de R$ ${toCurrency(valorParcela)}`},{label:"Cartão",value:`Final ${cardFinal}`},{label:"Conta de destino",value:`Banco ag. ${agencia}`},{label:"Na fatura aparece como",value:"STARK*SeuTudo"}].map((item)=><div key={item.label} className="flex items-center justify-between gap-2"><p className="text-xs text-[#A33D05]/70">{item.label}</p><p className="text-xs font-semibold text-[#A33D05]">{item.value}</p></div>)}</div>
+              <div className="space-y-2.5 rounded-2xl bg-[#FEF0E7] p-4">{[{label:"Você vai receber",value:`R$ ${toCurrency(valorReceber)}`},{label:"Limite usado no cartão",value:`R$ ${toCurrency(limiteCartaoNecessario)}`},{label:"Parcelas",value:`${state.numeroParcelas}x de R$ ${toCurrency(valorParcela)}`},{label:"Cartão",value:`Final ${cardFinal}`},{label:"Conta de destino",value:`Banco ag. ${agencia}`},{label:"Na fatura aparece como",value:"STARK*SeuTudo"}].map((item)=><div key={item.label} className="flex items-center justify-between gap-2"><p className="text-xs text-[#A33D05]/70">{item.label}</p><p className="text-xs font-semibold text-[#A33D05]">{item.value}</p></div>)}</div>
               <button
                 type="button"
                 onClick={() => setState((p) => ({ ...p, termoAceito: !p.termoAceito }))}
@@ -945,7 +1070,7 @@ function SaqueFacilPage() {
               <CheckCircle size={48} weight="fill" className="mx-auto text-[#E8590A]" />
               <h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2>
               <p className="text-sm text-muted-foreground">O dinheiro está a caminho. Deve cair em até 30 minutos.</p>
-              <div className="rounded-2xl bg-[#FEF0E7] p-4 text-left"><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-xl font-bold text-[#A33D05]">R$ {toCurrency(valorLiquido)}</p><p className="mt-1 text-xs text-[#A33D05]/70">Cartão final {cardFinal} · {state.numeroParcelas}x</p></div>
+              <div className="rounded-2xl bg-[#FEF0E7] p-4 text-left"><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-xl font-bold text-[#A33D05]">R$ {toCurrency(valorReceber)}</p><p className="mt-1 text-xs text-[#A33D05]/70">Cartão final {cardFinal} · {state.numeroParcelas}x</p></div>
               <Card className="border-border bg-white shadow-sm"><CardContent className="flex items-center justify-between gap-3 p-3"><div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Coins size={16} /></div><p className="text-sm text-foreground">+300 seubônus adicionados ao seu saldo</p></div><button className="text-sm font-medium text-[#E8590A]" onClick={() => navigate("/seubolso")}>Ver meu seubônus <CaretRight size={14} className="inline" /></button></CardContent></Card>
               <div className="grid gap-2 md:flex md:justify-center"><Button className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px]" onClick={() => navigate("/contratos/saque-facil-001")}>Ver meu contrato</Button><Button variant="ghost" className="h-12 rounded-xl md:min-w-[160px]" onClick={() => navigate("/painel")}>Voltar para o início</Button></div>
             </CardContent>
@@ -1692,17 +1817,73 @@ function FakeDoorCTA({
   );
 }
 
+function PlaceholderImagem({
+  icon,
+  className = "h-full w-full",
+}: {
+  icon: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#E5E7EB] ${className}`}>
+      <div className="text-[#9CA3AF]">{icon}</div>
+      <p className="text-xs text-[#9CA3AF]">Imagem em breve</p>
+    </div>
+  );
+}
+
 function AssistenciasPage() {
   const navigate = useNavigate();
   const { assistencias, registrarInteresse } = useInteresse();
+  const categoriasRef = useRef<HTMLDivElement>(null);
+  const [draggingCategorias, setDraggingCategorias] = useState(false);
+  const [canCategoriasLeft, setCanCategoriasLeft] = useState(false);
+  const [canCategoriasRight, setCanCategoriasRight] = useState(false);
+  const dragStartX = useRef(0);
+  const dragStartScroll = useRef(0);
 
   const categorias = [
-    { nome: "Saúde", icon: <Stethoscope size={32} className="text-[#E8590A]" /> },
-    { nome: "Odonto", icon: <Tooth size={32} className="text-[#E8590A]" /> },
-    { nome: "Pet", icon: <PawPrint size={32} className="text-[#E8590A]" /> },
-    { nome: "Psicologia", icon: <Brain size={32} className="text-[#E8590A]" /> },
-    { nome: "Previdência", icon: <Umbrella size={32} className="text-[#E8590A]" /> },
+    { nome: "Saúde", icon: <Stethoscope size={20} className="text-[#E8590A]" />, hero: <Stethoscope size={48} />, beneficio: "Consultas a partir de R$ 39,90", tag: "Clínico geral e 5 especialidades" },
+    { nome: "Odonto", icon: <Tooth size={20} className="text-[#E8590A]" />, hero: <Tooth size={48} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
+    { nome: "Pet", icon: <PawPrint size={20} className="text-[#E8590A]" />, hero: <PawPrint size={48} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
+    { nome: "Psicologia", icon: <Brain size={20} className="text-[#E8590A]" />, hero: <Brain size={48} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
+    { nome: "Previdência", icon: <Umbrella size={20} className="text-[#E8590A]" />, hero: <Umbrella size={48} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
+    { nome: "Bem-estar", icon: <Heartbeat size={20} className="text-[#E8590A]" />, hero: <Heartbeat size={48} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
+    { nome: "Educação", icon: <BookOpen size={20} className="text-[#E8590A]" />, hero: <BookOpen size={48} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
+    { nome: "Tecnologia", icon: <DeviceMobile size={20} className="text-[#E8590A]" />, hero: <DeviceMobile size={48} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
+    { nome: "Residência", icon: <House size={20} className="text-[#E8590A]" />, hero: <House size={48} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
+    { nome: "Prevenção", icon: <FirstAid size={20} className="text-[#E8590A]" />, hero: <FirstAid size={48} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
+    { nome: "Notícias", icon: <Newspaper size={20} className="text-[#E8590A]" />, hero: <Newspaper size={48} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
+    { nome: "Recompensa", icon: <Gift size={20} className="text-[#E8590A]" />, hero: <Gift size={48} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
+    { nome: "Sorteio", icon: <Trophy size={20} className="text-[#E8590A]" />, hero: <Trophy size={48} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
   ];
+
+  const faqItems = [
+    { pergunta: "Quem pode contratar?", resposta: "Todos os clientes cadastrados no seutudo. com CPF validado." },
+    { pergunta: "Preciso contratar todas as categorias?", resposta: "Não. Você escolhe apenas as assistências que fazem sentido para você e sua família." },
+    { pergunta: "Como funciona o pagamento?", resposta: "Uma mensalidade acessível debitada diretamente pelo app. Sem fidelidade, sem surpresa." },
+    { pergunta: "Posso incluir minha família?", resposta: "Sim. Algumas categorias permitem até 8 dependentes sem necessidade de grau de parentesco." },
+  ];
+
+  const updateCategoriasControls = () => {
+    const el = categoriasRef.current;
+    if (!el) return;
+    setCanCategoriasLeft(el.scrollLeft > 2);
+    setCanCategoriasRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  };
+
+  useEffect(() => {
+    updateCategoriasControls();
+    const el = categoriasRef.current;
+    if (!el) return;
+    const onScroll = () => updateCategoriasControls();
+    el.addEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
 
   const handleInteresse = () => {
     registrarInteresse("assistencias");
@@ -1715,50 +1896,136 @@ function AssistenciasPage() {
 
   return (
     <SubPageLayout title="Assistências">
-      <div className="space-y-4">
-        <Card className="border-0 bg-[#A33D05] text-white shadow-sm">
-          <CardContent className="relative p-5">
-            <Heartbeat size={52} className="absolute right-4 top-4 text-white/35" />
-            <h2 className="max-w-[290px] text-2xl font-bold leading-tight">Cuide de quem você ama sem pesar no bolso</h2>
-            <p className="mt-2 max-w-[280px] text-sm text-white/90">Descontos reais em saúde, odonto, pet e muito mais</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-white shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">O que está incluído</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {categorias.map((item, idx) => (
-                <div key={item.nome} className={`rounded-xl border border-border bg-white p-3 text-center ${idx === categorias.length - 1 ? "col-span-2 mx-auto w-full max-w-[180px]" : ""}`}>
-                  <div className="mb-2 flex justify-center">{item.icon}</div>
-                  <p className="text-xs font-medium text-foreground">{item.nome}</p>
-                </div>
-              ))}
+      <div className="min-w-0 max-w-full space-y-4 overflow-x-hidden pb-6">
+        <Card className="overflow-hidden rounded-2xl border-0 shadow-sm">
+          <CardContent className="relative h-[220px] p-0">
+            <PlaceholderImagem icon={<Image size={34} />} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-4">
+              <Badge className="mb-2 border-0 bg-white/15 text-[11px] text-white">ASSISTÊNCIAS SEUTUDO.</Badge>
+              <h2 className="max-w-[290px] text-[26px] font-bold leading-tight text-white">Cuide de quem você ama sem pesar no bolso</h2>
+              <p className="mt-2 max-w-[290px] text-sm text-white/80">Descontos reais em saúde, odonto, pet e muito mais</p>
             </div>
           </CardContent>
         </Card>
+
+        <Card className="border-0 bg-[#FEF0E7] shadow-sm">
+          <CardContent className="p-6 text-center">
+            <p className="text-4xl font-bold text-[#E8590A]">R$ 4.600</p>
+            <p className="mt-2 text-sm font-semibold text-foreground">de economia média por ano em saúde e bem-estar</p>
+            <p className="mt-1 text-xs text-muted-foreground">Comparado à contratação individual dos serviços no mercado</p>
+          </CardContent>
+        </Card>
+
+        <div className="relative">
+          <h3 className="text-sm font-semibold text-foreground">O que está incluído</h3>
+          <p className="mt-1 text-xs text-muted-foreground">13 categorias de assistência para você e sua família</p>
+          <div
+            ref={categoriasRef}
+            className={`mt-3 flex w-full gap-3 overflow-x-auto pb-1 touch-pan-x select-none [&::-webkit-scrollbar]:hidden ${draggingCategorias ? "cursor-grabbing" : "cursor-grab"}`}
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
+            onPointerDown={(e) => {
+              const el = categoriasRef.current;
+              if (!el) return;
+              setDraggingCategorias(true);
+              dragStartX.current = e.clientX;
+              dragStartScroll.current = el.scrollLeft;
+              el.setPointerCapture(e.pointerId);
+            }}
+            onPointerMove={(e) => {
+              const el = categoriasRef.current;
+              if (!el || !draggingCategorias) return;
+              const deltaX = e.clientX - dragStartX.current;
+              el.scrollLeft = dragStartScroll.current - deltaX;
+            }}
+            onPointerUp={(e) => {
+              const el = categoriasRef.current;
+              if (!el) return;
+              setDraggingCategorias(false);
+              if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+            }}
+            onPointerCancel={(e) => {
+              const el = categoriasRef.current;
+              if (!el) return;
+              setDraggingCategorias(false);
+              if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+            }}
+          >
+            {categorias.map((item) => (
+              <Card key={item.nome} className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
+                <div className="h-[120px] p-3">
+                  <PlaceholderImagem icon={item.hero} />
+                </div>
+                <CardContent className="p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    {item.icon}
+                    <p className="text-sm font-semibold text-foreground">{item.nome}</p>
+                  </div>
+                  <p className="line-clamp-2 text-xs leading-5 text-[#374151]">{item.beneficio}</p>
+                  <span className="mt-2 inline-flex rounded-full bg-[#FEF0E7] px-2 py-1 text-[11px] text-[#E8590A]">{item.tag}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="pointer-events-none absolute left-0 top-[58%] hidden -translate-y-1/2 md:flex">
+            <button
+              type="button"
+              onClick={() => categoriasRef.current?.scrollBy({ left: -220, behavior: "smooth" })}
+              disabled={!canCategoriasLeft}
+              className="pointer-events-auto -ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#E8590A] shadow disabled:opacity-40"
+              aria-label="Ver categorias anteriores"
+            >
+              <CaretLeft size={16} />
+            </button>
+          </div>
+          <div className="pointer-events-none absolute right-0 top-[58%] hidden -translate-y-1/2 md:flex">
+            <button
+              type="button"
+              onClick={() => categoriasRef.current?.scrollBy({ left: 220, behavior: "smooth" })}
+              disabled={!canCategoriasRight}
+              className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#E8590A] shadow disabled:opacity-40"
+              aria-label="Ver próximas categorias"
+            >
+              <CaretRight size={16} />
+            </button>
+          </div>
+        </div>
 
         <Card className="border-border bg-white shadow-sm">
           <CardContent className="p-4">
             <h3 className="mb-3 text-sm font-semibold text-foreground">Como vai funcionar</h3>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {[
-                "Escolha as assistências que fazem sentido para você",
-                "Pague uma mensalidade acessível sem sair do app",
-                "Use quando precisar com descontos de até 85%",
-              ].map((texto, idx) => (
-                <div key={texto} className="flex items-start gap-2">
-                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-[11px] font-semibold text-[#E8590A]">{idx + 1}</div>
-                  <p className="text-xs leading-5 text-foreground">{texto}</p>
+                { icon: <ListChecks size={32} className="text-[#E8590A]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
+                { icon: <CreditCard size={32} className="text-[#E8590A]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do seutudo., simples e sem burocracia." },
+                { icon: <HandHeart size={32} className="text-[#E8590A]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
+              ].map((item, idx, arr) => (
+                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
+                  <div className="shrink-0">{item.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-foreground">Dúvidas frequentes</h3>
+          <FaqAcordeon items={faqItems} />
+        </div>
 
-        <Button variant="ghost" className="h-10 w-full rounded-xl" onClick={() => navigate("/painel")}>Voltar para o início</Button>
+        <div className="rounded-2xl bg-white px-4 pb-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+          <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
+          {assistencias ? (
+            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#E8590A]">
+              Voltar para o início
+            </button>
+          ) : null}
+        </div>
       </div>
     </SubPageLayout>
   );
@@ -1777,61 +2044,82 @@ function EnergiaPage() {
     });
   };
 
+  const faqItems = [
+    { pergunta: "Isso é gratuito?", resposta: "Sim. Você não paga nada para fazer a análise. A economia começa a aparecer diretamente na sua conta de luz." },
+    { pergunta: "Precisa trocar algo em casa?", resposta: "Não. Nenhuma obra, nenhum equipamento novo. Tudo acontece na negociação da sua energia, sem impacto no seu dia a dia." },
+    { pergunta: "Funciona para apartamento?", resposta: "Sim, funciona para residências, apartamentos e comércios de pequeno porte em todo o Brasil." },
+    { pergunta: "Quanto tempo leva para começar a economizar?", resposta: "Após a análise, o processo costuma levar de 30 a 60 dias para a economia aparecer na sua fatura." },
+  ];
+
   return (
     <SubPageLayout title="Energia">
-      <div className="space-y-4">
-        <Card className="border-0 bg-[#A33D05] text-white shadow-sm">
-          <CardContent className="relative p-5">
-            <Lightning size={52} className="absolute right-4 top-4 text-white/35" />
-            <Badge className="border-0 bg-white/15 text-[#FEF0E7]">CONDUTIVE</Badge>
-            <h2 className="mt-3 max-w-[290px] text-2xl font-bold leading-tight">Sua conta de luz pode ser menor. Todo mês.</h2>
-            <p className="mt-2 max-w-[280px] text-sm text-white/90">Sem obras. Sem trocar equipamentos. Sem custo.</p>
+      <div className="min-w-0 max-w-full space-y-4 pb-6">
+        <Card className="overflow-hidden rounded-2xl border-0 shadow-sm">
+          <CardContent className="relative h-[220px] p-0">
+            <PlaceholderImagem icon={<Image size={34} />} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-4">
+              <Badge className="mb-2 border-0 bg-white/15 text-[11px] text-white">ECONOMIA DE ENERGIA</Badge>
+              <h2 className="max-w-[290px] text-[26px] font-bold leading-tight text-white">Sua conta de luz pode ser menor. Todo mês.</h2>
+              <p className="mt-2 max-w-[290px] text-sm text-white/80">Sem obras. Sem trocar equipamentos. Sem custo.</p>
+            </div>
           </CardContent>
         </Card>
 
+        <div
+          className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {["Sem obras", "Sem fidelidade", "100% gratuito"].map((item) => (
+            <div key={item} className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-white px-3 py-1.5 text-[13px] text-foreground">
+              <CheckCircle size={16} className="text-[#E8590A]" weight="fill" />
+              {item}
+            </div>
+          ))}
+        </div>
+
         <Card className="border-0 bg-[#FEF0E7] shadow-sm">
           <CardContent className="p-5 text-center">
-            <p className="text-4xl font-bold text-[#E8590A]">20%</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">de economia média na conta de luz</p>
-            <p className="mt-1 text-xs text-muted-foreground">Com base nos clientes já atendidos pela Condutive</p>
+            <p className="text-4xl font-bold text-[#E8590A]">R$ 80</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">de economia média por mês na conta de luz</p>
+            <p className="mt-1 text-xs text-muted-foreground">Com base nos clientes já atendidos pelo nosso parceiro</p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-white shadow-sm">
           <CardContent className="p-4">
             <h3 className="mb-3 text-sm font-semibold text-foreground">Como funciona</h3>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {[
-                "Você nos envia sua conta de luz",
-                "Analisamos as melhores opções disponíveis para o seu perfil",
-                "Você começa a economizar sem mudar nada na sua casa",
-              ].map((texto, idx) => (
-                <div key={texto} className="flex items-start gap-2">
-                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-[11px] font-semibold text-[#E8590A]">{idx + 1}</div>
-                  <p className="text-xs leading-5 text-foreground">{texto}</p>
+                { icon: <FileText size={32} className="text-[#E8590A]" />, titulo: "Você envia sua conta de luz", sub: "Basta fotografar ou enviar o PDF da sua fatura." },
+                { icon: <MagnifyingGlass size={32} className="text-[#E8590A]" />, titulo: "Analisamos as melhores opções para o seu perfil", sub: "Nossa equipe identifica as alternativas disponíveis na sua região." },
+                { icon: <CurrencyCircleDollar size={32} className="text-[#E8590A]" />, titulo: "Você começa a economizar sem mudar nada em casa", sub: "Sem obras, sem contratos complicados, sem custo de adesão." },
+              ].map((item, idx, arr) => (
+                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
+                  <div className="shrink-0">{item.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-white shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Por que vale a pena</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {["Sem obras", "Sem fidelidade", "100% gratuito"].map((item) => (
-                <div key={item} className="flex flex-col items-center gap-1 rounded-xl border border-border bg-white px-2 py-3 text-center">
-                  <CheckCircle size={20} className="text-[#E8590A]" weight="fill" />
-                  <p className="text-[11px] font-medium leading-4 text-foreground">{item}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-foreground">Dúvidas frequentes</h3>
+          <FaqAcordeon items={faqItems} />
+        </div>
 
-        <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
-
-        <Button variant="ghost" className="h-10 w-full rounded-xl" onClick={() => navigate("/painel")}>Voltar para o início</Button>
+        <div className="rounded-2xl bg-white px-4 pb-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+          <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
+          {energia ? (
+            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#E8590A]">
+              Voltar para o início
+            </button>
+          ) : null}
+        </div>
       </div>
     </SubPageLayout>
   );
@@ -2106,9 +2394,6 @@ function App() {
   const [phone, setPhone] = useState("");
   const [cpf, setCpf] = useState("");
   const [pin, setPin] = useState("");
-  const [biometria, setBiometria] = useState(false);
-  const [biometriaSheetOpen, setBiometriaSheetOpen] = useState(false);
-  const [interests, setInterests] = useState<ServiceType[]>(["clt"]);
   const [storedUser, setStoredUser] = useState<StoredUser | null>(() => getStoredUser());
 
   const [loginCpf, setLoginCpf] = useState("");
@@ -2134,12 +2419,16 @@ function App() {
   const [newPasswordError, setNewPasswordError] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [bankSearch, setBankSearch] = useState("");
   const { notificacoes, naoLidas, marcarTodasLidas } = useNotificacoes();
   const { saldo } = useSeubolso();
   const { dataVisible } = usePrivacy();
+  const { bancosConectados, resumoMes, ondaAtiva, connectBankById, disconnectBankById } = useOpenFinance();
 
   const firstName = (storedUser?.name || name || "você").split(" ")[0] || "você";
-  const totalSteps = 4;
+  const totalSteps = 3;
+  const openFinanceState: "empty" | "single" | "multi" = bancosConectados.length === 0 ? "empty" : bancosConectados.length > 1 ? "multi" : "single";
+  const nivelAtualJornada = ondaAtiva === "onda1" ? 1 : ondaAtiva === "onda2" ? 2 : ondaAtiva === "onda3" ? 3 : 1;
 
   const pageVariants = {
     initial: { opacity: 0, y: 16 },
@@ -2159,10 +2448,9 @@ function App() {
   const canGoNext = useMemo(() => {
     if (step === 1) return name.trim().length > 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10;
     if (step === 2) return isValidCpf(cpf);
-    if (step === 3) return interests.length > 0;
-    if (step === 4) return pin.length === 6 && !isWeakNumericPin(pin);
+    if (step === 3) return pin.length === 6 && !isWeakNumericPin(pin);
     return true;
-  }, [step, name, email, phone, cpf, interests, pin]);
+  }, [step, name, email, phone, cpf, pin]);
 
   const loginLockedSeconds = loginLockUntil ? Math.max(0, Math.ceil((loginLockUntil - Date.now()) / 1000)) : 0;
   const recoveryLockedSeconds = recoveryOtpLockUntil ? Math.max(0, Math.ceil((recoveryOtpLockUntil - Date.now()) / 1000)) : 0;
@@ -2188,9 +2476,6 @@ function App() {
     setPhone("");
     setCpf("");
     setPin("");
-    setBiometria(false);
-    setBiometriaSheetOpen(false);
-    setInterests(["clt"]);
     setStoredUser(null);
     setLoginCpf("");
     setLoginSenha("");
@@ -2207,7 +2492,7 @@ function App() {
     const user = { name, email };
     if (typeof window !== "undefined") window.localStorage.setItem("seutudo_user", JSON.stringify(user));
     setStoredUser(user);
-    navigate("/painel");
+    navigate("/cadastro/open-finance");
   };
 
   useEffect(() => {
@@ -2314,9 +2599,8 @@ function App() {
 
   const goNext = () => {
     setDirection(1);
-    if (step === 4) {
-      setStep(5);
-      setBiometriaSheetOpen(true);
+    if (step === 3) {
+      completeOnboarding();
       return;
     }
     setStep((prev) => prev + 1);
@@ -2331,17 +2615,15 @@ function App() {
     setStep((prev) => prev - 1);
   };
 
-  const toggleInterest = (service: ServiceType) => {
-    setInterests((prev) => (prev.includes(service) ? prev.filter((item) => item !== service) : [...prev, service]));
-  };
-
   const renderBottomNav = () => (
     <nav className="fixed bottom-4 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-white p-2 shadow-sm md:hidden">
-      <ul className="grid w-full grid-cols-4 text-center">
+      <ul className="grid w-full grid-cols-6 text-center">
         {[
           { path: "/painel", icon: <House size={18} />, label: "Início" },
+          { path: "/solucoes", icon: <Shapes size={18} />, label: "Soluções" },
+          { path: "/credito", icon: <CreditCard size={18} />, label: "Crédito" },
+          { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" },
           { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" },
-          { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" },
           { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" },
         ].map((item) => (
           <li key={item.path} className="flex flex-col items-center justify-center text-center">
@@ -2364,15 +2646,15 @@ function App() {
         <>
           <div>
             <h1 className="text-2xl font-bold leading-tight text-foreground">
-              Quem tem carteira assinada pode ter muito mais do que imagina.
+              Sua vida financeira, finalmente do seu jeito.
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Descubra o que está disponível para você. É gratuito e sem compromisso.
+              Entenda para onde seu dinheiro vai e descubra o que está disponível para você.
             </p>
           </div>
 
           <div className="space-y-2.5">
-            {["Simulação gratuita, sem compromisso", "Tudo explicado, sem letra miúda", "Seus dados ficam só com você"].map((text) => (
+            {["Gratuito e sem compromisso", "Tudo explicado, sem letra miúda", "Seus dados ficam só com você"].map((text) => (
               <div key={text} className="flex items-center gap-2.5 text-sm text-foreground">
                 <CheckCircle size={16} weight="fill" className="shrink-0 text-primary" />
                 {text}
@@ -2610,28 +2892,7 @@ function App() {
 
               {step === 3 && (
                 <>
-                  <StepHeader step={3} total={totalSteps} title="O que você está precisando?" subtitle="Pode escolher mais de um." />
-                  <div className="space-y-2">
-                    {(Object.keys(serviceCopy) as ServiceType[]).map((service) => {
-                      const checked = interests.includes(service);
-                      const currentService = serviceCopy[service];
-                      return (
-                        <button key={service} type="button" onClick={() => toggleInterest(service)} className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${checked ? "border-primary bg-primary-light" : "border-border bg-card hover:border-primary/40"}`}>
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${checked ? "bg-primary text-white" : "bg-background text-muted-foreground"}`}>{currentService.icon}</div>
-                          <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-foreground">{currentService.title}</p><p className="mt-0.5 text-xs text-muted-foreground">{currentService.subtitle}</p></div>
-                          <Checkbox checked={checked} className={checked ? "border-primary data-[state=checked]:bg-primary" : "border-border"} onCheckedChange={() => toggleInterest(service)} />
-                        </button>
-                      );
-                    })}
-                    <div className="flex w-full items-center gap-3 rounded-xl border border-dashed border-border bg-background p-4"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-[#A8A29E]"><ShieldCheck size={20} /></div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-semibold text-[#78716C]">Seguro de Vida</p><span className="inline-flex items-center gap-1 rounded-full bg-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#78716C]"><Clock size={10} /> Em breve</span></div><p className="mt-0.5 text-xs text-[#A8A29E]">Toque para registrar seu interesse</p></div></div>
-                    {interests.length === 0 && <p className="pt-1 text-center text-xs text-primary">Selecione pelo menos 1 produto para continuar.</p>}
-                  </div>
-                </>
-              )}
-
-              {step === 4 && (
-                <>
-                  <StepHeader step={4} total={totalSteps} title="Crie sua senha de acesso" subtitle="Vai ser usada para entrar no app." />
+                  <StepHeader step={3} total={totalSteps} title="Crie sua senha de acesso" subtitle="Vai ser usada para entrar no app." />
                   <Card className="border-border shadow-sm">
                     <CardContent className="space-y-4 pt-5">
                       <div className="space-y-1.5"><Label className="text-sm font-medium">Senha numérica (6 dígitos)</Label><Input type="password" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••" className="h-12 rounded-xl text-center text-lg tracking-[0.5em]" />{pin.length===6 && isWeakNumericPin(pin) ? <p className="text-xs text-red-600">Evite sequências como 123456 ou números repetidos.</p> : null}</div>
@@ -2641,14 +2902,11 @@ function App() {
                 </>
               )}
 
-              {step === 5 && (
-                <div className="flex flex-col items-center space-y-4 pt-8 text-center"><CheckCircle size={56} className="text-primary" weight="fill" /><div><h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2><p className="mx-auto mt-2 text-sm text-muted-foreground">A gente já encontrou uma opção para você. Veja o que está disponível na sua conta.</p></div><motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }} className="mt-4 w-full"><Button className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark" onClick={completeOnboarding}>Ver minha conta<ArrowRight size={16} className="ml-2" /></Button></motion.div></div>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {step <= 4 && (
+        {step <= 3 && (
           <div className="grid grid-cols-2 gap-3 pt-6">
             <Button variant="outline" onClick={goBack} className="h-12 rounded-xl border-border text-foreground">Voltar</Button>
             <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
@@ -2658,19 +2916,6 @@ function App() {
         )}
       </div>
 
-      {step === 5 && biometriaSheetOpen && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setBiometriaSheetOpen(false)} />
-          <div className="fixed bottom-0 left-1/2 z-50 w-full -translate-x-1/2 rounded-t-2xl bg-white px-6 pb-10 pt-6">
-            <div className="mx-auto mb-6 h-1 w-10 rounded-full bg-border" />
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light"><Fingerprint size={32} className="text-primary" /></div>
-            <h3 className="mb-2 text-center text-xl font-bold text-foreground">Quer entrar com sua digital?</h3>
-            <p className="mb-6 text-center text-sm text-muted-foreground">É mais rápido e você não precisa lembrar da senha.</p>
-            <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}><Button className="mb-3 h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark" onClick={() => { setBiometria(true); setBiometriaSheetOpen(false); }}>Habilitar biometria</Button></motion.div>
-            <Button variant="ghost" className="h-12 w-full font-semibold text-primary" onClick={() => setBiometriaSheetOpen(false)}>Agora não</Button>
-          </div>
-        </>
-      )}
     </main>
   );
 
@@ -2972,12 +3217,444 @@ function App() {
     />
   );
 
+  const OpenFinanceValueScreen = (
+    <main className="mx-auto min-h-screen w-full bg-background px-4 pb-28 pt-6 md:px-8">
+      <div className="mx-auto w-full max-w-[640px] space-y-4 md:pt-8">
+        <div className="mb-2">
+          <span className="text-xs font-medium text-muted-foreground">Passo 4 de 5</span>
+          <Progress value={80} className="mt-2 h-1 bg-secondary [&>div]:bg-primary" />
+        </div>
+
+        <Card className="border-0 bg-primary-light shadow-sm">
+          <CardContent className="space-y-3 p-6 text-center">
+            <ChartLineUp size={48} className="mx-auto text-primary" />
+            <h2 className="text-2xl font-bold text-foreground">Vamos entender sua vida financeira</h2>
+            <p className="text-sm text-muted-foreground">Conecte seu banco de forma segura e veja para onde seu dinheiro vai — sem julgamento, sem pegadinha.</p>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-3">
+          {[
+            { icon: <Eye size={24} className="text-primary" />, title: "Tudo em um lugar só", text: "Veja seus gastos, entradas e padrões financeiros sem abrir planilha." },
+            { icon: <ShieldCheck size={24} className="text-primary" />, title: "100% seguro e regulado", text: "O Open Finance é regulado pelo Banco Central. Seus dados só saem com sua autorização." },
+            { icon: <Lightbulb size={24} className="text-primary" />, title: "Dicas que fazem sentido para você", text: "Quanto mais você conecta, mais o seutudo. entende o que você precisa." },
+          ].map((item) => (
+            <Card key={item.title} className="border-border bg-white shadow-sm">
+              <CardContent className="flex gap-3 p-4">
+                <div className="mt-0.5">{item.icon}</div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.text}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Card className="rounded-xl border border-[#E5E7EB] bg-white">
+          <CardContent className="flex items-start gap-2 px-4 py-3">
+            <Lock size={16} className="mt-0.5 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Somente leitura. O seutudo. nunca movimenta dinheiro ou faz pagamentos pela sua conta.</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-white px-4 py-3">
+        <div className="mx-auto w-full max-w-[640px]">
+          <Button className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark" onClick={() => navigate("/cadastro/selecionar-banco")}>Conectar meu banco <ArrowRight size={16} className="ml-2" /></Button>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") window.localStorage.setItem("openfinance_pendente", "true");
+              navigate("/painel");
+            }}
+            className="mt-3 w-full text-center text-sm font-medium text-primary"
+          >
+            Prefiro fazer isso depois
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+
+  const OpenFinanceSelectBankScreen = (
+    <main className="mx-auto min-h-screen w-full bg-background px-4 pb-6 pt-6 md:px-8">
+      <div className="mx-auto w-full max-w-[640px] space-y-4 md:pt-8">
+        {(() => {
+          const mode = ((location.state as { modo?: "adicionar" | "onboarding" } | null)?.modo ?? "onboarding") as "adicionar" | "onboarding";
+          const connectedIds = new Set(bancosConectados.map((b) => b.id));
+          const query = bankSearch.trim().toLowerCase();
+          const matches = openFinanceBankDirectory.filter((bank) => bank.name.toLowerCase().includes(query));
+          const connected = matches.filter((bank) => connectedIds.has(bank.id));
+          const top = matches.filter((bank) => bank.group === "top" && !connectedIds.has(bank.id));
+          const others = matches.filter((bank) => bank.group === "other" && !connectedIds.has(bank.id));
+
+          const onBankClick = (id: string) => {
+            if (tier1BankIds.includes(id as OpenFinanceBankId)) {
+              navigate(`/cadastro/guia-banco/${id}`, { state: { modo: mode } });
+              return;
+            }
+            toast("Em breve! O guia para este banco será disponibilizado em breve.");
+          };
+
+          return (
+            <>
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={() => navigate("/cadastro/open-finance")} className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-background"><ArrowLeft size={20} /></button>
+          <span className="text-xs font-medium text-muted-foreground">Passo 5 de 5</span>
+        </div>
+        <Progress value={100} className="h-1 bg-secondary [&>div]:bg-primary" />
+
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">{mode === "adicionar" ? "Conectar outro banco" : "Qual é o seu banco principal?"}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{mode === "adicionar" ? "Quanto mais bancos você conecta, mais completa fica sua visão financeira." : "Você pode adicionar mais bancos depois."}</p>
+        </div>
+
+        <div className="sticky top-0 z-10 bg-background pb-2">
+          <div className="relative">
+            <MagnifyingGlass size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={bankSearch}
+              onChange={(e) => setBankSearch(e.target.value)}
+              placeholder="Buscar banco..."
+              className="h-11 rounded-xl border-[#E5E7EB] bg-white pl-9"
+            />
+          </div>
+        </div>
+
+        <div className="max-h-[56vh] space-y-2 overflow-y-auto pr-1">
+                {mode === "adicionar" && connected.length > 0 ? <p className="pt-1 text-xs font-medium text-muted-foreground">Já conectados</p> : null}
+                {mode === "adicionar" ? connected.map((bank) => (
+                  <div key={bank.id} className="flex w-full items-center justify-between rounded-xl border border-[#D1FAE5] bg-[#F0FDF4] px-3 py-3 text-left">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: bank.color }}>{bank.initials}</div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground">{bank.name}</p>
+                        <span className="rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-semibold text-[#15803D]">Conectado</span>
+                      </div>
+                    </div>
+                  </div>
+                )) : null}
+
+                {top.map((bank) => (
+                  <button key={bank.id} type="button" onClick={() => onBankClick(bank.id)} className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-3 py-3 text-left transition-colors hover:bg-[#FAFAFA]">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: bank.color }}>{bank.initials}</div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground">{bank.name}</p>
+                        {!bank.available ? <span className="rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[10px] font-semibold text-[#DC2626]">Sem Open Finance</span> : null}
+                      </div>
+                    </div>
+                    <CaretRight size={16} className="text-muted-foreground" />
+                  </button>
+                ))}
+
+                {others.length > 0 ? <p className="pt-3 text-xs font-medium text-muted-foreground">Outros bancos</p> : null}
+
+                {others.map((bank) => (
+                  <button key={bank.id} type="button" onClick={() => onBankClick(bank.id)} className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-3 py-3 text-left transition-colors hover:bg-[#FAFAFA]">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: bank.color }}>{bank.initials}</div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground">{bank.name}</p>
+                        {!bank.available ? <span className="rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[10px] font-semibold text-[#DC2626]">Sem Open Finance</span> : null}
+                      </div>
+                    </div>
+                    <CaretRight size={16} className="text-muted-foreground" />
+                  </button>
+                ))}
+        </div>
+            </>
+          );
+        })()}
+      </div>
+    </main>
+  );
+
+  const OpenFinanceGuideScreen = (() => {
+    const Guide = () => {
+      const params = useParams<{ bancoId: OpenFinanceBankId }>();
+      const bank = openFinanceBanks.find((item) => item.id === params.bancoId);
+
+      if (!bank) return <Navigate to="/cadastro/selecionar-banco" replace />;
+
+      return (
+        <main className="mx-auto min-h-screen w-full bg-background px-4 pb-28 pt-6 md:px-8">
+          <div className="mx-auto w-full max-w-[640px] space-y-4 md:pt-8">
+            <button type="button" onClick={() => navigate("/cadastro/selecionar-banco")} className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-background"><ArrowLeft size={20} /></button>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Como funciona no {bank.name}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Siga esses passos quando o app abrir:</p>
+              <p className="mt-2 text-xs font-semibold text-primary">{bank.eta}</p>
+            </div>
+
+            <div className="space-y-2">
+              {bank.steps.map((text, idx) => (
+                <div key={text} className="flex items-start gap-3 rounded-xl border border-border bg-white p-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">{idx + 1}</div>
+                  <p className="text-sm font-semibold text-foreground">{text}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex h-[140px] items-center justify-center rounded-xl" style={{ backgroundColor: `${bank.color}26` }}>
+              <div className="text-center">
+                <DeviceMobile size={48} style={{ color: bank.color }} className="mx-auto" />
+                <p className="mt-2 text-xs text-muted-foreground">Ilustração em breve</p>
+              </div>
+            </div>
+
+            <Card className="border-0 bg-primary-light">
+              <CardContent className="flex items-start gap-2 p-4">
+                <Lock size={16} className="mt-0.5 text-primary" />
+                <p className="text-xs text-primary-dark">Você vai sair do seutudo. por alguns segundos. Isso é normal e seguro — faz parte do processo oficial do Banco Central.</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-white px-4 py-3">
+            <div className="mx-auto w-full max-w-[640px]">
+              <Button className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark" onClick={() => navigate("/cadastro/conectando", { state: { bancoId: bank.id } })}>Entendi, vamos lá <ArrowRight size={16} className="ml-2" /></Button>
+            </div>
+          </div>
+        </main>
+      );
+    };
+    return <Guide />;
+  })();
+
+  const OpenFinanceConnectingScreen = (() => {
+    const Connecting = () => {
+      const bankId = (location.state as { bancoId?: OpenFinanceBankId } | null)?.bancoId ?? "nubank";
+      const bank = openFinanceBanks.find((item) => item.id === bankId) ?? openFinanceBanks[0];
+
+      useEffect(() => {
+        const timer = window.setTimeout(() => {
+          navigate("/cadastro/conectado", { state: { bancoId: bank.id } });
+        }, 3000);
+        return () => window.clearTimeout(timer);
+      }, [bank.id]);
+
+      return (
+        <main className="flex min-h-screen flex-col items-center justify-center bg-primary px-6 text-center text-white">
+          <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1, repeat: Infinity }}>
+            <ArrowSquareOut size={48} />
+          </motion.div>
+          <h2 className="mt-6 text-2xl font-bold">Abrindo o {bank.name}...</h2>
+          <p className="mt-2 text-sm text-white/80">Você volta aqui automaticamente após autorizar.</p>
+        </main>
+      );
+    };
+    return <Connecting />;
+  })();
+
+  const OpenFinanceConnectedScreen = (() => {
+    const Connected = () => {
+      const [showCta, setShowCta] = useState(false);
+      const bankId = (location.state as { bancoId?: OpenFinanceBankId } | null)?.bancoId ?? "nubank";
+      const bank = openFinanceBanks.find((item) => item.id === bankId) ?? openFinanceBanks[0];
+
+      useEffect(() => {
+        const timer = window.setTimeout(() => setShowCta(true), 2500);
+        return () => window.clearTimeout(timer);
+      }, []);
+
+      useEffect(() => {
+        connectBankById(bank.id);
+      }, [bank.id]);
+
+      const totalConnected = bancosConectados.length;
+
+      return (
+        <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 text-center">
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.4, ease: "backOut" }}>
+            <CheckCircle size={64} weight="fill" className="text-[#16A34A]" />
+          </motion.div>
+          <h2 className="mt-5 text-2xl font-bold text-foreground">Banco conectado!</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Estamos buscando seus dados financeiros...</p>
+
+          <motion.div className="mt-6 w-full space-y-2" initial="hidden" animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.6 } } }}>
+            {["Transações importadas", "Categorias identificadas", "Primeiro insight gerado"].map((item) => (
+              <motion.div key={item} variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2">
+                <Check size={16} className="text-[#16A34A]" />
+                <p className="text-sm text-foreground">{item}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          <div className="mt-5 w-full rounded-xl border border-[#E5E7EB] bg-white p-3 text-left">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: bank.color }}>{bank.initials}</div>
+                <p className="text-sm font-semibold text-foreground">{bank.name}</p>
+              </div>
+              <CheckCircle size={18} weight="fill" className="text-[#16A34A]" />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{totalConnected} {totalConnected === 1 ? "banco conectado" : "bancos conectados"}</p>
+          </div>
+
+          <Card className="mt-3 w-full border-0 bg-primary-light">
+            <CardContent className="flex items-start gap-2 p-3 text-left">
+              <Info size={16} className="mt-0.5 text-primary" />
+              <p className="text-xs text-primary-dark">Você só faz isso uma vez por banco. Nas próximas vezes, tudo acontece aqui mesmo, sem sair do app.</p>
+            </CardContent>
+          </Card>
+
+          <AnimatePresence>
+            {showCta ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6 w-full">
+                <Button className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark" onClick={() => navigate("/cadastro/selecionar-banco", { state: { modo: "adicionar" } })}>Conectar outro banco</Button>
+                <Button variant="outline" className="mt-2 h-12 w-full rounded-xl border-border" onClick={() => navigate("/painel")}>Ir para o início <ArrowRight size={16} className="ml-2" /></Button>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </main>
+      );
+    };
+    return <Connected />;
+  })();
+
+  const SolucoesScreen = (
+    <SubPageLayout title="Soluções para você" wide>
+      <div className="mx-auto w-full max-w-[860px] space-y-5">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Soluções para você</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Encontre o que faz sentido para o seu momento financeiro</p>
+        </div>
+
+        <div className="space-y-6">
+          <div className="relative">
+            <div className="min-w-0">
+              <div className="relative mb-3 h-40 overflow-hidden rounded-2xl" data-placeholder="hero-economia">
+                <div className="absolute inset-0 bg-[#E5E7EB]" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.2)_60%,rgba(0,0,0,0)_100%)]" />
+                <div className="absolute bottom-0 left-0 p-5">
+                  <span className="inline-flex rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white">ECONOMIA</span>
+                  <p className="mt-2 text-[22px] font-bold leading-tight text-white">Recupere dinheiro agora</p>
+                  <p className="mt-1 text-[13px] text-white/80">Organize seus gastos e tenha mais controle do seu dinheiro</p>
+                </div>
+              </div>
+              <section className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+                <h3 className="text-lg font-semibold text-foreground">Recupere dinheiro agora</h3>
+                  <p className="text-sm text-muted-foreground">Oportunidades identificadas na sua vida financeira</p>
+                  <div className="mt-3 space-y-2">{[{ icon: <Receipt size={24} className="text-primary" />, title: "Assinaturas esquecidas", desc: "Identifique e cancele serviços que você não usa mais.", badge: "Até R$ 497/ano" }, { icon: <Warning size={24} className="text-primary" />, title: "Tarifas contestáveis", desc: "Detectamos cobranças que podem ser revertidas gratuitamente.", badge: "Até R$ 29,90/mês" }].map((item) => (<Card key={item.title} className="border-border bg-white"><CardContent className="flex items-center gap-3 p-4"><div>{item.icon}</div><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-foreground">{item.title}</p><p className="text-xs text-muted-foreground">{item.desc}</p><span className="mt-1 inline-flex rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">{item.badge}</span></div><button onClick={() => navigate("/vida-financeira")} className="text-sm font-semibold text-primary">Ver como →</button></CardContent></Card>))}</div>
+              </section>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="min-w-0">
+              <div className="relative mb-3 h-40 overflow-hidden rounded-2xl" data-placeholder="hero-despesas">
+                <div className="absolute inset-0 bg-[#E5E7EB]" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.2)_60%,rgba(0,0,0,0)_100%)]" />
+                <div className="absolute bottom-0 left-0 p-5">
+                  <span className="inline-flex rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white">DESPESAS</span>
+                  <p className="mt-2 text-[22px] font-bold leading-tight text-white">Controle seus gastos</p>
+                  <p className="mt-1 text-[13px] text-white/80">Crie alertas e fique por dentro de tudo que acontece em suas contas</p>
+                </div>
+              </div>
+              <section className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+                <h3 className="text-lg font-semibold text-foreground">Controle seus gastos</h3>
+                  <p className="text-sm text-muted-foreground">Alertas e categorizações para você gastar melhor</p>
+                  <div className="mt-3 space-y-2">{[{ icon: <BellRinging size={24} className="text-primary" />, title: "Alertas de cheque especial", desc: "Aviso quando seu saldo estiver em risco antes que os juros comecem.", badge: "Proteção" }, { icon: <ForkKnife size={24} className="text-primary" />, title: "Monitor de delivery", desc: "Acompanhe seus gastos com delivery e receba alertas quando passar do padrão.", badge: "Controle" }, { icon: <ArrowsClockwise size={24} className="text-primary" />, title: "Cobranças recorrentes", desc: "Mapeie todos os débitos automáticos e identifique alterações incomuns.", badge: "Visibilidade" }].map((item) => (<Card key={item.title} className="border-border bg-white"><CardContent className="flex items-center gap-3 p-4"><div>{item.icon}</div><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-foreground">{item.title}</p><p className="text-xs text-muted-foreground">{item.desc}</p><span className="mt-1 inline-flex rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[10px] font-semibold text-[#3B82F6]">{item.badge}</span></div><button onClick={() => navigate("/vida-financeira")} className="text-sm font-semibold text-primary">Ver como →</button></CardContent></Card>))}</div>
+              </section>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="min-w-0">
+              <div className="relative mb-3 h-40 overflow-hidden rounded-2xl" data-placeholder="hero-renda">
+                <div className="absolute inset-0 bg-[#E5E7EB]" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.2)_60%,rgba(0,0,0,0)_100%)]" />
+                <div className="absolute bottom-0 left-0 p-5">
+                  <span className="inline-flex rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white">RENDA</span>
+                  <p className="mt-2 text-[22px] font-bold leading-tight text-white">Libere sua renda</p>
+                  <p className="mt-1 text-[13px] text-white/80">Tenha acesso a serviços que realmente importam para seu dia a dia</p>
+                </div>
+              </div>
+              <section className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+                <h3 className="text-lg font-semibold text-foreground">Libere sua renda</h3>
+                  <p className="text-sm text-muted-foreground">Produtos baseados no seu perfil financeiro real</p>
+                  <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="mt-3 space-y-3">
+                    {([
+                      { key: "assistencias", title: "Assistências seutudo.", description: "Cuide de você e da sua família com descontos de até 85% em consultas e exames.", cta: "Conhecer planos", icon: <Heartbeat size={20} />, highlight: "Saúde, odonto, pet e muito mais", photo: "/images/card-dash-seguro.png", path: "/assistencias" },
+                      { key: "energia", title: "Economize na conta de luz", description: "Sem trocar equipamentos. Sem obras. Sem custo. Só economia na sua fatura.", cta: "Simular economia", icon: <Lightning size={20} />, highlight: "Reduza até 20% todo mês", photo: "/images/card-dash-clt.png", path: "/energia" },
+                    ] as const).map((item) => (
+                      <motion.div key={item.key} variants={cardVariants}><Card className="relative overflow-hidden rounded-2xl border border-[#DADADA] bg-white shadow-sm"><CardContent className="flex min-h-[158px] items-stretch p-0"><div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4"><div><div className="mb-3 flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div><p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{item.title}</p></div><p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{item.highlight}</p><p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{item.description}</p></div><button onClick={() => (item.path ? navigate(item.path) : undefined)} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">{item.cta} <CaretRight size={14} className="ml-1" /></button></div><div className="w-36 shrink-0 overflow-hidden bg-white"><img src={item.photo} alt="" className="h-full w-full object-contain object-bottom" /></div></CardContent></Card></motion.div>
+                    ))}
+                  </motion.div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </SubPageLayout>
+  );
+
+  const VidaFinanceiraScreen = (
+    <SubPageLayout title="Vida financeira" wide>
+      <div className="mx-auto w-full max-w-[860px] space-y-4">
+        <Card className="border-0 bg-primary text-white"><CardContent className="space-y-2 p-4"><p className="text-xs text-white/80">MAIO 2026</p><p className="text-3xl font-bold">{dataVisible ? "R$ 3.240" : "••••"}</p><p className="flex items-center gap-1 text-sm text-white"><ArrowDown size={14} className="text-green-300" /> {dataVisible ? "R$ 230 menos que em abril" : "••••"}</p></CardContent></Card>
+        {openFinanceState !== "empty" ? <JornadaFinanceira nivelAtual={nivelAtualJornada} onAdvanceClick={() => document.getElementById("proximos-passos")?.scrollIntoView({ behavior: "smooth", block: "start" })} /> : null}
+        <Card className="border-border bg-white"><CardContent className="space-y-3 p-4"><div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-foreground">Dinheiro para recuperar</h3><Badge className="border-0 bg-primary-light text-primary-dark">R$ 127 identificados</Badge></div><div className="space-y-2"><div className="flex items-start justify-between border-b border-border pb-2"><div className="flex items-start gap-2"><DeviceMobile size={16} className="mt-0.5 text-primary" /><div><p className="text-xs font-semibold text-foreground">3 streamings ativos</p><p className="text-xs text-muted-foreground">Netflix, Spotify, Amazon Prime</p></div></div><p className="text-xs font-semibold text-green-700">+ R$ 497/ano se cancelar 2</p></div><div className="flex items-start justify-between pb-1"><div className="flex items-start gap-2"><Warning size={16} className="mt-0.5 text-primary" /><div><p className="text-xs font-semibold text-foreground">Tarifa de manutenção contestável</p><p className="text-xs text-muted-foreground">Banco do Brasil · todo mês</p></div></div><p className="text-xs font-semibold text-green-700">+ R$ 29,90/mês</p></div></div><Button variant="outline" className="h-10 rounded-xl border-primary text-primary" onClick={() => toast("Em breve! Estamos preparando esse recurso.")}>Como contestar →</Button></CardContent></Card>
+        <Card className="border-border bg-white"><CardContent className="space-y-3 p-4"><h3 className="text-sm font-semibold text-foreground">Onde você gastou mais</h3><p className="text-xs text-muted-foreground">Últimos 30 dias</p>{[{ icon: <ForkKnife size={16} />, nome: "Alimentação", valor: "R$ 890", pct: 27 }, { icon: <HouseLine size={16} />, nome: "Moradia", valor: "R$ 750", pct: 23 }, { icon: <Car size={16} />, nome: "Transporte", valor: "R$ 420", pct: 13 }].map((cat) => <div key={cat.nome} className="space-y-1"><div className="flex items-center justify-between text-xs"><p className="flex items-center gap-1 text-foreground">{cat.icon}{cat.nome}</p><p className="font-semibold text-foreground">{dataVisible ? cat.valor : "••••"}</p></div><div className="h-1.5 rounded-full bg-[#F3F4F6]"><div className="h-full rounded-full bg-primary" style={{ width: `${cat.pct}%` }} /></div></div>)}<p className="text-xs text-muted-foreground">Outros: {dataVisible ? "R$ 1.180" : "••••"}</p></CardContent></Card>
+        <Card className="border-0 bg-primary-light"><CardContent className="space-y-1 p-4"><h3 className="text-sm font-semibold text-foreground">Fique de olho</h3><div className="rounded-xl bg-[#FEF0E7] p-3"><p className="flex items-center gap-1 text-xs font-semibold text-[#A33D05]"><ForkKnife size={14} /> Delivery 40% acima do padrão esta semana</p><p className="mt-1 text-xs text-[#A33D05]/80">Você gastou R$ 120 · padrão: R$ 85</p></div></CardContent></Card>
+        <Card className="border-border bg-white"><CardContent className="space-y-3 p-4"><h3 className="text-sm font-semibold text-foreground">Fontes de dados</h3><div className="space-y-2">{bancosConectados.map((bank) => <div key={bank.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2"><p className="flex items-center gap-2 text-xs text-foreground"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: bank.cor }} />{bank.nome}</p><span className="text-[11px] text-muted-foreground">Atualizado agora</span></div>)}</div><Button variant="outline" className="h-10 rounded-xl border-primary text-primary" onClick={() => navigate("/minha-conta/bancos")}>Adicionar banco →</Button></CardContent></Card>
+        <Card id="proximos-passos" className="border-border bg-white"><CardContent className="space-y-2 p-4"><h3 className="text-sm font-semibold text-foreground">Seus próximos passos</h3><p className="text-xs text-muted-foreground">Complete as ações de economia e despesas para avançar para o próximo nível da sua jornada.</p></CardContent></Card>
+      </div>
+    </SubPageLayout>
+  );
+
+  const CreditoScreen = (
+    <SubPageLayout title="Crédito" wide>
+      <div className="mx-auto w-full max-w-[860px] space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Crédito</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Produtos de crédito disponíveis para o seu perfil</p>
+        </div>
+        <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+          {([
+            { key: "clt", ...serviceCopy["clt"], path: undefined },
+            { key: "fgts", ...serviceCopy["fgts"], path: undefined },
+            { key: "saque-facil", ...serviceCopy["saque-facil"], path: "/saque-facil" },
+            { key: "seguro", title: "Seguro de vida", description: "Seguro de vida acessível com contratação simples e sem burocracia.", cta: "Contratar seguro", icon: <ShieldCheck size={20} />, highlight: "Proteção para sua família", photo: "/images/card-dash-security.png", path: undefined },
+          ] as const).map((item) => (
+            <motion.div key={item.key} variants={cardVariants}><Card className="relative overflow-hidden rounded-2xl border border-[#DADADA] bg-white shadow-sm"><CardContent className="flex min-h-[158px] items-stretch p-0"><div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4"><div><div className="mb-3 flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div><p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{item.title}</p></div>{item.highlight ? <p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{item.key === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : item.highlight}</p> : null}<p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{item.description}</p></div><button onClick={() => (item.path ? navigate(item.path) : undefined)} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">{item.cta} <CaretRight size={14} className="ml-1" /></button></div><div className="w-36 shrink-0 overflow-hidden bg-white"><img src={item.photo} alt="" className="h-full w-full object-contain object-bottom" /></div></CardContent></Card></motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </SubPageLayout>
+  );
+
+  const ConnectedBanksPage = (
+    <SubPageLayout title="Bancos conectados">
+      <div className="space-y-3">
+        {bancosConectados.map((bank) => (
+          <Card key={bank.id} className="border-border bg-white shadow-sm">
+            <CardContent className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: bank.cor }}>{bank.nome.slice(0, 1)}</div>
+                <div><p className="text-sm font-semibold text-foreground">{bank.nome}</p><p className="text-xs text-muted-foreground">Conectado em {new Date(`${bank.conectadoEm}T00:00:00`).toLocaleDateString("pt-BR")}</p></div>
+              </div>
+              <div className="flex items-center gap-2"><Badge className="border-0 bg-[#DCFCE7] text-[#15803D]">Ativo</Badge><button onClick={() => disconnectBankById(bank.id)} className="rounded-lg border border-border p-1.5 text-muted-foreground"><DotsThree size={16} /></button></div>
+            </CardContent>
+          </Card>
+        ))}
+        <button onClick={() => navigate("/cadastro/selecionar-banco", { state: { modo: "adicionar" } })} className="w-full rounded-xl border border-dashed border-[#E5E7EB] bg-white px-4 py-5 text-center">
+          <PlusCircle size={24} className="mx-auto text-primary" />
+          <p className="mt-2 text-sm font-semibold text-foreground">Conectar novo banco</p>
+          <p className="text-xs text-muted-foreground">Adicione mais instituições para ter uma visão financeira completa</p>
+        </button>
+      </div>
+    </SubPageLayout>
+  );
+
   const HomeScreen = (
     <div className="min-h-screen w-full md:flex">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/solucoes", icon: <Shapes size={18} />, label: "Soluções" }, { path: "/credito", icon: <CreditCard size={18} />, label: "Crédito" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -2992,7 +3669,7 @@ function App() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm text-white/75">Olá, {firstName}</p>
-              <h2 className="text-xl font-bold">Seu crédito na seutudo.</h2>
+              <h2 className="text-xl font-bold">Sua vida financeira.</h2>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-white/60"><SealCheck size={12} /> Conta verificada</p>
             </div>
             <div className="flex items-center gap-1">
@@ -3008,84 +3685,88 @@ function App() {
               </button>
             </div>
           </div>
-          <ParaVoceAgora />
+
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.08em] text-white/80">Para você agora</p>
+          <div className="mt-1">
+            <ParaVoceAgora />
+          </div>
         </header>
 
         <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
           <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
-            <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+            <div className="mt-2 px-1 py-2">
+              {openFinanceState === "empty" ? (
+                <div className="space-y-2 rounded-2xl bg-white px-4 py-4 shadow-sm">
+                  <div className="flex items-center gap-2"><ChartLineUp size={24} className="text-primary" /><p className="text-sm font-semibold text-foreground">Conecte seu banco</p></div>
+                  <p className="text-xs text-muted-foreground">Veja para onde seu dinheiro vai</p>
+                  <Button className="h-10 rounded-xl bg-primary text-white" onClick={() => navigate("/cadastro/open-finance")}>Conectar agora <ArrowRight size={14} className="ml-1" /></Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-3xl font-bold text-foreground">{dataVisible && resumoMes ? `R$ ${resumoMes.totalGasto.toLocaleString("pt-BR")}` : "••••"}</p>
+                      <p className="text-xs text-muted-foreground">gastos em maio</p>
+                      {resumoMes ? <p className="mt-1 flex items-center gap-1 text-xs text-foreground">{resumoMes.variacaoTipo === "reducao" ? <ArrowDown size={12} className="text-[#16A34A]" /> : <ArrowUp size={12} className="text-[#DC2626]" />}{dataVisible ? `R$ ${resumoMes.variacao.toLocaleString("pt-BR")} ${resumoMes.variacaoTipo === "reducao" ? "menos" : "a mais"} que em abril` : "••••"}</p> : null}
+                    </div>
+                    <button onClick={() => navigate("/vida-financeira")} className="inline-flex items-center text-sm font-semibold text-primary">Ver vida financeira <CaretRight size={14} className="ml-1" /></button>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto py-1">{bancosConectados.map((bank) => <div key={bank.id} className="flex shrink-0 items-center gap-1 rounded-full border border-[#E5E7EB] bg-[#F8F7F5] px-2.5 py-1 text-[11px] text-foreground"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: bank.cor }} />{bank.nome}</div>)}<button onClick={() => navigate("/minha-conta/bancos")} className="shrink-0 rounded-full border border-[#E5E7EB] bg-[#F8F7F5] px-2.5 py-1 text-[11px] text-foreground">+ Banco</button></div>
+                </div>
+              )}
+            </div>
+
+            {openFinanceState !== "empty" ? (
+              <Card className="overflow-hidden border-0 bg-primary shadow-sm">
+                <CardContent className="p-0">
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 px-4 py-4">
+                    <div className="flex items-center gap-2">{ondaAtiva === "onda1" ? <ArrowCircleUp size={24} className="text-white" /> : ondaAtiva === "onda2" ? <Sliders size={24} className="text-white" /> : <TrendUp size={24} className="text-white" />}<span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold text-white">{ondaAtiva === "onda1" ? "ECONOMIA" : ondaAtiva === "onda2" ? "DESPESAS" : "RENDA"}</span></div>
+                    <p className="text-sm font-semibold text-white">{ondaAtiva === "onda1" ? "Você está em modo de Recuperação" : ondaAtiva === "onda2" ? "Você está em Equilíbrio" : "Você está em Crescimento"}</p>
+                    <p className="text-xs text-white/85">{ondaAtiva === "onda1" ? "Identificamos R$ 127 que você pode recuperar este mês. Foque nisso antes de pensar em novos produtos." : ondaAtiva === "onda2" ? "Seus gastos estão sob controle. Continue monitorando para manter esse ritmo." : "Seu perfil financeiro está estável. Você tem condições de acessar crédito e fazer seu dinheiro render mais."}</p>
+                    <Button variant="outline" className="mt-1 h-10 w-fit rounded-xl border-white bg-white text-primary hover:bg-white/90" onClick={() => navigate(ondaAtiva === "onda3" ? "/credito" : "/vida-financeira")}>{ondaAtiva === "onda1" ? "Ver oportunidades" : ondaAtiva === "onda2" ? "Ver meus gastos" : "Ver produtos disponíveis"} <CaretRight size={14} className="ml-1" /></Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {openFinanceState !== "empty" ? <JornadaFinanceira nivelAtual={nivelAtualJornada} /> : null}
+
+            <div className="mt-5 flex items-center justify-between">
+              <h3 className="text-base font-semibold text-foreground">Soluções disponíveis para você</h3>
+              <button onClick={() => navigate("/solucoes")} className="hidden text-sm font-medium text-primary md:inline-flex">Ver todas as soluções →</button>
+            </div>
+            <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="mt-3 space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 md:mt-0">
               {([
-                "clt",
-                "saque-facil",
-                "fgts",
-                "assistencias",
-                "energia",
-                "seguro",
-              ] as const).map((interest) => {
-                const currentService =
-                  interest === "seguro"
-                    ? {
-                        title: "Seguro de vida",
-                        subtitle: "Inserir copy",
-                        description: "Inserir copy",
-                        cta: "Contratar seguro",
-                        icon: <ShieldCheck size={20} />,
-                        highlight: "Inserir copy",
-                        photo: "/images/card-dash-security.png",
-                        path: undefined,
-                      }
-                    : interest === "assistencias"
-                      ? {
-                          title: "Assistências seutudo.",
-                          subtitle: "Saúde, odonto, pet e muito mais",
-                          description: "Cuide de você e da sua família com descontos de até 85% em consultas e exames.",
-                          cta: "Conhecer planos",
-                          icon: <Heartbeat size={20} />,
-                          highlight: "Saúde, odonto, pet e muito mais",
-                          photo: "/images/card-dash-seguro.png",
-                          path: "/assistencias",
-                        }
-                      : interest === "energia"
-                        ? {
-                            title: "Economize na conta de luz",
-                            subtitle: "Reduza até 20% todo mês",
-                            description: "Sem trocar equipamentos. Sem obras. Sem custo. Só economia na sua fatura.",
-                            cta: "Simular economia",
-                            icon: <Lightning size={20} />,
-                            highlight: "Reduza até 20% todo mês",
-                            photo: "/images/card-dash-clt.png",
-                            path: "/energia",
-                          }
-                        : {
-                            ...serviceCopy[interest as ServiceType],
-                            path: interest === "saque-facil" ? "/saque-facil" : undefined,
-                      }
-                return (
-                  <motion.div key={interest} variants={cardVariants}>
-                    <Card className="relative overflow-hidden rounded-2xl border border-[#DADADA] bg-white shadow-sm">
-                      <CardContent className="flex min-h-[158px] items-stretch p-0">
-                        <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
-                          <div>
-                            <div className="mb-3 flex items-center gap-2">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{currentService.icon}</div>
-                              <p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{currentService.title}</p>
-                            </div>
-                            {currentService.highlight ? <p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{interest === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p> : null}
-                            <p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{currentService.description}</p>
+                { key: "saque-facil", ...serviceCopy["saque-facil"], path: "/saque-facil" },
+                { key: "clt", ...serviceCopy["clt"], path: undefined },
+              ] as const).map((currentService) => (
+                <motion.div key={currentService.key} variants={cardVariants}>
+                  <Card className="relative overflow-hidden rounded-2xl border border-[#DADADA] bg-white shadow-sm">
+                    <CardContent className="flex min-h-[158px] items-stretch p-0">
+                      <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
+                        <div>
+                          <div className="mb-3 flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{currentService.icon}</div>
+                            <p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{currentService.title}</p>
                           </div>
-                          <button onClick={() => (currentService.path ? navigate(currentService.path) : undefined)} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
-                            {currentService.cta} <CaretRight size={14} className="ml-1" />
-                          </button>
+                          {currentService.highlight ? <p className="mb-2 text-[14px] font-semibold text-[#E8590A]">{currentService.key === "clt" ? <>Até <SensitiveData value="R$ 18.000" type="currency" /> disponíveis</> : currentService.highlight}</p> : null}
+                          <p className="mb-3 line-clamp-2 text-[14px] leading-snug text-muted-foreground">{currentService.description}</p>
                         </div>
-                        <div className="w-36 shrink-0 overflow-hidden bg-white">
-                          <img src={currentService.photo} alt="" className="h-full w-full object-contain object-bottom" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
+                        <button onClick={() => (currentService.path ? navigate(currentService.path) : undefined)} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
+                          {currentService.cta} <CaretRight size={14} className="ml-1" />
+                        </button>
+                      </div>
+                      <div className="w-36 shrink-0 overflow-hidden bg-white">
+                        <img src={currentService.photo} alt="" className="h-full w-full object-contain object-bottom" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
             </motion.div>
+            <div className="pt-3 md:hidden">
+              <button onClick={() => navigate("/solucoes")} className="inline-flex items-center text-sm font-semibold text-primary">Ver todas as soluções <CaretRight size={14} className="ml-1" /></button>
+            </div>
 
             <Card className="mt-4 overflow-hidden rounded-3xl border-border shadow-sm">
               <CardContent className="p-0">
@@ -3123,7 +3804,7 @@ function App() {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/solucoes", icon: <Shapes size={18} />, label: "Soluções" }, { path: "/credito", icon: <CreditCard size={18} />, label: "Crédito" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -3157,6 +3838,7 @@ function App() {
                     { label: "Meus dados", action: () => navigate("/minha-conta/meus-dados") },
                     { label: "Editar endereço", action: () => navigate("/minha-conta/editar-endereco") },
                     { label: "Dados bancários", action: () => navigate("/minha-conta/dados-bancarios") },
+                    { label: "Bancos conectados", action: () => navigate("/minha-conta/bancos") },
                   ],
                 },
                 {
@@ -3234,8 +3916,17 @@ function App() {
             <Route path="/recuperar-senha/otp" element={RecoveryOtpScreen} />
             <Route path="/recuperar-senha/nova-senha" element={RecoveryNewPasswordScreen} />
             <Route path="/cadastro" element={renderOnboarding} />
+            <Route path="/cadastro/open-finance" element={getStoredUser() ? OpenFinanceValueScreen : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/selecionar-banco" element={getStoredUser() ? OpenFinanceSelectBankScreen : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/guia-banco/:bancoId" element={getStoredUser() ? OpenFinanceGuideScreen : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/conectando" element={getStoredUser() ? OpenFinanceConnectingScreen : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/conectado" element={getStoredUser() ? OpenFinanceConnectedScreen : <Navigate to="/boas-vindas" replace />} />
             <Route path="/painel" element={getStoredUser() ? HomeScreen : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/solucoes" element={getStoredUser() ? SolucoesScreen : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/credito" element={getStoredUser() ? CreditoScreen : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira" element={getStoredUser() ? VidaFinanceiraScreen : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta" element={getStoredUser() ? AccountScreen : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/bancos" element={getStoredUser() ? ConnectedBanksPage : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/meus-dados" element={getStoredUser() ? <MeusDadosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/editar-endereco" element={getStoredUser() ? <EditarEnderecoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/dados-bancarios" element={getStoredUser() ? <DadosBancariosPage /> : <Navigate to="/boas-vindas" replace />} />

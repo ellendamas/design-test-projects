@@ -7,6 +7,9 @@ import {
   Fire,
   Heartbeat,
   Lightning,
+  DeviceMobile,
+  Warning,
+  ForkKnife,
   MapPin,
   Wallet,
   X,
@@ -30,6 +33,9 @@ const iconMap: Record<IconeRecomendacao, JSX.Element> = {
   Lightning: <Lightning size={24} className="text-[#E8590A]" />,
   Wallet: <Wallet size={24} className="text-[#E8590A]" />,
   Fire: <Fire size={24} className="text-[#E8590A]" />,
+  DeviceMobile: <DeviceMobile size={24} className="text-[#E8590A]" />,
+  Warning: <Warning size={24} className="text-[#E8590A]" />,
+  ForkKnife: <ForkKnife size={24} className="text-[#E8590A]" />,
 };
 
 export function ParaVoceAgora() {
@@ -66,7 +72,8 @@ export function ParaVoceAgora() {
     };
   }, [cards.length, loading]);
 
-  const hasCards = cards.length > 0;
+  const visibleCards = cards.slice(0, 4);
+  const hasCards = visibleCards.length > 0;
 
   if (!loading && !hasCards) return null;
 
@@ -74,8 +81,6 @@ export function ParaVoceAgora() {
 
   return (
     <div className="relative">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
-
       <div
         ref={scrollRef}
         className="flex gap-2 overflow-x-auto px-0 pb-2 [&::-webkit-scrollbar]:hidden"
@@ -96,18 +101,33 @@ export function ParaVoceAgora() {
           ))
         ) : (
           <AnimatePresence initial={false}>
-            {cards.map((card) => (
+            {visibleCards.map((card) => (
               <motion.div
                 key={card.id}
+                initial={{ x: 24, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -20, opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.3 }}
                 style={{ scrollSnapAlign: "start" }}
                 className="shrink-0"
               >
-                <Card className="h-[96px] min-w-[280px] max-w-[300px] rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
+                <Card className="relative h-[96px] min-w-[280px] max-w-[300px] rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
                   <CardContent className="flex h-full items-start gap-3 p-3">
+                    {card.categoria ? (
+                      <span
+                        className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          card.categoria === "ECONOMIA"
+                            ? "bg-[#FEF0E7] text-[#E8590A]"
+                            : card.categoria === "DESPESAS"
+                              ? "bg-[#EFF6FF] text-[#3B82F6]"
+                              : "bg-[#F0FDF4] text-[#16A34A]"
+                        }`}
+                      >
+                        {card.categoria}
+                      </span>
+                    ) : null}
                     <button
-                      className="flex h-full min-w-0 flex-1 items-stretch gap-3 text-left"
+                      className="flex h-full min-w-0 flex-1 items-stretch gap-3 pt-4 text-left"
                       onClick={() => navigate(card.destino)}
                     >
                       <div className="shrink-0">{iconMap[card.icone]}</div>
