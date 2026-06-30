@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
 import UnicoNotice from "@/components/UnicoNotice";
 import UnicoAguardando from "@/components/UnicoAguardando";
+import { ErrorScreen, type ErrorCategoria } from "@/components/ErrorScreen";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -71,6 +72,16 @@ export default function CreditoPessoalAssinatura() {
   // DESIGN ONLY — ?modo=sms (default atual) | unico (quando link Unico estiver disponível)
   // TODO: trocar default para "unico" quando Pedro confirmar que o link está disponível em produção
   const modoParam = (searchParams.get("modo") ?? "sms") as "sms" | "unico"; // DESIGN ONLY
+  // DESIGN ONLY — parâmetros de simulação disponíveis:
+  //   ?modo=sms (default) | ?modo=unico
+  //   ?status=aviso (default) | ?status=aguardando | ?status=expirado | ?status=assinado | ?status=reprovado
+  //   ?erro=biometria_falhou  → tela de erro fullscreen, biometria falhou na Unico
+  //   ?erro=documento_invalido → tela de erro fullscreen, documento rejeitado
+  //   ?erro=sessao_expirada   → tela de erro fullscreen, sessão de assinatura expirada
+  //   Ao clicar "Tentar novamente" em qualquer erro, volta ao estado ?status=aviso
+  const erroParam = searchParams.get("erro") as ErrorCategoria | null; // DESIGN ONLY
+
+  const ASSINATURA_ERROS = new Set<string>(["biometria_falhou", "documento_invalido", "sessao_expirada"]);
 
   // DESIGN ONLY — fallback mock quando state é null (acesso direto via URL)
   const st = (location.state as LocationState | null) ?? MOCK_STATE; // DESIGN ONLY
@@ -82,6 +93,7 @@ export default function CreditoPessoalAssinatura() {
   };
 
   const [etapa, setEtapa] = useState<"aviso" | "aguardando">(initialEtapa);
+  const [erroVisivel, setErroVisivel] = useState(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // DESIGN ONLY — roteamento automático por ?status
@@ -134,10 +146,21 @@ export default function CreditoPessoalAssinatura() {
     <SubPageLayout title="Assinatura" hideNav>
       <div className="flex flex-col gap-4 pb-4 md:mx-auto md:max-w-[560px]">
 
+        {/* ── Erro de assinatura fullscreen (biometria, documento, sessão) ── */}
+        {erroParam && ASSINATURA_ERROS.has(erroParam) && erroVisivel && (
+          <ErrorScreen
+            categoria={erroParam}
+            onTentarNovamente={() => {
+              setErroVisivel(false);
+              setEtapa("aviso");
+            }}
+          />
+        )}
+
         {/* ══════════════════════════════════════════
             ESTADO AVISO — card resumo + modo assinatura
         ══════════════════════════════════════════ */}
-        {etapa === "aviso" && (
+        {!ASSINATURA_ERROS.has(erroParam ?? "") && etapa === "aviso" && (
           <>
             {/* Card laranja — resumo da proposta (ambos os modos) */}
             {oferta && (
@@ -194,7 +217,7 @@ export default function CreditoPessoalAssinatura() {
         {/* ══════════════════════════════════════════
             ESTADO AGUARDANDO — UnicoAguardando
         ══════════════════════════════════════════ */}
-        {etapa === "aguardando" && (
+        {!ASSINATURA_ERROS.has(erroParam ?? "") && etapa === "aguardando" && (
           <UnicoAguardando
             titulo={linkExpirado ? "Sua assinatura expirou" : "Aguardando sua assinatura"}
             descricao={

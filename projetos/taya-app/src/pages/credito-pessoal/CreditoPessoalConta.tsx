@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowRight, Lock } from "@phosphor-icons/react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { ArrowRight, Lock, X } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import ContaSelector, { type ContaData } from "@/components/ContaSelector";
+import { ErrorScreen, type ErrorCategoria } from "@/components/ErrorScreen";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -76,11 +77,14 @@ const _bancosMock = [
 export default function CreditoPessoalConta() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const erroParam = searchParams.get("erro") as ErrorCategoria | null; // DESIGN ONLY
 
   // DESIGN ONLY — fallback mock quando state é null (acesso direto via URL)
   const locationState = (location.state as CreditoPessoalState | null) ?? MOCK_STATE; // DESIGN ONLY
 
   const [contaSelecionada, setContaSelecionada] = useState<ContaData | null>(null);
+  const [mostrarModalErro, setMostrarModalErro] = useState(erroParam !== null);
 
   const tipoContaEnum: Record<string, string> = {
     "Conta corrente": "CORRENTE",
@@ -116,14 +120,6 @@ export default function CreditoPessoalConta() {
           </p>
         </div>
 
-        {/* ── Aviso de conta no CPF ── */}
-        <div className="flex items-start gap-2 rounded-xl bg-muted p-3">
-          <Lock size={14} className="mt-0.5 shrink-0 text-[#E8590A]" />
-          <p className="text-xs text-muted-foreground">
-            A conta deve estar no seu CPF. Não é permitido receber em conta de terceiros.
-          </p>
-        </div>
-
         {/* ── ContaSelector ──
             PIX não suportado na v1 do Crédito Pessoal
             ContaSelector não expõe opção PIX nativamente, portanto nenhum filtro adicional necessário.
@@ -132,6 +128,19 @@ export default function CreditoPessoalConta() {
           contas={[]}
           onConfirmar={handleConfirmar}
         />
+
+        {/* ── Prazo de transferência ── */}
+        <p className="text-sm text-muted-foreground text-center">
+          O valor é transferido em até 1 dia útil após a assinatura.
+        </p>
+
+        {/* ── Aviso de titularidade ── */}
+        <div className="flex items-start gap-2 rounded-xl bg-muted p-3">
+          <Lock size={14} className="mt-0.5 shrink-0 text-[#E8590A]" />
+          <p className="text-xs text-muted-foreground">
+            A conta deve estar no seu CPF. Não é permitido receber em conta de terceiros.
+          </p>
+        </div>
 
         {/* ── CTA sticky — exibido apenas quando uma conta está selecionada no estado local ──
             Nota: ContaSelector possui CTA interno "Continuar" que chama onConfirmar diretamente.
@@ -151,6 +160,25 @@ export default function CreditoPessoalConta() {
         )}
 
       </div>
+
+      {/* ── Modal/drawer de erro de conta ── */}
+      {erroParam && mostrarModalErro && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-t-3xl md:rounded-3xl bg-background p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <p className="text-base font-semibold">Problema com a conta</p>
+              <button type="button" onClick={() => setMostrarModalErro(false)}>
+                <X size={20} className="text-muted-foreground" />
+              </button>
+            </div>
+            <ErrorScreen
+              categoria={erroParam}
+              compact
+              onTentarNovamente={() => setMostrarModalErro(false)}
+            />
+          </div>
+        </div>
+      )}
     </SubPageLayout>
   );
 }

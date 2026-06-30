@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CaretRight, CheckCircle, FilePdf } from "@phosphor-icons/react";
+import { CheckCircle, FilePdf, Receipt } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 
 // ---------------------------------------------------------------------------
@@ -18,24 +18,6 @@ const BANCOS_MOCK: Record<string, string> = {
   "237": "Bradesco",
   "260": "Nu Pagamentos (Nubank)",
   "341": "Itaú",
-};
-
-// TODO: receber de GET /propostas/{id}/boleto/detalhes
-const boletosMock = {
-  url_boleto: "#",
-  parcelas: [
-    { numero: 1, vencimento: "2026-07-10", valor: 45883 },
-    { numero: 2, vencimento: "2026-08-10", valor: 45883 },
-    { numero: 3, vencimento: "2026-09-10", valor: 45883 },
-    { numero: 4, vencimento: "2026-10-10", valor: 45883 },
-    { numero: 5, vencimento: "2026-11-10", valor: 45883 },
-    { numero: 6, vencimento: "2026-12-10", valor: 45883 },
-  ],
-};
-
-const fmtISODate = (iso: string) => {
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
 };
 
 // ---------------------------------------------------------------------------
@@ -164,44 +146,27 @@ export default function CreditoPessoalConfirmacao() {
           </div>
         )}
 
-        {/* ── Card boletos ── */}
+        {/* ── Card boletos simplificado ── */}
         {/* TODO: conectar ao GET /propostas/{id}/boleto/detalhes */}
-        <div className="w-full rounded-2xl bg-[#FEF0E7] p-4">
-          <p className="text-sm font-semibold text-[#A33D05]">Seus boletos</p>
-          <p className="mt-0.5 text-xs text-[#A33D05]/70">Pague em qualquer banco até o vencimento.</p>
-
-          <div className="mt-3 divide-y divide-[#E8590A]/15">
-            {boletosMock.parcelas.slice(0, 3).map((p) => (
-              <div key={p.numero} className="flex items-center justify-between py-2">
-                <span className="text-xs font-medium text-[#A33D05]">Parcela {p.numero}</span>
-                <span className="text-xs text-[#A33D05]/70">{fmtISODate(p.vencimento)}</span>
-                <span className="text-xs font-semibold text-[#A33D05]">R$ {formatCents(p.valor)}</span>
-              </div>
-            ))}
+        <div className="w-full rounded-2xl bg-[#FEF0E7] p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Receipt size={18} className="text-[#E8590A]" />
+            <p className="text-sm font-semibold text-foreground">Seus boletos</p>
           </div>
-
-          {boletosMock.parcelas.length > 3 && (
-            <button
-              type="button"
-              onClick={() => navigate("/credito-pessoal/contrato/mock")}
-              className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]"
-            >
-              ... e mais {boletosMock.parcelas.length - 3} parcelas
-              <CaretRight size={12} />
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => {
-              // TODO: conectar ao GET /propostas/{id}/boleto/detalhes — usar url_boleto retornada
-              window.open(boletosMock.url_boleto, "_blank");
-            }}
-            className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#E8590A] text-xs font-semibold text-[#E8590A] transition-colors hover:bg-white/50"
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Todos os seus boletos foram gerados. Você pode visualizá-los agora
+            ou acessá-los a qualquer momento pela sua conta na Zema Financeira.
+          </p>
+          <a
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A]"
+            // TODO: substituir "#" pela url_boleto de GET /propostas/{id}/boleto/detalhes
           >
             <FilePdf size={16} />
             Ver carnê completo
-          </button>
+          </a>
         </div>
 
       </div>

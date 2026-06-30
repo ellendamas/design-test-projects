@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { ErrorScreen, type ErrorCategoria } from "@/components/ErrorScreen";
 
 type LocationState = Record<string, unknown>;
 
@@ -24,12 +25,14 @@ export default function CreditoPessoalFormalizando() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const resultado = searchParams.get("resultado"); // DESIGN ONLY
+  const erroParam = searchParams.get("erro") as ErrorCategoria | null; // DESIGN ONLY
 
   // DESIGN ONLY — fallback mock quando state é null (acesso direto via URL)
   const locationState =
     (location.state as LocationState | null) ?? MOCK_STATE; // DESIGN ONLY
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   const startTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -58,6 +61,23 @@ export default function CreditoPessoalFormalizando() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (erroParam && !retrying) {
+    const isFraude = erroParam === "fraude_ou_sensivel";
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
+        <ErrorScreen
+          categoria={erroParam}
+          onTentarNovamente={
+            isFraude
+              ? () => navigate("/duvidas") // TODO: confirmar rota de suporte
+              : () => { setRetrying(true); startTimer(); }
+          }
+          labelBotao={isFraude ? "Falar com suporte" : "Tentar novamente"}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-6 text-center">

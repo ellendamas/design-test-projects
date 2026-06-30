@@ -86,6 +86,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } fr
 import { Toaster, toast } from "sonner";
 
 import FaqAcordeon from "@/components/FaqAcordeon";
+import { ErrorScreen, ERROS, type ErrorCategoria } from "@/components/ErrorScreen";
 import { useInteresse } from "@/context/InteresseContext";
 import { useRecomendacoes } from "@/context/RecomendacoesContext";
 import { Badge } from "@/components/ui/badge";
@@ -3034,6 +3035,14 @@ function App() {
   const [consentido, setConsentido] = useState(false);
   const [mfaCode, setMfaCode] = useState("");
   const [mfaErro, setMfaErro] = useState("");
+  // DESIGN ONLY — ?erro=otp_invalido|otp_expirado|otp_max_tentativas (visível no step 6 do onboarding)
+  // Para simular: avance o onboarding até o step 6 (MFA por SMS) e adicione ?erro=otp_invalido na URL
+  // Lê diretamente de window.location para não conflitar com o searchParams que existe mais abaixo no escopo de App()
+  const erroOtpParam = new URLSearchParams(window.location.search).get("erro") as ErrorCategoria | null; // DESIGN ONLY
+  const OTP_ERRO_CATS = ["otp_invalido", "otp_expirado", "otp_max_tentativas"];
+  const [mostrarModalErroOtp, setMostrarModalErroOtp] = useState(
+    erroOtpParam !== null && OTP_ERRO_CATS.includes(erroOtpParam)
+  );
   const [mfaCountdown, setMfaCountdown] = useState(30);
   const [geoStatus, setGeoStatus] = useState<"idle" | "solicitando" | "concedida" | "negada" | "naoSuportado">("idle");
   const [biometria, setBiometria] = useState(false);
@@ -3754,7 +3763,11 @@ function App() {
                         </InputOTP>
                       </div>
 
-                      {mfaErro && <p className="text-center text-xs text-red-600">{mfaErro}</p>}
+                      {/* Help text inline abaixo do OTP */}
+                      {erroOtpParam && OTP_ERRO_CATS.includes(erroOtpParam)
+                        ? <p className="text-center text-xs text-red-600">{ERROS[erroOtpParam].subtitulo}</p>
+                        : mfaErro && <p className="text-center text-xs text-red-600">{mfaErro}</p>
+                      }
 
                       <SecurityStrip />
 
@@ -3771,6 +3784,26 @@ function App() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* ── Modal/drawer de erro OTP ── */}
+                  {erroOtpParam && OTP_ERRO_CATS.includes(erroOtpParam) && mostrarModalErroOtp && (
+                    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50">
+                      <div className="w-full max-w-md rounded-t-3xl md:rounded-3xl bg-background p-6 space-y-5">
+                        <div className="flex items-center justify-between">
+                          <p className="text-base font-semibold">Problema com o código</p>
+                          <button type="button" onClick={() => setMostrarModalErroOtp(false)}>
+                            <X size={20} className="text-muted-foreground" />
+                          </button>
+                        </div>
+                        <ErrorScreen
+                          categoria={erroOtpParam}
+                          compact
+                          onTentarNovamente={() => { setMostrarModalErroOtp(false); setMfaCode(""); setMfaErro(""); }}
+                          labelBotao="Solicitar novo código"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 

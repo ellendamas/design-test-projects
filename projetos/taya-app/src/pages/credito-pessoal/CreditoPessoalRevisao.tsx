@@ -32,6 +32,7 @@ type CreditoPessoalState = {
     valorParcela: number;     // centavos
     taxaJuros: number;        // ex: 0.0249
     taxaJurosAnual: number;   // ex: 0.3433
+    cetAnual?: number;        // ex: 0.4120 — TODO: receber da API (P0 Zema)
     tac: number;              // centavos
     valorIof: number;         // centavos
     primeiroVenc: string;     // "DD/MM/AAAA"
@@ -51,7 +52,7 @@ const MOCK_STATE: CreditoPessoalState = {
   endereco: { logradouro: "Av. Paulista", numero: "1374", bairro: "Bela Vista", cidade: "São Paulo", estado: "SP", cep: "01310-100" },
   valorMinimo: 50000,
   valorMaximo: 500000,
-  ofertaSelecionada: { id: "2", parcelas: 12, valorParcela: 23512, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
+  ofertaSelecionada: { id: "2", parcelas: 12, valorParcela: 23512, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
   valorSolicitado: 275000,
 };
 
@@ -74,7 +75,7 @@ export default function CreditoPessoalRevisao() {
   const locationState = (location.state as CreditoPessoalState | null) ?? MOCK_STATE; // DESIGN ONLY
   const st = locationState;
 
-  const { parcelas, valorParcela, taxaJuros, taxaJurosAnual, tac, valorIof, primeiroVenc } =
+  const { parcelas, valorParcela, taxaJuros, taxaJurosAnual, cetAnual, tac, valorIof, primeiroVenc } =
     st.ofertaSelecionada;
 
   const [detalhesAbertos, setDetalhesAbertos] = useState(false);
@@ -114,6 +115,15 @@ export default function CreditoPessoalRevisao() {
             <div className="flex justify-between">
               <p className="text-sm text-muted-foreground">Juros anual</p>
               <p className="text-sm">{(taxaJurosAnual * 100).toFixed(2).replace(".", ",")}% a.a.</p>
+            </div>
+            <div className="flex justify-between">
+              <p className="text-sm text-muted-foreground">CET</p>
+              <p className={`text-sm ${cetAnual !== undefined ? "text-foreground" : "text-muted-foreground"}`}>
+                {/* TODO: receber da API — CET não disponível na simulação ainda (P0 Zema) */}
+                {cetAnual !== undefined
+                  ? `${(cetAnual * 100).toFixed(2).replace(".", ",")}% a.a.`
+                  : "A calcular"}
+              </p>
             </div>
             <div className="flex justify-between">
               <p className="text-sm text-muted-foreground">IOF</p>

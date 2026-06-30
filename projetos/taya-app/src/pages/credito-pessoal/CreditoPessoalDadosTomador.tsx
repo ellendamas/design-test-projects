@@ -164,17 +164,23 @@ export default function CreditoPessoalDadosTomador() {
   const [cidadeNasc, setCidadeNasc] = useState("");
   const [estadoCivil, setEstadoCivil] = useState("");
   const [sexo, setSexo] = useState("");
-  const [nacionalidade, setNacionalidade] = useState("");
-  const [ocupacao, setOcupacao] = useState(""); // TODO: confirmar com James — select ou texto livre?
-  const [dataAdmissao, setDataAdmissao] = useState("");
+  const [nacionalidade, setNacionalidade] = useState("BRASILEIRO"); // backend resolve — campo oculto
+  const [ocupacao, setOcupacao] = useState(""); // backend resolve — campo oculto // TODO: confirmar com James — select ou texto livre?
+  const [dataAdmissao, setDataAdmissao] = useState(""); // backend resolve — campo oculto
   const [dataAdmissaoErro, setDataAdmissaoErro] = useState<string | undefined>();
 
   const dataAdmissaoValida = dataAdmissao.replace(/\D/g, "").length === 8 && !validarDataAdmissao(dataAdmissao);
   const step2Completo =
-    !!nomeMae && !!estadoNasc && !!cidadeNasc && !!estadoCivil && !!sexo && !!nacionalidade && !!ocupacao && dataAdmissaoValida;
+    !!nomeMae && !!estadoNasc && !!cidadeNasc && !!estadoCivil && !!sexo;
 
   // ── Step 3 — PEP ────────────────────────────────────────────────────────
-  const [pep, setPep] = useState(false);
+  const [pep, setPep] = useState<boolean | null>(null);
+  const [pepRespondido, setPepRespondido] = useState(false);
+
+  const handlePep = (valor: boolean) => {
+    setPep(valor);
+    setPepRespondido(true);
+  };
 
   // ── Step 4 — Endereço ───────────────────────────────────────────────────
   const [enderecoConfirmado, setEnderecoConfirmado] = useState<EnderecoData | null>(null);
@@ -246,6 +252,7 @@ export default function CreditoPessoalDadosTomador() {
   const canAdvance =
     currentStep === 1 ? step1Completo :
     currentStep === 2 ? step2Completo :
+    currentStep === 3 ? pepRespondido :
     true;
 
   // Auto-avanço após loading de verificação de identidade
@@ -558,7 +565,8 @@ export default function CreditoPessoalDadosTomador() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            {/* TEMPORARIAMENTE OCULTO — backend envia valor genérico. Remover className="hidden" para reativar. */}
+            <div className="hidden space-y-2">
               <FieldLabel>Nacionalidade</FieldLabel>
               <div className="grid grid-cols-2 gap-2">
                 {[{ label: "Brasileiro(a)", value: "BRASILEIRO" }, { label: "Estrangeiro(a)", value: "ESTRANGEIRO" }].map((o) => (
@@ -567,8 +575,9 @@ export default function CreditoPessoalDadosTomador() {
               </div>
             </div>
 
+            {/* TEMPORARIAMENTE OCULTO — backend envia valor genérico. Remover className="hidden" para reativar. */}
             {/* Ocupação — texto livre // TODO: confirmar com James — select ou texto livre? */}
-            <div className="space-y-1">
+            <div className="hidden space-y-1">
               <FieldLabel>Ocupação</FieldLabel>
               <input
                 type="text"
@@ -579,8 +588,8 @@ export default function CreditoPessoalDadosTomador() {
               />
             </div>
 
-            {/* Data de admissão — obrigatória */}
-            <div className="space-y-1">
+            {/* TEMPORARIAMENTE OCULTO — backend envia valor genérico. Remover className="hidden" para reativar. */}
+            <div className="hidden space-y-1">
               <FieldLabel>Data de admissão</FieldLabel>
               <IMaskInput
                 mask="00/00/0000"
@@ -606,30 +615,42 @@ export default function CreditoPessoalDadosTomador() {
             STEP 3 — PEP
         ══════════════════════════════════════════ */}
         {currentStep === 3 && (
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-border bg-white p-4 shadow-sm space-y-2">
-              <p className="text-base font-semibold text-foreground">Pessoa Politicamente Exposta</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Uma PEP é alguém que exerce ou exerceu cargo público relevante, como políticos, juízes, militares de alta patente e seus familiares diretos.
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <p className="text-base font-semibold text-foreground">
+                Você é uma Pessoa Politicamente Exposta?
               </p>
-              <p className="text-sm text-muted-foreground">
-                Essa informação é obrigatória por regulamentação do Banco Central.
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                PEP é quem exerce ou exerceu cargo público relevante — como político,
+                dirigente de empresa pública ou familiar direto dessas pessoas.
+                Essa informação é exigida pelo Banco Central.
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setPep((v) => !v)}
-              className="flex w-full items-start gap-3 rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#E8590A]/40"
-            >
-              <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${pep ? "border-[#E8590A] bg-[#E8590A]" : "border-border"}`}>
-                {pep && <Check size={12} weight="bold" className="text-white" />}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">Sou ou fui Pessoa Politicamente Exposta (PEP)</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Inclui cargos públicos, políticos e seus familiares diretos.</p>
-              </div>
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handlePep(true)}
+                className={`flex h-14 items-center justify-center rounded-2xl border text-sm font-semibold transition-all ${
+                  pep === true
+                    ? "border-[#E8590A] bg-[#FEF0E7] text-[#E8590A]"
+                    : "border-border bg-white text-foreground hover:border-[#E8590A]/40"
+                }`}
+              >
+                Sim
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePep(false)}
+                className={`flex h-14 items-center justify-center rounded-2xl border text-sm font-semibold transition-all ${
+                  pep === false && pepRespondido
+                    ? "border-[#E8590A] bg-[#FEF0E7] text-[#E8590A]"
+                    : "border-border bg-white text-foreground hover:border-[#E8590A]/40"
+                }`}
+              >
+                Não
+              </button>
+            </div>
           </div>
         )}
 

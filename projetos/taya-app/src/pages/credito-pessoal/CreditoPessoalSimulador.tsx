@@ -21,22 +21,22 @@ type SimuladorState = LocationState & {
 
 // TODO: receber da API
 const ofertasMock = [
-  { id: "1", parcelas: 6,  valorParcela: 45012, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "2", parcelas: 12, valorParcela: 23512, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "3", parcelas: 18, valorParcela: 16834, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "4", parcelas: 24, valorParcela: 13290, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
+  { id: "1", parcelas: 6,  valorParcela: 45012, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "2", parcelas: 12, valorParcela: 23512, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "3", parcelas: 18, valorParcela: 16834, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "4", parcelas: 24, valorParcela: 13290, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
 ]; // TODO: receber da API
 
 // DESIGN ONLY — ?prazos=muitos → simula retorno da API com 8 opções de prazo
 const ofertasMockMuitas = [
-  { id: "1", parcelas: 6,  valorParcela: 45012, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "2", parcelas: 9,  valorParcela: 30812, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "3", parcelas: 12, valorParcela: 23512, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "4", parcelas: 15, valorParcela: 19340, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "5", parcelas: 18, valorParcela: 16834, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "6", parcelas: 21, valorParcela: 14820, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "7", parcelas: 24, valorParcela: 13290, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
-  { id: "8", parcelas: 36, valorParcela: 10120, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" },
+  { id: "1", parcelas: 6,  valorParcela: 45012, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "2", parcelas: 9,  valorParcela: 30812, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "3", parcelas: 12, valorParcela: 23512, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "4", parcelas: 15, valorParcela: 19340, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "5", parcelas: 18, valorParcela: 16834, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "6", parcelas: 21, valorParcela: 14820, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "7", parcelas: 24, valorParcela: 13290, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
+  { id: "8", parcelas: 36, valorParcela: 10120, taxaJuros: 0.0249, taxaJurosAnual: 0.3433, cetAnual: undefined as number | undefined, tac: 0, valorIof: 399, primeiroVenc: "11/08/2026" }, // TODO: receber da API quando Zema disponibilizar CET na simulação (P0)
 ]; // DESIGN ONLY
 
 // DESIGN ONLY — mock state para acesso direto via URL de design
@@ -228,6 +228,15 @@ export default function CreditoPessoalSimulador() {
               <p className="text-sm text-foreground">
                 {(ofertaSelecionada.taxaJurosAnual * 100).toFixed(2).replace(".", ",")}% a.a.
               </p>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">CET</span>
+              <span className={`text-sm ${ofertaSelecionada.cetAnual !== undefined ? "text-foreground" : "text-muted-foreground"}`}>
+                {/* TODO: receber da API — CET não disponível na simulação ainda (P0 Zema) */}
+                {ofertaSelecionada.cetAnual !== undefined
+                  ? `${(ofertaSelecionada.cetAnual * 100).toFixed(2).replace(".", ",")}% a.a.`
+                  : "A calcular"}
+              </span>
             </div>
             {ofertaSelecionada.tac > 0 && (
               <div className="flex justify-between">

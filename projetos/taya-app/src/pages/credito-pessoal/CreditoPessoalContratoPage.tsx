@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
+  ArrowSquareOut,
   DownloadSimple,
   FilePdf,
   Info,
+  UserPlus,
+  X,
 } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { usePrivacy } from "@/context/PrivacyContext";
@@ -92,6 +96,11 @@ export default function CreditoPessoalContratoPage() {
 
   // DESIGN ONLY — ?status=ativo|aguardando|encerrado
   const statusParam = (searchParams.get("status") ?? "ativo") as "ativo" | "aguardando" | "encerrado"; // DESIGN ONLY
+
+  // DESIGN ONLY — ?zema=novo|existente
+  const zemaStatus = (searchParams.get("zema") ?? "novo") as "novo" | "existente"; // DESIGN ONLY
+
+  const [mostrarOnboardingZema, setMostrarOnboardingZema] = useState(false);
 
   const parcelasPagas = contratoMock.parcelasPagas;
   const totalParcelas = contratoMock.parcelas;
@@ -208,53 +217,17 @@ export default function CreditoPessoalContratoPage() {
           </div>
         </div>
 
-        {/* ── Seção 4b — Lista de parcelas + carnê ── */}
-        {/* TODO: conectar ao GET /propostas/{id}/boleto/detalhes */}
-        <div className="rounded-2xl border border-border bg-white shadow-sm">
-          <div className="border-b border-border px-4 py-3">
-            <p className="text-sm font-bold text-foreground">Parcelas</p>
-          </div>
-          <div className="divide-y divide-border">
-            {boletosMock.parcelas.map((p) => (
-              <div key={p.numero} className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="text-sm font-medium text-foreground">Parcela {p.numero}/{totalParcelas}</p>
-                  <p className="text-xs text-muted-foreground">{fmtISODate(p.vencimento)}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">R$ {formatCents(p.valor)}</p>
-                  {/* TODO: Zema ainda não retorna status de pagamento por parcela.
-                      Quando disponível, exibir badge:
-                      bg-green-100 text-green-700 "Pago" /
-                      bg-gray-100 text-gray-600 "Em aberto" /
-                      bg-red-100 text-red-600 "Vencido" */}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="px-4 pb-4 pt-3">
-            <button
-              type="button"
-              onClick={() => {
-                // TODO: conectar ao GET /propostas/{id}/boleto/detalhes — usar url_boleto retornada
-                window.open(boletosMock.url_boleto, "_blank");
-              }}
-              className="flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#E8590A] text-xs font-semibold text-[#E8590A] transition-colors hover:bg-[#FEF0E7]"
-            >
-              <FilePdf size={16} />
-              Ver carnê completo
-            </button>
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              Para segunda via de boleto ou dúvidas sobre pagamento,{' '}
-              <a
-                href="tel:08000956702"
-                className="text-[#E8590A] underline"
-              >
-                ligue para a Zema: 0800 095 6702
-              </a>
-            </p>
-          </div>
-        </div>
+        {/* ── Botão carnê isolado ── */}
+        <a
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A] transition-colors hover:bg-[#FEF0E7]"
+          // TODO: substituir "#" pela url_boleto de GET /propostas/{id}/boleto/detalhes
+        >
+          <FilePdf size={18} />
+          Ver carnê completo
+        </a>
 
         {/* ── Seção 5 — Taxas e custos ── */}
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
@@ -335,6 +308,39 @@ export default function CreditoPessoalContratoPage() {
           </div>
         </div>
 
+        {/* ── Bloco: Gerenciar contrato na Zema ── */}
+        {/* DESIGN ONLY — ?zema=novo (default) | existente */}
+        <div className="rounded-2xl border border-border bg-white p-4 shadow-sm space-y-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Gerencie seu contrato</p>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              Boletos, histórico de pagamentos e segunda via estão disponíveis
+              na área do cliente da Zema Financeira.
+            </p>
+          </div>
+
+          {zemaStatus === "novo" ? (
+            <button
+              type="button"
+              onClick={() => setMostrarOnboardingZema(true)}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-sm font-semibold text-white"
+            >
+              <UserPlus size={18} />
+              Criar minha conta na Zema Financeira
+            </button>
+          ) : (
+            <a
+              href="https://minhaconta.zemafinanceira.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-sm font-semibold text-white"
+            >
+              <ArrowSquareOut size={18} />
+              Acessar minha conta Zema
+            </a>
+          )}
+        </div>
+
         {/* ── Seção 8 — Quitar antecipadamente (desabilitado) ── */}
         <div className="pointer-events-none rounded-2xl border border-dashed border-border bg-white p-4 opacity-60 shadow-sm">
           <div className="flex items-center justify-between">
@@ -354,6 +360,55 @@ export default function CreditoPessoalContratoPage() {
         </p>
 
       </div>
+
+      {/* ── Modal/drawer: Como criar conta na Zema ── */}
+      {mostrarOnboardingZema && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-t-3xl md:rounded-3xl bg-background p-6 space-y-5">
+
+            <div className="flex items-center justify-between">
+              <p className="text-base font-semibold">Como criar sua conta na Zema</p>
+              <button type="button" onClick={() => setMostrarOnboardingZema(false)}>
+                <X size={20} className="text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                { numero: "1", titulo: "Acesse o cadastro da Zema", descricao: "Toque no botão abaixo para ir direto à página de cadastro da Zema Financeira." },
+                { numero: "2", titulo: "Crie sua conta", descricao: "Preencha o cadastro com os mesmos dados que você usou aqui no seutudo. (mesmo CPF)." },
+                { numero: "3", titulo: "Defina sua senha", descricao: "Siga as instruções da Zema para criar sua senha de acesso." },
+                { numero: "4", titulo: "Pronto!", descricao: "Lá você encontra seus boletos, histórico de pagamentos e segunda via." },
+              ].map((passo) => (
+                <div key={passo.numero} className="flex gap-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-xs font-bold text-[#E8590A]">
+                    {passo.numero}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{passo.titulo}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{passo.descricao}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* TODO: quando Zema confirmar criação automática de conta, substituir os passos
+                acima por exibição de CPF + senha de primeiro acesso gerada automaticamente */}
+            <p className="text-xs text-muted-foreground text-center" />
+
+            <a
+              href="https://minhaconta.zemafinanceira.com/cadastro-dados-pessoais"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-sm font-semibold text-white"
+            >
+              <ArrowSquareOut size={18} />
+              Ir para o cadastro da Zema
+            </a>
+
+          </div>
+        </div>
+      )}
     </SubPageLayout>
   );
 }
