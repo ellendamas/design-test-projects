@@ -10,7 +10,7 @@ const InteresseContext = createContext<InteresseContextType | null>(null);
 function getInteresses(): string[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem("seutudo_interesses");
+    const raw = window.localStorage.getItem("podeja_interesses");
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -19,7 +19,7 @@ function getInteresses(): string[] {
 
 function saveInteresses(ids: string[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem("seutudo_interesses", JSON.stringify(ids));
+  window.localStorage.setItem("podeja_interesses", JSON.stringify(ids));
 }
 
 export function InteresseProvider({ children }: { children: ReactNode }) {

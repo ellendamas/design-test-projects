@@ -145,6 +145,7 @@ import EnderecoSelector, { type EnderecoData } from "@/components/EnderecoSelect
 import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
 import Cards from "react-credit-cards-2";
 import "react-credit-cards-2/dist/es/styles-compiled.css";
+import { Logo } from "@/components/Logo";
 
 type ServiceType = "clt" | "fgts" | "saque-facil" | "credito-pessoal" | "assistencias" | "energia";
 type OtpChannel = "whatsapp" | "email" | "sms";
@@ -275,7 +276,7 @@ const serviceCopy: Record<
     photo: "",
   },
   "assistencias": {
-    title: "Assistências seutudo.",
+    title: "Assistências Pode Já.",
     subtitle: "Saúde, odonto, pet e muito mais com desconto.",
     description: "Pacotes de assistência com cobertura ampla e preço acessível.",
     cta: "Ver assistências",
@@ -302,7 +303,7 @@ function FgtsCustomIcon({ size = 20, className = "" }: { size?: number; classNam
 export function getStoredUser(): StoredUser | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem("seutudo_user");
+    const raw = window.localStorage.getItem("podeja_user");
     if (!raw) return null;
     return JSON.parse(raw) as StoredUser;
   } catch {
@@ -408,7 +409,7 @@ function AuthHeroLayout({ rightContent }: { rightContent: ReactNode }) {
       <div className="relative h-48 shrink-0 overflow-hidden md:h-screen md:w-1/2">
         <img src={HERO_IMAGE} alt="Pessoa CLT" className="h-full w-full object-cover object-top" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
-        <span className="absolute left-5 top-4 text-xl font-bold text-white drop-shadow">seutudo.</span>
+        <Logo variant="white" size="sm" className="absolute left-5 top-4 drop-shadow" />
       </div>
 
       <div className="flex flex-1 flex-col justify-between px-5 pb-8 pt-2 md:w-1/2 md:items-start md:justify-center md:px-16 md:py-12">
@@ -482,14 +483,14 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
   ];
 
   const logout = () => {
-    if (typeof window !== "undefined") window.localStorage.removeItem("seutudo_user");
+    if (typeof window !== "undefined") window.localStorage.removeItem("podeja_user");
     navigate("/");
   };
 
   return (
     <div className="flex min-h-screen w-full">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
-        <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
+        <Logo size="sm" className="mb-8" />
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>
@@ -605,7 +606,7 @@ function SaqueFacilIntroPage() {
 
   const faq = [
     { q: "Quem pode usar o Saque Fácil?", a: "Qualquer pessoa com cartão de crédito com bandeira reconhecida (Visa, Mastercard, Elo, Hipercard ou Amex), função crédito ativa e limite disponível. Cartões Alelo, Sodexo e VR não são aceitos." },
-    { q: "Como aparece na fatura?", a: "A cobrança aparece como STARK*SeuTudo junto ao valor de cada parcela." },
+    { q: "Como aparece na fatura?", a: "A cobrança aparece como STARK*PODEJA junto ao valor de cada parcela." },
     { q: "O que acontece com meu limite?", a: "Seu limite é usado na contratação e vai sendo liberado conforme você paga as parcelas mensais, igual a uma compra comum." },
     { q: "É seguro?", a: "Sim. A operação usa tecnologia Unico para validar sua identidade e seu cartão, com assinatura eletrônica com validade jurídica." },
   ];
@@ -1133,7 +1134,7 @@ function SaqueFacilDadosPage() {
           <Card className="border-border">
             <CardContent className="space-y-4 p-4">
               <div className="flex flex-col items-center text-center"><CheckCircle size={42} className="text-[#E8590A]" /><h2 className="mt-2 text-xl font-bold">Tudo pronto. Só falta confirmar.</h2><p className="text-sm text-muted-foreground">Revise os dados e confirme para liberar o dinheiro.</p></div>
-              <div className="space-y-2.5 rounded-2xl bg-[#FEF0E7] p-4">{[{label:"Você vai receber",value:`R$ ${toCurrency(valorReceber)}`},{label:"Limite usado no cartão",value:`R$ ${toCurrency(limiteCartaoNecessario)}`},{label:"Parcelas",value:`${state.numeroParcelas}x de R$ ${toCurrency(valorParcela)}`},{label:"Cartão",value:`Final ${cardFinal}`},{label:"Conta de destino",value:`Banco ag. ${agencia}`},{label:"Na fatura aparece como",value:"STARK*SeuTudo"}].map((item)=><div key={item.label} className="flex items-center justify-between gap-2"><p className="text-xs text-[#A33D05]/70">{item.label}</p><p className="text-xs font-semibold text-[#A33D05]">{item.value}</p></div>)}</div>
+              <div className="space-y-2.5 rounded-2xl bg-[#FEF0E7] p-4">{[{label:"Você vai receber",value:`R$ ${toCurrency(valorReceber)}`},{label:"Limite usado no cartão",value:`R$ ${toCurrency(limiteCartaoNecessario)}`},{label:"Parcelas",value:`${state.numeroParcelas}x de R$ ${toCurrency(valorParcela)}`},{label:"Cartão",value:`Final ${cardFinal}`},{label:"Conta de destino",value:`Banco ag. ${agencia}`},{label:"Na fatura aparece como",value:"STARK*PODEJA"}].map((item)=><div key={item.label} className="flex items-center justify-between gap-2"><p className="text-xs text-[#A33D05]/70">{item.label}</p><p className="text-xs font-semibold text-[#A33D05]">{item.value}</p></div>)}</div>
               <button
                 type="button"
                 onClick={() => setState((p) => ({ ...p, termoAceito: !p.termoAceito }))}
@@ -1311,7 +1312,7 @@ function SaqueFacilRevisaoPage() {
     if (typeof window !== "undefined") window.sessionStorage.setItem("seubolso_saque_facil_awarded", "1");
     adicionarPontos(300, "Saque Fácil contratado");
     const timer = window.setTimeout(() => {
-      toast("seutudo.", {
+      toast("Pode Já", {
         description: "Você ganhou 300 seubônus por contratar o Saque Fácil!",
         icon: <Coins size={16} className="text-[#E8590A]" />,
         duration: 4000,
@@ -2261,7 +2262,8 @@ function ContratoSaqueFacilPage() {
       <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Dados do emitente</h3><p className="text-xs text-muted-foreground">Emitente</p><p className="text-sm"><SensitiveData value={contrato.emitente.nome} /></p><p className="text-sm"><SensitiveData value={contrato.emitente.cpf} type="cpf" /></p><p className="text-sm"><SensitiveData value={contrato.emitente.endereco} /></p><p className="mt-3 text-xs text-muted-foreground">Credora</p><p className="text-sm font-semibold">{contrato.credora.nome}</p><p className="text-xs">CNPJ {contrato.credora.cnpj}</p></div>
       <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Características do crédito</h3><div className="grid grid-cols-2 gap-3 text-xs"><p>Principal: R$ {contrato.valorPrincipal.toFixed(2).replace(".", ",")}</p><p>Liberado: R$ {contrato.valorLiberado.toFixed(2).replace(".", ",")}</p><p>Taxa mensal: {contrato.taxaMensal}%</p><p>Taxa anual: {contrato.taxaAnual}%</p></div></div>
       <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Parcelas</h3><div className="overflow-hidden rounded-xl border border-border"><div className="grid grid-cols-2 bg-[#F8F7F5] px-3 py-2 text-[11px] font-semibold text-muted-foreground"><span>Vencimento</span><span className="text-right">Valor</span></div>{contrato.parcelas.map((p)=><div key={p.numero} className="grid grid-cols-2 border-t border-border px-3 py-2 text-xs"><span>{p.vencimento}</span><span className="text-right font-semibold text-foreground">R$ {p.valor.toFixed(2).replace(".", ",")}</span></div>)}</div></div>
-      <p className="text-xs text-muted-foreground">Documento com validade jurídica. Consulte os termos em seutudo.com.br.</p>
+      {/* TODO: atualizar para domínio definitivo quando registrado */}
+      <p className="text-xs text-muted-foreground">Documento com validade jurídica. Consulte os termos em podeja.com.br.</p>
     </SubPageLayout>
   );
 }
@@ -2494,7 +2496,7 @@ function AssistenciasPage() {
   ];
 
   const faqItems = [
-    { q: "Quem pode contratar?", a: "Todos os clientes cadastrados no seutudo. com CPF validado." },
+    { q: "Quem pode contratar?", a: "Todos os clientes cadastrados no Pode Já com CPF validado." },
     { q: "Preciso contratar todas as categorias?", a: "Não. Você escolhe apenas as assistências que fazem sentido para você e sua família." },
     { q: "Como funciona o pagamento?", a: "Uma mensalidade acessível debitada diretamente pelo app. Sem fidelidade, sem surpresa." },
     { q: "Posso incluir minha família?", a: "Sim. Algumas categorias permitem até 8 dependentes sem necessidade de grau de parentesco." },
@@ -2537,7 +2539,7 @@ function AssistenciasPage() {
             <PlaceholderImagem icon={<Image size={34} />} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
             <div className="absolute bottom-0 left-0 p-4">
-              <Badge className="mb-2 border-0 bg-white/15 text-[11px] text-white">ASSISTÊNCIAS SEUTUDO.</Badge>
+              <Badge className="mb-2 border-0 bg-white/15 text-[11px] text-white">ASSISTÊNCIAS PODE JÁ.</Badge>
               <h2 className="max-w-[290px] text-[26px] font-bold leading-tight text-white">Cuide de quem você ama sem pesar no bolso</h2>
               <p className="mt-2 max-w-[290px] text-sm text-white/80">Descontos reais em saúde, odonto, pet e muito mais</p>
             </div>
@@ -2633,7 +2635,7 @@ function AssistenciasPage() {
             <div className="space-y-3">
               {[
                 { icon: <ListChecks size={32} className="text-[#E8590A]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
-                { icon: <CreditCard size={32} className="text-[#E8590A]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do seutudo., simples e sem burocracia." },
+                { icon: <CreditCard size={32} className="text-[#E8590A]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do Pode Já, simples e sem burocracia." },
                 { icon: <HandHeart size={32} className="text-[#E8590A]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
               ].map((item, idx, arr) => (
                 <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
@@ -2910,7 +2912,7 @@ function SeubolsoComoFuncionaPage() {
     { icon: <Users size={18} />, nome: "Indicar um amigo", valor: "+200 / +300 bônus" },
   ];
   const faqs = [
-    ["Quem pode usar?", "Todos os clientes cadastrados no seutudo."],
+    ["Quem pode usar?", "Todos os clientes cadastrados no Pode Já."],
     ["As moedas expiram?", "Suas moedas são válidas por 12 meses a partir da data em que foram ganhas."],
     ["Como faço para resgatar?", "Em breve você poderá trocar suas moedas por descontos em taxas e outros benefícios. Fique de olho!"],
     ["Perco minhas moedas se cancelar?", "Moedas acumuladas ficam disponíveis por 12 meses independente de cancelamento."],
@@ -3140,13 +3142,13 @@ function App() {
     setOtpCode("");
     setLoginStep(1);
     setOtpCountdown(30);
-    if (typeof window !== "undefined") window.localStorage.removeItem("seutudo_user");
+    if (typeof window !== "undefined") window.localStorage.removeItem("podeja_user");
     navigate("/");
   };
 
   const completeOnboarding = () => {
     const user = { name, email };
-    if (typeof window !== "undefined") window.localStorage.setItem("seutudo_user", JSON.stringify(user));
+    if (typeof window !== "undefined") window.localStorage.setItem("podeja_user", JSON.stringify(user));
     setStoredUser(user);
     navigate("/painel");
   };
@@ -3162,7 +3164,7 @@ function App() {
   useEffect(() => {
     if (!(location.pathname === "/acesso" && loginStep === 3)) return;
     const notifyTimer = window.setTimeout(() => {
-      toast("seutudo.", {
+      toast("Pode Já", {
         description:
           otpChannel === "whatsapp"
             ? "Seu código de verificação chegou no WhatsApp."
@@ -3525,7 +3527,7 @@ function App() {
                   disabled={!canConfirmOtp}
                   onClick={() => {
                     const user = getStoredUser() ?? { name: "Usuário", email: "" };
-                    if (typeof window !== "undefined") window.localStorage.setItem("seutudo_user", JSON.stringify(user));
+                    if (typeof window !== "undefined") window.localStorage.setItem("podeja_user", JSON.stringify(user));
                     setStoredUser(user);
                     navigate("/painel");
                   }}
@@ -3550,7 +3552,7 @@ function App() {
     <main className="mx-auto min-h-screen w-full bg-background px-4 py-6 md:px-8">
       <div className="mx-auto flex w-full flex-col md:w-[860px] md:pt-12">
         <div className="mb-5 flex items-center justify-between">
-          <span className="text-lg font-bold text-foreground">seutudo.</span>
+          <Logo size="sm" />
           <Badge className="border-0 bg-primary-light text-xs font-medium text-primary-dark md:hidden">Cadastro</Badge>
         </div>
 
@@ -4287,7 +4289,7 @@ function App() {
   const HomeScreen = (
     <div className="min-h-screen w-full md:flex">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
-        <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
+        <Logo size="md" className="mb-8 self-start" />
         <nav className="flex flex-col gap-1">
           {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
@@ -4304,7 +4306,7 @@ function App() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm text-white/75">Olá, {firstName}</p>
-              <h2 className="text-xl font-bold">Seu crédito na seutudo.</h2>
+              <h2 className="text-xl font-bold">Seu crédito na Pode Já.</h2>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-white/60"><SealCheck size={12} /> Conta verificada</p>
             </div>
             <div className="flex items-center gap-1">
@@ -4517,7 +4519,7 @@ function App() {
                       }
                     : interest === "assistencias"
                     ? {
-                        title: "Assistências seutudo.",
+                        title: "Assistências Pode Já.",
                         subtitle: "Saúde, odonto, pet e muito mais",
                         description: "Cuide de você e da sua família com descontos de até 85% em consultas e exames.",
                         cta: "Conhecer planos",
@@ -4610,7 +4612,7 @@ function App() {
                     </div>
                   </div>
                   <div className="relative w-44 shrink-0 self-stretch">
-                    <img src="/images/card-dash-contact.png" alt="Atendente seutudo." className="absolute inset-0 h-full w-full object-cover object-top" />
+                    <img src="/images/card-dash-contact.png" alt="Atendente Pode Já." className="absolute inset-0 h-full w-full object-cover object-top" />
                   </div>
                 </div>
               </CardContent>
@@ -4628,7 +4630,7 @@ function App() {
   const AccountScreen = (
     <div className="min-h-screen w-full md:flex">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
-        <span className="mb-8 text-xl font-bold text-foreground">seutudo.</span>
+        <Logo size="sm" className="mb-8" />
         <nav className="flex flex-col gap-1">
           {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
@@ -4684,8 +4686,10 @@ function App() {
                   title: "Políticas",
                   icon: <Info size={18} />,
                   items: [
-                    { label: "Política de Privacidade", external: true, href: "https://seutudo.com.br/politica-de-privacidade" },
-                    { label: "Termos de Uso", external: true, href: "https://seutudo.com.br/termos-de-uso" },
+                    // TODO: atualizar para domínio definitivo quando registrado
+                    { label: "Política de Privacidade", external: true, href: "https://podeja.com.br/politica-de-privacidade" },
+                    // TODO: atualizar para domínio definitivo quando registrado
+                    { label: "Termos de Uso", external: true, href: "https://podeja.com.br/termos-de-uso" },
                   ],
                 },
               ].map((group) => (
@@ -4729,7 +4733,7 @@ function App() {
                 <main className="relative mx-auto flex min-h-screen w-full cursor-pointer flex-col justify-end overflow-hidden md:items-center md:justify-center md:bg-primary" onClick={() => navigate("/boas-vindas")}>
                   <img src={HERO_IMAGE} alt="Pessoa com carteira assinada" className="absolute inset-0 h-full w-full object-cover object-center md:hidden" />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary/75 to-transparent md:hidden" />
-                  <motion.div initial={shouldReduce ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: shouldReduce ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] }} className="relative z-10 space-y-4 px-6 pb-14 md:pb-0 md:text-center"><div><div className="text-3xl font-bold tracking-tight text-white">seutudo.</div><p className="mt-1 text-sm text-white/75">O que é seu, disponível.</p></div><h1 className="text-2xl font-bold leading-tight text-white">Tudo que é seu, finalmente ao seu alcance.</h1><div className="flex items-center gap-3 pt-1"><div className="h-px flex-1 bg-white/20" /><p className="text-xs text-white/50">Toque para começar</p><div className="h-px flex-1 bg-white/20" /></div></motion.div>
+                  <motion.div initial={shouldReduce ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: shouldReduce ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] }} className="relative z-10 flex flex-col items-center space-y-4 px-6 pb-14 md:pb-0 md:text-center"><Logo variant="white" size="lg" /><h1 className="text-2xl font-bold leading-tight text-white">Tudo que é seu, finalmente ao seu alcance.</h1><div className="flex items-center gap-3 pt-1"><div className="h-px flex-1 bg-white/20" /><p className="text-xs text-white/50">Toque para começar</p><div className="h-px flex-1 bg-white/20" /></div></motion.div>
                   <div className="absolute bottom-0 left-0 right-0 h-16 md:hidden"><svg viewBox="0 0 430 64" preserveAspectRatio="none" className="h-full w-full" xmlns="http://www.w3.org/2000/svg"><path d="M0,32 C100,64 200,0 300,48 C370,64 400,32 430,40 L430,64 L0,64 Z" fill="rgba(168,61,5,0.4)" /></svg></div>
                 </main>
               }

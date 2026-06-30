@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { SubPageLayout } from "@/App";
+import { Logo } from "@/components/Logo";
 
 const stages = [
   { id: "started", label: "Consulta iniciada" },
@@ -51,9 +52,9 @@ export default function ConsignadoCLTLoadingPage() {
         {/* Bloco — identidade e status */}
         <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
           <div className="flex flex-col items-center gap-5 text-center">
-            {/* Logo seutudo. */}
+            {/* Logo Pode Já */}
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E8590A]">
-              <span className="text-2xl font-bold text-white">s.</span>
+              <Logo variant="white" size="sm" />
             </div>
 
             {/* Título e subtítulo */}

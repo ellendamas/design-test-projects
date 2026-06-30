@@ -356,7 +356,8 @@ export default function CreditoPessoalContratoPage() {
 
         {/* ── Rodapé informativo ── */}
         <p className="text-center text-xs text-muted-foreground">
-          Documento com validade jurídica. Consulte os termos em seutudo.com.br.
+          {/* TODO: atualizar para domínio definitivo quando registrado */}
+          Documento com validade jurídica. Consulte os termos em podeja.com.br.
         </p>
 
       </div>
@@ -376,7 +377,7 @@ export default function CreditoPessoalContratoPage() {
             <div className="space-y-4">
               {[
                 { numero: "1", titulo: "Acesse o cadastro da Zema", descricao: "Toque no botão abaixo para ir direto à página de cadastro da Zema Financeira." },
-                { numero: "2", titulo: "Crie sua conta", descricao: "Preencha o cadastro com os mesmos dados que você usou aqui no seutudo. (mesmo CPF)." },
+                { numero: "2", titulo: "Crie sua conta", descricao: "Preencha o cadastro com os mesmos dados que você usou aqui no Pode Já (mesmo CPF)." },
                 { numero: "3", titulo: "Defina sua senha", descricao: "Siga as instruções da Zema para criar sua senha de acesso." },
                 { numero: "4", titulo: "Pronto!", descricao: "Lá você encontra seus boletos, histórico de pagamentos e segunda via." },
               ].map((passo) => (

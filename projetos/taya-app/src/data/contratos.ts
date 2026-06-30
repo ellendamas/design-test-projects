@@ -19,8 +19,10 @@ export const contratos = [
       { nome: "Morte Natural ou Acidental - Pais", valor: 20000, descricao: "Indenização por morte natural ou acidental dos pais do segurado." },
       { nome: "Sorteios Mensais", valor: 10000, descricao: "Participação em sorteios mensais durante a vigência do seguro." },
     ],
-    linkTermos: "https://seutudo.com.br/termos-seguro",
-    linkPrivacidade: "https://seutudo.com.br/privacidade-seguradora",
+    // TODO: atualizar para domínio definitivo quando registrado
+    linkTermos: "https://podeja.com.br/termos-seguro",
+    // TODO: atualizar para domínio definitivo quando registrado
+    linkPrivacidade: "https://podeja.com.br/privacidade-seguradora",
   },
   {
     id: "saque-facil-001",

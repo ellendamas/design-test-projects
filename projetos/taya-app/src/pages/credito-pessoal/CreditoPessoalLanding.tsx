@@ -13,6 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubPageLayout } from "@/App";
+import { Logo } from "@/components/Logo";
 
 // ---------------------------------------------------------------------------
 // Dados estáticos
@@ -108,11 +109,11 @@ export default function CreditoPessoalLanding() {
           ))}
         </div>
 
-        {/* ── Bloco de parceria seutudo. × Zema Financeira ── */}
+        {/* ── Bloco de parceria Pode Já × Zema Financeira ── */}
         <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="flex items-center gap-3">
-              <span className="font-bold text-[#E8590A]" style={{ fontSize: "1.65rem" }}>seutudo.</span>
+              <Logo size="md" />
               <ArrowsLeftRight size={18} className="text-muted-foreground" />
               <img
                 src="/images/logo-zema-financeira.png"

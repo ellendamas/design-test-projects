@@ -14,14 +14,14 @@ const PrivacyContext = createContext<PrivacyContextType>({
 export function PrivacyProvider({ children }: { children: ReactNode }) {
   const [dataVisible, setDataVisible] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
-    const stored = localStorage.getItem("seutudo_data_visible");
+    const stored = localStorage.getItem("podeja_data_visible");
     return stored === "true";
   });
 
   const toggleVisibility = () => {
     setDataVisible((prev) => {
       const next = !prev;
-      localStorage.setItem("seutudo_data_visible", String(next));
+      localStorage.setItem("podeja_data_visible", String(next));
       toast(next ? "Dados visíveis" : "Dados ocultados", {
         duration: 1500,
         position: "top-center",

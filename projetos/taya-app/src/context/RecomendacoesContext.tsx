@@ -40,7 +40,7 @@ type RecomendacoesContextType = {
   dispensar: (id: string) => void;
 };
 
-const STORAGE_KEY = "seutudo_cards_dispensados";
+const STORAGE_KEY = "podeja_cards_dispensados";
 
 const RecomendacoesContext = createContext<RecomendacoesContextType | null>(null);
 
