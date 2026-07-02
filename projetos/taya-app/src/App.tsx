@@ -490,7 +490,7 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
   return (
     <div className="flex min-h-screen w-full">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
-        <Logo size="sm" className="mb-8" />
+        <Logo size="md" className="mb-8 self-start" />
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>
@@ -1757,15 +1757,10 @@ function EditarEnderecoPage() {
   const [success, setSuccess] = useState(false);
 
   // DESIGN ONLY — TODO: substituir por dados reais do StoredUser
-  const enderecoExemplo = {
-    logradouro: "Rua Dona Ana Neri",
-    numero: "581",
-    complemento: "de 501/502 ao fim",
-    bairro: "Cambuci",
-    cidade: "São Paulo",
-    estado: "SP",
-    cep: "01522-000",
-  };
+  const enderecosMock: EnderecoData[] = [
+    { logradouro: "Rua Dona Ana Neri", numero: "581", complemento: "de 501/502 ao fim", bairro: "Cambuci", cidade: "São Paulo", estado: "SP", cep: "01522-000" },
+    { logradouro: "Av. Paulista", numero: "1374", bairro: "Bela Vista", cidade: "São Paulo", estado: "SP", cep: "01310-100" },
+  ];
 
   if (success) {
     return (
@@ -1776,10 +1771,7 @@ function EditarEnderecoPage() {
           </div>
           <h2 className="text-lg font-bold text-foreground">Endereço atualizado.</h2>
           <p className="text-sm text-muted-foreground">Suas informações foram salvas com sucesso.</p>
-          <Button
-            className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]"
-            onClick={() => navigate("/minha-conta")}
-          >
+          <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={() => navigate("/minha-conta")}>
             Voltar para minha conta
           </Button>
         </div>
@@ -1789,10 +1781,13 @@ function EditarEnderecoPage() {
 
   return (
     <SubPageLayout title="Editar endereço">
-      <EnderecoSelector
-        enderecos={[enderecoExemplo]}
-        onConfirmar={() => setSuccess(true)}
-      />
+      <div className="pb-6">
+        <EnderecoSelector
+          enderecos={enderecosMock}
+          semProximoPasso
+          onConfirmar={() => setSuccess(true)}
+        />
+      </div>
     </SubPageLayout>
   );
 }
@@ -1805,8 +1800,7 @@ function DadosBancariosPage() {
 
   // DESIGN ONLY — simular N contas cadastradas via query param
   // ?conta=0 → sem conta (abre formulário direto)
-  // ?conta=1 → 1 conta salva (pré-selecionada)
-  // ?conta=3 → 3 contas salvas (última pré-selecionada)
+  // ?conta=1 → 1 conta salva  |  ?conta=3 → 3 contas salvas
   // TODO: substituir por dados reais do StoredUser / API
   const CONTAS_MOCK_BANCARIOS: ContaSelectorData[] = [
     { banco: { codigo: "077", nome: "Banco Inter" }, tipoConta: "Conta corrente", agencia: "1234", conta: "12345", digito: "6" },
@@ -1830,10 +1824,7 @@ function DadosBancariosPage() {
             <p className="text-sm text-muted-foreground">{contaSalva.banco.nome} · {contaSalva.tipoConta}</p>
             <p className="text-sm text-muted-foreground">Ag {contaSalva.agencia} · {contaSalva.conta}-{contaSalva.digito}</p>
           </div>
-          <Button
-            className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]"
-            onClick={() => navigate("/minha-conta")}
-          >
+          <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={() => navigate("/minha-conta")}>
             Voltar para minha conta
           </Button>
         </div>
@@ -1846,6 +1837,7 @@ function DadosBancariosPage() {
       <div className="pb-6">
         <ContaSelector
           contas={contasMock}
+          semProximoPasso
           onConfirmar={(c) => { setContaSalva(c); setSuccess(true); }}
         />
       </div>
@@ -4630,7 +4622,7 @@ function App() {
   const AccountScreen = (
     <div className="min-h-screen w-full md:flex">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
-        <Logo size="sm" className="mb-8" />
+        <Logo size="md" className="mb-8 self-start" />
         <nav className="flex flex-col gap-1">
           {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>

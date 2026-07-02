@@ -3,7 +3,6 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
   ArrowRight,
   Check,
-  CheckCircle,
   ClipboardText,
   FileText,
   IdentificationCard,
@@ -109,9 +108,11 @@ const validarDataAdmissao = (v: string): string | undefined => {
 // ---------------------------------------------------------------------------
 // Fluxo
 //
-// Normal:         intro → 1 (doc) → 2 (dados) → 3 (PEP) → 4 (endereço)
-// Pre-preench.:   intro → preview  → 1 (doc)   → 3 (PEP) → 4 (endereço)
-// Retornante:     intro → 2 (dados) → 3 (PEP) → 4 (endereço)  [step 1 pulado]
+// Normal:       intro → 2 (dados) → 3 (PEP) → 4 (endereço)
+// Pre-preench.: intro → preview   → 3 (PEP) → 4 (endereço)
+//
+// Step 1 (documento) removido: Zema aceita RG mockado do backend — Pedro confirmou.
+// Código do step 1 mantido oculto para reativação futura se necessário.
 // ---------------------------------------------------------------------------
 type FormStep = 1 | 2 | 3 | 4;
 type FlowStep = "intro" | "preview" | FormStep;
@@ -133,13 +134,11 @@ export default function CreditoPessoalDadosTomador() {
   // DESIGN ONLY — ?modo=pre-preenchido ativa o fluxo com dados já no app
   const prePreenchido = searchParams.get("modo") === "pre-preenchido"; // DESIGN ONLY
 
-  // DESIGN ONLY — ?retornante=true simula usuário com documento já enviado (pula step 1)
-  const retornanteParam = searchParams.get("retornante") === "true"; // DESIGN ONLY
-  // TODO: verificar via GET /tomadores/{cpf} se documento já foi enviado anteriormente
-  const documentoJaEnviado = retornanteParam; // mock — trocar por verificação real
-
-  // DESIGN ONLY — ?step=1|2|3|4 pula direto para um step do formulário
+  // DESIGN ONLY — ?step=2|3|4 pula direto para um step do formulário
   const stepParam = parseInt(searchParams.get("step") ?? "0", 10); // DESIGN ONLY
+
+  // DESIGN ONLY — ?pep=nao|proprio|relacao pré-seleciona resposta do PEP (use com ?step=3)
+  const pepParam = searchParams.get("pep"); // DESIGN ONLY
   const initialStep: FlowStep = [1, 2, 3, 4].includes(stepParam)
     ? (stepParam as FormStep)
     : "intro";
@@ -174,12 +173,34 @@ export default function CreditoPessoalDadosTomador() {
     !!nomeMae && !!estadoNasc && !!cidadeNasc && !!estadoCivil && !!sexo;
 
   // ── Step 3 — PEP ────────────────────────────────────────────────────────
-  const [pep, setPep] = useState<boolean | null>(null);
-  const [pepRespondido, setPepRespondido] = useState(false);
+  // DESIGN ONLY — ?pep=nao|proprio|relacao pré-seleciona o estado
+  const pepParamBool: boolean | null = pepParam === "nao" ? false : pepParam === "proprio" || pepParam === "relacao" ? true : null;
+  const [pep, setPep] = useState<boolean | null>(pepParamBool);
+  const [pepRespondido, setPepRespondido] = useState(pepParam !== null);
+  const [pepTipo, setPepTipo] = useState<"proprio" | "relacao" | null>(
+    pepParam === "proprio" ? "proprio" : pepParam === "relacao" ? "relacao" : null
+  );
+  const [pepNome, setPepNome] = useState("");
+  const [pepData, setPepData] = useState("");
+  const [pepFuncao, setPepFuncao] = useState("");
+  const [pepTipoRelacao, setPepTipoRelacao] = useState("");
+
+  const step3Completo =
+    pep === false ? pepRespondido :
+    pep === true && pepTipo === "proprio" ? !!pepNome && !!pepFuncao :
+    pep === true && pepTipo === "relacao" ? !!pepNome && !!pepFuncao && !!pepTipoRelacao :
+    false;
 
   const handlePep = (valor: boolean) => {
     setPep(valor);
     setPepRespondido(true);
+    if (!valor) {
+      setPepTipo(null);
+      setPepNome("");
+      setPepData("");
+      setPepFuncao("");
+      setPepTipoRelacao("");
+    }
   };
 
   // ── Step 4 — Endereço ───────────────────────────────────────────────────
@@ -207,16 +228,12 @@ export default function CreditoPessoalDadosTomador() {
     },
   ]; // TODO: receber da API
 
-  const dadosFaltando = 2; // Documento de identidade + PEP // TODO: calcular dinamicamente
+  const dadosFaltando = 1; // PEP // TODO: calcular dinamicamente
 
   // ── Navegação ───────────────────────────────────────────────────────────
 
   const handleIntroNext = () => {
-    if (documentoJaEnviado) {
-      setCurrentStep(2); // pula step 1 (documento já cadastrado)
-    } else {
-      setCurrentStep(prePreenchido ? "preview" : 1);
-    }
+    setCurrentStep(prePreenchido ? "preview" : 2);
   };
 
   const goNext = () => {
@@ -232,16 +249,12 @@ export default function CreditoPessoalDadosTomador() {
 
   const goBack = () => {
     if (currentStep === 1) {
-      setStep1SubStep("unico"); // reset por segurança
+      setStep1SubStep("unico");
       setCurrentStep(prePreenchido ? "preview" : "intro");
     } else if (currentStep === 2) {
-      if (documentoJaEnviado) {
-        setCurrentStep("intro");
-      } else {
-        setCurrentStep(1);
-      }
+      setCurrentStep("intro");
     } else if (currentStep === 3) {
-      setCurrentStep(prePreenchido ? 1 : documentoJaEnviado ? 2 : 2);
+      setCurrentStep(prePreenchido ? "preview" : 2);
     } else if (currentStep === 4) {
       setCurrentStep(3);
     } else {
@@ -252,7 +265,7 @@ export default function CreditoPessoalDadosTomador() {
   const canAdvance =
     currentStep === 1 ? step1Completo :
     currentStep === 2 ? step2Completo :
-    currentStep === 3 ? pepRespondido :
+    currentStep === 3 ? step3Completo :
     true;
 
   // Auto-avanço após loading de verificação de identidade
@@ -291,6 +304,11 @@ export default function CreditoPessoalDadosTomador() {
           ocupacao:      prePreenchido ? "CLT"            : ocupacao,    // TODO: confirmar com James — select ou texto livre?
           dataAdmissao:  prePreenchido ? ""               : dataAdmissao, // TODO: receber da API no modo pre-preenchido
           pep,
+          pepTipo,
+          pepNome:        pep ? pepNome    : null,
+          pepFuncao:      pep ? pepFuncao  : null,
+          pepData:        pep ? pepData    : null,
+          pepTipoRelacao: pep && pepTipo === "relacao" ? pepTipoRelacao : null,
           endereco: end,
         },
       },
@@ -299,7 +317,7 @@ export default function CreditoPessoalDadosTomador() {
 
   // ── Progress bar — adapta ao modo ───────────────────────────────────────
   const isFormStep = typeof currentStep === "number";
-  const formStepsAtivos: FormStep[] = documentoJaEnviado ? [2, 3, 4] : prePreenchido ? [1, 3, 4] : [1, 2, 3, 4];
+  const formStepsAtivos: FormStep[] = prePreenchido ? [3, 4] : [2, 3, 4];
   const stepIndex = isFormStep ? formStepsAtivos.indexOf(currentStep as FormStep) : -1;
   const totalFormSteps = formStepsAtivos.length;
 
@@ -344,7 +362,6 @@ export default function CreditoPessoalDadosTomador() {
             <div className="rounded-2xl border border-border bg-white p-4 shadow-sm space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">O que vamos precisar</p>
               {[
-                !documentoJaEnviado && !prePreenchido && { icon: IdentificationCard, text: "Documento de identificação" },
                 !prePreenchido && { icon: User, text: "Dados pessoais complementares" },
                 { icon: ShieldCheck, text: "Declaração de PEP" },
                 { icon: MapPin, text: "Confirmação de endereço" },
@@ -418,7 +435,7 @@ export default function CreditoPessoalDadosTomador() {
             <div className="sticky bottom-20 z-40 bg-background pb-4 pt-2 md:bottom-0">
               <button
                 type="button"
-                onClick={() => setCurrentStep(1)}
+                onClick={() => setCurrentStep(3)}
                 className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
               >
                 Completar cadastro
@@ -510,14 +527,6 @@ export default function CreditoPessoalDadosTomador() {
         {currentStep === 2 && (
           <div className="space-y-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
             <p className="text-base font-semibold text-foreground">Dados pessoais</p>
-
-            {/* Nota para usuário retornante — documento já cadastrado */}
-            {documentoJaEnviado && (
-              <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2.5">
-                <CheckCircle size={16} className="shrink-0 text-green-600" weight="fill" />
-                <p className="text-xs text-green-700">Seu documento já está cadastrado.</p>
-              </div>
-            )}
 
             <div className="space-y-1">
               <FieldLabel>Nome da mãe</FieldLabel>
@@ -613,6 +622,7 @@ export default function CreditoPessoalDadosTomador() {
 
         {/* ══════════════════════════════════════════
             STEP 3 — PEP
+            DESIGN ONLY: ?step=3&pep=nao|proprio|relacao
         ══════════════════════════════════════════ */}
         {currentStep === 3 && (
           <div className="space-y-6">
@@ -651,6 +661,89 @@ export default function CreditoPessoalDadosTomador() {
                 Não
               </button>
             </div>
+
+            {/* Campos condicionais — visíveis apenas quando pep === true */}
+            {pep === true && (
+              <div className="space-y-5 rounded-2xl border border-border bg-white p-4 shadow-sm">
+                <p className="text-sm font-semibold text-foreground">Informações sobre a exposição política</p>
+
+                {/* Tipo de PEP */}
+                <div className="space-y-2">
+                  <FieldLabel>Quem é a pessoa exposta?</FieldLabel>
+                  <div className="grid grid-cols-2 gap-2">
+                    <OptionBtn
+                      selected={pepTipo === "proprio"}
+                      onClick={() => { setPepTipo("proprio"); setPepTipoRelacao(""); }}
+                    >
+                      Eu mesmo
+                    </OptionBtn>
+                    <OptionBtn
+                      selected={pepTipo === "relacao"}
+                      onClick={() => setPepTipo("relacao")}
+                    >
+                      Familiar / Sócio
+                    </OptionBtn>
+                  </div>
+                </div>
+
+                {/* Tipo de relação — só quando "relacao" */}
+                {pepTipo === "relacao" && (
+                  <div className="space-y-2">
+                    <FieldLabel>Tipo de relação</FieldLabel>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { label: "Cônjuge",    value: "CONJUGE"    },
+                        { label: "Filho(a)",   value: "FILHO"      },
+                        { label: "Pai / Mãe",  value: "PAI_MAE"    },
+                        { label: "Sócio(a)",   value: "SOCIO"      },
+                        { label: "Outros",     value: "OUTROS"     },
+                      ].map((o) => (
+                        <OptionBtn key={o.value} selected={pepTipoRelacao === o.value} onClick={() => setPepTipoRelacao(o.value)}>
+                          {o.label}
+                        </OptionBtn>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Nome da PEP */}
+                {pepTipo !== null && (
+                  <>
+                    <div className="space-y-1">
+                      <FieldLabel>{pepTipo === "proprio" ? "Seu nome completo" : "Nome completo da pessoa exposta"}</FieldLabel>
+                      <input
+                        value={pepNome}
+                        onChange={(e) => setPepNome(e.target.value)}
+                        className={inputClass}
+                        placeholder="Nome completo"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <FieldLabel>Cargo ou função pública</FieldLabel>
+                      <input
+                        value={pepFuncao}
+                        onChange={(e) => setPepFuncao(e.target.value)}
+                        className={inputClass}
+                        placeholder="Ex: Vereador, Diretor de autarquia..."
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <FieldLabel>Data de início do mandato / função (opcional)</FieldLabel>
+                      <IMaskInput
+                        mask="00/00/0000"
+                        value={pepData}
+                        onAccept={(v) => setPepData(String(v))}
+                        className={inputClass}
+                        placeholder="DD/MM/AAAA"
+                        inputMode="numeric"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 
