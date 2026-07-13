@@ -19,5 +19,8 @@ yarn-error.log*
 .idea/
 .vscode/
 
+# Windows Zone.Identifier (resíduo de download via WSL/Explorer)
+*:Zone.Identifier
+
 # Local Netlify folder
 .netlify
