@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CaretDown, Check } from "@phosphor-icons/react";
 import { IMaskInput } from "react-imask";
 import { SubPageLayout } from "@/App";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 // ---------------------------------------------------------------------------
 const LIMITE_DISPONIVEL = 32533.83;
 const TAXA_MENSAL = 3.48; // % a.m. — TODO: receber da API
-const PRAZO_OPTIONS = [36, 24, 18, 12, 6];
+const PRAZO_OPTIONS = [6, 12, 18, 24, 36];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -42,8 +42,14 @@ const proximoMes = () => {
 // ---------------------------------------------------------------------------
 export default function ConsignadoCLTSimuladorPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Nome do parceiro selecionado na tela de ofertas — fallback "Bull" para acesso direto via URL
+  const provedor = (location.state as { provedor?: string } | null)?.provedor ?? "Bull";
 
   const [valor, setValor] = useState<number>(10000);
+  // TODO: confirmar com Barreto qual prazo deve ser pré-selecionado como default
+  // Por ora: selecionando o maior prazo (36) para maximizar chance de aprovação
   const [prazo, setPrazo] = useState<number>(36);
   const [detalhesOpen, setDetalhesOpen] = useState(false);
   // Desmarcado por padrão — não pode ser venda casada
@@ -83,6 +89,7 @@ export default function ConsignadoCLTSimuladorPage() {
         totalAPagar: totalAPagarComSeguro,
         taxaMensal: TAXA_MENSAL,
         seguroAtivo,
+        provedor,
       },
     });
   };

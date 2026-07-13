@@ -61,6 +61,7 @@ import {
   SealCheck,
   ShieldCheck,
   ShoppingBag,
+  Signature,
   SignOut,
   Sliders,
   SpinnerGap,
@@ -108,9 +109,11 @@ import { useSeubolso } from "@/context/SeubolsoContext";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
 import ConsignadoCLTLandingPage from "@/pages/consignado-clt/LandingPage";
+import ConsignadoCLTProvedoresPage from "@/pages/consignado-clt/ProvedoresPage";
+import ConsignadoCLTRedirecionandoPage from "@/pages/consignado-clt/RedirecionandoPage";
 import ConsignadoCLTLoadingPage from "@/pages/consignado-clt/LoadingPage";
+import ConsignadoCLTOfertasPage from "@/pages/consignado-clt/OfertasPage";
 import ConsignadoCLTAguardandoPage from "@/pages/consignado-clt/AguardandoPage";
-import ConsignadoCLTOfertaPage from "@/pages/consignado-clt/OfertaPage";
 import ConsignadoCLTSimuladorPage from "@/pages/consignado-clt/SimuladorPage";
 import ConsignadoCLTRevisaoPage from "@/pages/consignado-clt/RevisaoPage";
 import ConsignadoCLTDadosPage from "@/pages/consignado-clt/DadosPage";
@@ -2102,6 +2105,7 @@ function ContratoCLTPage() {
       <div className="mb-5 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3"><Info size={15} className="mt-0.5 shrink-0 text-amber-600" /><p className="text-xs leading-snug text-amber-700">Este é um contrato de exemplo para fins de demonstração. Os dados reais serão exibidos após integração com o sistema.</p></div>
       <div className="mb-5"><div className="mb-1 flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-green-500" /><span className="text-sm font-medium text-green-700">Ativo</span></div><h2 className="text-2xl font-bold text-foreground">Crédito com desconto em folha</h2></div>
       <div className="mb-5 grid grid-cols-2 gap-x-4 gap-y-4">
+        <div><p className="text-xs text-muted-foreground">Parceiro</p><p className="text-sm font-semibold text-foreground">{contrato.provedor}</p></div>
         <div><p className="text-xs text-muted-foreground">Número da CCB</p><p className="text-sm font-semibold text-foreground">{contrato.numeroCCB}</p></div>
         <div><p className="text-xs text-muted-foreground">Data de emissão</p><p className="text-sm font-semibold text-foreground">{contrato.dataEmissao}</p></div>
         <div><p className="text-xs text-muted-foreground">Modalidade</p><p className="text-sm font-semibold leading-snug text-foreground">{contrato.modalidade}</p></div>
@@ -4229,15 +4233,29 @@ function App() {
   const [searchParams] = useSearchParams();
   // DESIGN ONLY — default "oferta" para visualização da dashboard no ambiente de design
   // TODO: substituir por estado real da API antes do deploy
-  const cltStatus = (searchParams.get("clt") ?? "oferta") as "none" | "consultando" | "oferta" | "contrato";
+  const cltStatus = (searchParams.get("clt") ?? "oferta") as
+    | "none"
+    | "consultando"
+    | "oferta"
+    | "contrato"
+    | "consulta_liberada";
+
+  // DESIGN ONLY — ?clt=consulta_liberada ativa o card "Consulta concluída" no "Para você agora"
+  // Card some quando o usuário avança para a revisão (escolheu uma oferta) ou o contrato é desembolsado
+  // TODO: remover localStorage quando API disponibilizar status real
+  const cltConsultaTimestamp = localStorage.getItem("podeja_clt_consulta_ts");
+  const mostrarCltConsultaLiberada = cltStatus === "consulta_liberada" || cltConsultaTimestamp !== null;
+  if (cltStatus === "consulta_liberada" && !cltConsultaTimestamp) {
+    localStorage.setItem("podeja_clt_consulta_ts", String(Date.now()));
+  }
 
   // DESIGN ONLY — ?fgts=none|autorizado|contrato — estado do card FGTS na home
   // TODO: substituir por estado real da API antes do deploy
   const fgtsStatus = (searchParams.get("fgts") ?? "none") as "none" | "autorizado" | "contrato";
 
-  // DESIGN ONLY — ?cp=disponivel|andamento|ativo — estado do card Crédito Pessoal na home
+  // DESIGN ONLY — ?cp=disponivel|andamento|ativo|assinatura_pendente|contrato_novo — estado do card Crédito Pessoal na home
   // TODO: substituir por estado real da API antes do deploy
-  const cpStatus = (searchParams.get("cp") ?? "disponivel") as "disponivel" | "andamento" | "ativo"; // DESIGN ONLY
+  const cpStatus = (searchParams.get("cp") ?? "disponivel") as "disponivel" | "andamento" | "ativo" | "assinatura_pendente" | "contrato_novo"; // DESIGN ONLY
 
   // DESIGN ONLY — flag gravada quando usuário solicita notificação na tela de análise demorada
   // TODO: substituir por estado real da API (polling de elegibilidade concluída)
@@ -4245,6 +4263,17 @@ function App() {
   // DESIGN ONLY — flag gravada quando video call do CP-E13 está disponível
   // TODO: substituir por estado real da API (webhook/push de disponibilidade do link)
   const cpVideoDisponivel = localStorage.getItem("cp_video_disponivel") === "true"; // DESIGN ONLY
+
+  // DESIGN ONLY — ?cp=contrato_novo ativa o card "Contrato ativo" no "Para você agora" por até 2 dias
+  // TODO: em produção, gravar timestamp quando status da proposta mudar para DESEMBOLSO_CONCLUIDO
+  const TIMEOUT_CONTRATO_NOVO_MS = 2 * 24 * 60 * 60 * 1000; // 2 dias
+  const contratoNovoTimestamp = localStorage.getItem("podeja_contrato_novo_ts"); // DESIGN ONLY
+  const mostrarContratoNovo =
+    cpStatus === "contrato_novo" ||
+    (contratoNovoTimestamp !== null && Date.now() - Number(contratoNovoTimestamp) < TIMEOUT_CONTRATO_NOVO_MS); // DESIGN ONLY
+  if (cpStatus === "contrato_novo" && !contratoNovoTimestamp) {
+    localStorage.setItem("podeja_contrato_novo_ts", String(Date.now())); // DESIGN ONLY
+  }
   // Card do produto sempre igual — status afeta apenas o "Para você agora"
   const fgtsHighlight = "Receba seu saldo em até 15 minutos";
   const fgtsCta = "Antecipar agora";
@@ -4260,7 +4289,9 @@ function App() {
       ? "Consultando sua oferta..."
       : cltStatus === "contrato"
         ? "Parcela de R$ 533,65 · vence em 12 dias"
-        : "Descubra quanto você pode ter"; // none e oferta: mesmo highlight padrão
+        : cltStatus === "consulta_liberada"
+          ? "Suas ofertas estão prontas"
+          : "Descubra quanto você pode ter"; // none e oferta: mesmo highlight padrão
 
   const cltCta =
     cltStatus === "none"
@@ -4269,14 +4300,17 @@ function App() {
         ? "Ver status"
         : cltStatus === "oferta"
           ? "Consultar agora"
-          : "Ver contrato";
+          : cltStatus === "consulta_liberada"
+            ? "Ver ofertas"
+            : "Ver contrato"; // contrato
 
+  // none | consultando | oferta → sempre a página de introdução do produto primeiro
   const cltPath =
     cltStatus === "contrato"
       ? "/contratos"
-      : cltStatus === "oferta"
-        ? "/consignado-clt/oferta"
-        : "/consignado-clt/simular";
+      : cltStatus === "consulta_liberada"
+        ? "/consignado-clt/ofertas"
+        : "/consignado-clt";
 
   const HomeScreen = (
     <div className="min-h-screen w-full md:flex">
@@ -4313,30 +4347,35 @@ function App() {
               "0" = oculto (exceto se fgts=autorizado|contrato) | "1" = card CLT | "2" = CLT + Saque Fácil
               fgts=autorizado|contrato → sempre exibe card FGTS (independente de paravoc)
               TODO: controlar por API */}
-          {paravocemParam === "0" && fgtsStatus === "none" && !cpOfertaPronta && !cpVideoDisponivel ? null : (paravocemParam === "1" || paravocemParam === "2" || fgtsStatus !== "none" || cpOfertaPronta || cpVideoDisponivel) ? (
+          {paravocemParam === "0" && fgtsStatus === "none" && !cpOfertaPronta && !cpVideoDisponivel && cpStatus !== "assinatura_pendente" && !mostrarContratoNovo && !mostrarCltConsultaLiberada ? null : (paravocemParam === "1" || paravocemParam === "2" || fgtsStatus !== "none" || cpOfertaPronta || cpVideoDisponivel || cpStatus === "assinatura_pendente" || mostrarContratoNovo || mostrarCltConsultaLiberada) ? (
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
               <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
 
-                {/* Card oferta CLT — visível apenas quando paravoc=1 ou paravoc=2 */}
-                {(paravocemParam === "1" || paravocemParam === "2") && (
-                  <button
-                    type="button"
-                    onClick={() => navigate("/consignado-clt/oferta")}
-                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
-                  >
-                    <div className="flex h-full flex-col justify-between p-4">
-                      <div>
-                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
-                          <CurrencyCircleDollar size={20} />
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">Você tem até R$ 32.533,83 para receber.</p>
+                {/* Card "Consulta CLT concluída" — exibido quando ?clt=consulta_liberada (ou enquanto persistir no localStorage)
+                    DESIGN ONLY — some quando o usuário entra em /consignado-clt/revisao
+                    TODO: remover localStorage quando API disponibilizar status real */}
+                {mostrarCltConsultaLiberada && (
+                  <div className="w-[220px] shrink-0 rounded-xl bg-white/95 p-4 space-y-3 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+                        <CheckCircle size={16} className="text-green-600" weight="fill" />
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
-                        Ver minha oferta <CaretRight size={12} />
-                      </div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-green-600">
+                        Consulta concluída
+                      </p>
                     </div>
-                  </button>
+                    <p className="text-sm font-semibold text-foreground leading-snug">
+                      Suas ofertas de crédito CLT estão prontas
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/consignado-clt/ofertas")}
+                      className="flex items-center gap-1 text-xs font-semibold text-[#E8590A]"
+                    >
+                      Ver minhas ofertas <CaretRight size={12} />
+                    </button>
+                  </div>
                 )}
 
                 {/* Card Saque Fácil — exibido apenas quando paravoc=2 */}
@@ -4459,6 +4498,68 @@ function App() {
                   </button>
                 )}
 
+                {/* Card "Proposta aguardando assinatura" — exibido quando ?cp=assinatura_pendente
+                    DESIGN ONLY — substitui o card padrão de ?cp=andamento
+                    Clicar no corpo do card navega para a tela de assinatura; clicar em "Reenviar SMS" apenas reenvia (sem navegar)
+                    TODO: acionar reenvio real do SMS via API quando disponível */}
+                {cpStatus === "assinatura_pendente" && (
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate("/credito-pessoal/assinatura?status=aguardando")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") navigate("/credito-pessoal/assinatura?status=aguardando");
+                    }}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] cursor-pointer rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <Signature size={20} />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Você tem uma proposta aguardando assinatura</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toast("Reenvio solicitado.");
+                        }}
+                        className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]"
+                      >
+                        Reenviar SMS <CaretRight size={12} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Card "Contrato recém-aprovado" — exibido quando ?cp=contrato_novo, some após 2 dias
+                    DESIGN ONLY — timestamp gravado em "podeja_contrato_novo_ts"
+                    TODO: em produção, gravar timestamp quando status da proposta mudar para DESEMBOLSO_CONCLUIDO
+                    TODO: em produção, remover timestamp quando usuário visualizar o contrato ou após 2 dias */}
+                {mostrarContratoNovo && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.removeItem("podeja_contrato_novo_ts"); // DESIGN ONLY
+                      navigate("/credito-pessoal/contrato/mock");
+                    }}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
+                          <CheckCircle size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Seu contrato do Crédito Pessoal está ativo!</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                        Ver contrato <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
               </div>
             </div>
           ) : (
@@ -4480,21 +4581,25 @@ function App() {
               ] as const).map((interest) => {
                 // DESIGN ONLY — estado do card Crédito Pessoal varia por ?cp=
                 const cpHighlight =
-                  cpStatus === "andamento"
+                  cpStatus === "andamento" || cpStatus === "assinatura_pendente"
                     ? "Proposta em andamento" // DESIGN ONLY
-                    : cpStatus === "ativo"
+                    : cpStatus === "ativo" || cpStatus === "contrato_novo"
                     ? "Contrato ativo" // DESIGN ONLY
                     : "Dinheiro na conta em minutos"; // disponivel (default)
                 const cpCta =
-                  cpStatus === "andamento"
+                  cpStatus === "assinatura_pendente"
+                    ? "Assinar agora" // DESIGN ONLY
+                    : cpStatus === "andamento"
                     ? "Acompanhar" // DESIGN ONLY
-                    : cpStatus === "ativo"
+                    : cpStatus === "ativo" || cpStatus === "contrato_novo"
                     ? "Ver contrato" // DESIGN ONLY
                     : "Simular agora";
                 const cpPath =
-                  cpStatus === "andamento"
+                  cpStatus === "assinatura_pendente"
+                    ? "/credito-pessoal/assinatura?status=aguardando" // DESIGN ONLY
+                    : cpStatus === "andamento"
                     ? "/credito-pessoal/assinatura" // DESIGN ONLY
-                    : cpStatus === "ativo"
+                    : cpStatus === "ativo" || cpStatus === "contrato_novo"
                     ? "/credito-pessoal/contrato/mock" // DESIGN ONLY
                     : "/credito-pessoal";
 
@@ -4559,8 +4664,8 @@ function App() {
                               <p className={`mb-2 font-semibold text-[14px] ${
                                 interest === "clt" && cltStatus === "consultando" ? "text-[16px]" : ""
                               } ${
-                                // DESIGN ONLY — ?cp=ativo → highlight verde
-                                interest === "credito-pessoal" && cpStatus === "ativo" ? "text-[#16A34A]" : "text-[#E8590A]"
+                                // DESIGN ONLY — ?cp=ativo|contrato_novo → highlight verde
+                                interest === "credito-pessoal" && (cpStatus === "ativo" || cpStatus === "contrato_novo") ? "text-[#16A34A]" : "text-[#E8590A]"
                               }`}>{currentService.highlight}</p>
                             ) : null}
                             {!(interest === "clt" && (cltStatus === "consultando" || cltStatus === "contrato")) && (
@@ -4568,7 +4673,7 @@ function App() {
                             )}
                           </div>
                           <button onClick={() => {
-                            if (interest === "clt") navigate(cltStatus === "none" ? "/consignado-clt" : cltPath);
+                            if (interest === "clt") navigate(cltPath);
                             else if (interest === "fgts") navigate(fgtsPath);
                             else if (interest === "saque-facil") navigate("/saque-facil");
                             else if (interest === "credito-pessoal") navigate(cpPath);
@@ -4776,11 +4881,13 @@ function App() {
             <Route path="/saque-facil/revisao" element={getStoredUser() ? <SaqueFacilRevisaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/provedores" element={getStoredUser() ? <ConsignadoCLTProvedoresPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/redirecionando/:provedor" element={getStoredUser() ? <ConsignadoCLTRedirecionandoPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* Rota mantida mas fora do fluxo padrão — consulta simultânea legada, superada pelo fluxo provedor a provedor */}
             <Route path="/consignado-clt/loading" element={getStoredUser() ? <ConsignadoCLTLoadingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/ofertas" element={getStoredUser() ? <ConsignadoCLTOfertasPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/aguardando" element={getStoredUser() ? <ConsignadoCLTAguardandoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/sem-oferta" element={getStoredUser() ? <ConsignadoCLTSemOfertaPage /> : <Navigate to="/boas-vindas" replace />} />
-            {/* Rota mantida mas fora do fluxo — OfertaPage substituída pela dashboard do card na home */}
-            <Route path="/consignado-clt/oferta" element={getStoredUser() ? <ConsignadoCLTOfertaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/simular" element={getStoredUser() ? <ConsignadoCLTSimuladorPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/revisao" element={getStoredUser() ? <ConsignadoCLTRevisaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/dados" element={getStoredUser() ? <ConsignadoCLTDadosPage /> : <Navigate to="/boas-vindas" replace />} />

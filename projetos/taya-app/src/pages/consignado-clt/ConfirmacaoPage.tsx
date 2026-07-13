@@ -27,6 +27,7 @@ interface ConfirmacaoState {
   prazo?: number;
   valorParcela?: number;
   banco?: { nome: string } | null;
+  provedor?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -46,9 +47,15 @@ export default function ConsignadoCLTConfirmacaoPage() {
     prazo = 36,
     valorParcela = 533.65,
     banco = null,
+    provedor = "Bull",
   } = (location.state as ConfirmacaoState) ?? {};
 
   const linhasResumo = [
+    {
+      label: "Parceiro",
+      value: provedor,
+      valueClass: "text-sm font-semibold text-[#A33D05]",
+    },
     {
       label: "Valor a receber",
       value: `R$ ${formatCurrency(valor)}`,

@@ -94,6 +94,7 @@ export default function CreditoPessoalAssinatura() {
 
   const [etapa, setEtapa] = useState<"aviso" | "aguardando">(initialEtapa);
   const [erroVisivel, setErroVisivel] = useState(true);
+  const [mostrarAvisoSaida, setMostrarAvisoSaida] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // DESIGN ONLY — roteamento automático por ?status
@@ -125,14 +126,11 @@ export default function CreditoPessoalAssinatura() {
     setEtapa("aguardando");
   }, []);
 
-  // Ao clicar em "Assinar agora" no UnicoAguardando (tentativa de reabrir)
-  const handleReabrirAssinatura = useCallback(() => {
-    // TODO: reabrir token_sdk Unico diretamente
-    // Simular: navegar para confirmação após 1s
-    timerRef.current = setTimeout(() => {
-      navigate("/credito-pessoal/confirmacao", { state: st });
-    }, 1000);
-  }, [navigate, st]);
+  // Ao clicar em "Reenviar SMS" no UnicoAguardando
+  const handleReenviarSms = useCallback(() => {
+    // TODO: endpoint de reenvio de SMS
+    toast("Reenvio solicitado.");
+  }, []);
 
   const handleCancelar = useCallback(() => {
     // TODO: conectar ao DELETE /propostas/{id}
@@ -176,29 +174,38 @@ export default function CreditoPessoalAssinatura() {
 
             {/* ── Modo SMS (fallback enquanto link Unico não está disponível) ── */}
             {modoParam === "sms" && (
-              <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-white p-6 shadow-sm text-center">
-                <DeviceMobileSpeaker size={48} className="text-[#E8590A]" />
-                <div className="space-y-1">
-                  <h2 className="text-lg font-bold text-foreground">Verifique seu celular</h2>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Enviamos um link de assinatura por SMS para o número cadastrado. Abra o link e siga as instruções para assinar seu contrato.
-                  </p>
-                  {celularMascarado && (
-                    <p className="mt-1 text-sm font-semibold text-foreground">{celularMascarado}</p>
-                  )}
+              <>
+                <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-white p-6 shadow-sm text-center">
+                  <DeviceMobileSpeaker size={48} className="text-[#E8590A]" />
+                  <div className="space-y-1">
+                    <h2 className="text-lg font-bold text-foreground">Verifique seu celular</h2>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      Enviamos um link de assinatura por SMS para o número cadastrado. Abra o link e siga as instruções para assinar seu contrato.
+                    </p>
+                    {celularMascarado && (
+                      <p className="mt-1 text-sm font-semibold text-foreground">{celularMascarado}</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Após assinar, volte aqui para acompanhar.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // TODO: endpoint de reenvio de SMS
+                      toast("Reenvio solicitado.");
+                    }}
+                    className="flex h-11 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A] transition-colors hover:bg-[#FEF0E7]"
+                  >
+                    Não recebi o SMS
+                  </button>
                 </div>
-                <p className="text-xs text-muted-foreground">Após assinar, volte aqui para acompanhar.</p>
                 <button
                   type="button"
-                  onClick={() => {
-                    // TODO: endpoint de reenvio de SMS
-                    toast("Reenvio solicitado.");
-                  }}
-                  className="flex h-11 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A] transition-colors hover:bg-[#FEF0E7]"
+                  onClick={() => setMostrarAvisoSaida(true)}
+                  className="flex h-11 w-full items-center justify-center rounded-full border border-border text-sm font-semibold text-foreground"
                 >
-                  Não recebi o SMS
+                  Assinar depois
                 </button>
-              </div>
+              </>
             )}
 
             {/* ── Modo Unico (fluxo ideal — quando link estiver disponível) ── */}
@@ -223,12 +230,13 @@ export default function CreditoPessoalAssinatura() {
             descricao={
               linkExpirado
                 ? "A assinatura do seu contrato é feita pela Unico, nossa parceira de verificação de identidade. O link gerado tem um prazo de validade e infelizmente ele expirou antes de ser utilizado."
-                : "Você saiu antes de concluir. Toque em Assinar agora para continuar de onde parou."
+                : "Você saiu antes de concluir. Toque em Reenviar SMS para receber um novo link de assinatura."
             }
             descricaoAcao={linkExpirado ? "Você pode iniciar uma nova simulação para gerar um novo contrato." : undefined}
-            labelBotao="Assinar agora"
             mostrarBotao={!linkExpirado}
-            onAssinar={handleReabrirAssinatura}
+            mostrarAcoesReenvio={!linkExpirado}
+            onReenviarSms={handleReenviarSms}
+            onAssinarDepois={() => setMostrarAvisoSaida(true)}
             onCancelar={handleCancelar}
             // Props para o estado expirado
             labelAcaoExpirado="Iniciar nova simulação"
@@ -238,6 +246,50 @@ export default function CreditoPessoalAssinatura() {
             }}
             onVoltar={() => navigate("/painel")}
           />
+        )}
+
+        {/* ── Modal de aviso antes de sair sem assinar ── */}
+        {mostrarAvisoSaida && (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 md:items-center"
+            onClick={() => setMostrarAvisoSaida(false)}
+          >
+            <div
+              className="w-full max-w-md space-y-4 rounded-t-3xl bg-background p-6 md:rounded-3xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                  <Clock size={20} className="text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-base font-semibold text-foreground">Seu link expira em 72 horas</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">Você pode assinar mais tarde pelo painel.</p>
+                </div>
+              </div>
+
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Quando voltar ao painel, você encontrará um aviso com a opção de reenviar o SMS de assinatura.
+              </p>
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setMostrarAvisoSaida(false)}
+                  className="flex h-11 flex-1 items-center justify-center rounded-full border border-border text-sm font-semibold text-foreground"
+                >
+                  Continuar aqui
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/painel")}
+                  className="flex h-11 flex-1 items-center justify-center rounded-full bg-[#E8590A] text-sm font-semibold text-white"
+                >
+                  Ir para o painel
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
       </div>

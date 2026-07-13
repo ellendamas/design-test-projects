@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CalendarBlank, Check } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
@@ -29,6 +29,7 @@ interface RevisaoState {
   valorParcela: number;
   totalAPagar: number;
   taxaMensal: number;
+  provedor?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -44,6 +45,7 @@ export default function ConsignadoCLTRevisaoPage() {
     valorParcela,
     totalAPagar,
     taxaMensal,
+    provedor = "Bull",
   } = (location.state as RevisaoState) ?? {
     valor: 10000,
     prazo: 36,
@@ -53,6 +55,12 @@ export default function ConsignadoCLTRevisaoPage() {
   };
 
   const [termoAceito, setTermoAceito] = useState(false);
+
+  // Usuário avançou para a revisão (escolheu uma oferta) — o card "Consulta concluída" do painel some
+  // TODO: remover localStorage quando API disponibilizar status real
+  useEffect(() => {
+    localStorage.removeItem("podeja_clt_consulta_ts");
+  }, []);
 
   // Cálculos derivados
   // TODO: receber IOF real da API
@@ -99,7 +107,12 @@ export default function ConsignadoCLTRevisaoPage() {
 
         {/* Bloco 1 — Composição do empréstimo */}
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-          <p className="mb-3 text-base font-semibold text-foreground">Sua oferta</p>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-base font-semibold text-foreground">Sua oferta</p>
+            <span className="rounded-full bg-[#FEF0E7] px-2.5 py-1 text-[11px] font-semibold text-[#E8590A]">
+              {provedor}
+            </span>
+          </div>
 
           <div className="divide-y divide-border">
             {linhasComposicao.map((linha) => (
@@ -185,7 +198,7 @@ export default function ConsignadoCLTRevisaoPage() {
         <button
           type="button"
           disabled={!termoAceito}
-          onClick={() => navigate("/consignado-clt/dados")}
+          onClick={() => navigate("/consignado-clt/dados", { state: { ...location.state, valor, prazo, valorParcela, totalAPagar, taxaMensal, provedor } })}
           className={cn(
             "flex h-14 w-full items-center justify-center rounded-full text-base font-semibold text-white transition-colors",
             termoAceito

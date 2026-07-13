@@ -1,26 +1,47 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Check } from "@phosphor-icons/react";
-import { motion } from "framer-motion";
+import { CheckCircle, DeviceMobileSpeaker, XCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { Logo } from "@/components/Logo";
 
-const stages = [
-  { id: "started", label: "Consulta iniciada" },
-  { id: "margin", label: "Verificando margem disponível" },
-  { id: "offer", label: "Calculando melhor oferta" },
+// ---------------------------------------------------------------------------
+// Provedores
+// ---------------------------------------------------------------------------
+type ProvedorId = "bull" | "c6" | "v8";
+type StatusProvedor = "consultando" | "oferta" | "sem_oferta" | "aguardando_externo";
+
+const PROVEDORES_IDS: ProvedorId[] = ["bull", "c6", "v8"];
+
+const NOMES_PROVEDORES: Record<ProvedorId, string> = {
+  bull: "Bull",
+  c6: "C6 Bank",
+  v8: "V8",
+};
+
+// Mock de estados para design testing — TODO: substituir por polling real
+const MOCK_TIMELINE: { delay: number; updates: Partial<Record<ProvedorId, StatusProvedor>> }[] = [
+  { delay: 1500, updates: { bull: "consultando", v8: "consultando" } },
+  { delay: 3000, updates: { bull: "oferta" } },
+  { delay: 4500, updates: { v8: "sem_oferta" } },
+  { delay: 5500, updates: { c6: "aguardando_externo" } },
 ];
 
+// ---------------------------------------------------------------------------
+// Componente
+// ---------------------------------------------------------------------------
 export default function ConsignadoCLTLoadingPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [activeStage, setActiveStage] = useState(0);
+  const [status, setStatus] = useState<Partial<Record<ProvedorId, StatusProvedor>>>({});
   const [timedOut, setTimedOut] = useState(false);
 
-  // DESIGN ONLY — simular retorno negativo do leilão via query param
-  // URL de teste: /consignado-clt/loading?resultado=negativo
+  // DESIGN ONLY — simular resultado da consulta via query param
+  // URLs de teste: /consignado-clt/loading?resultado=negativo|nenhuma|uma|multiplas
   // TODO: substituir por lógica real da API
-  const semOferta = searchParams.get("resultado") === "negativo";
+  const resultado = searchParams.get("resultado") ?? "multiplas";
+  const semOferta = resultado === "negativo" || resultado === "nenhuma";
+  const qtd = resultado === "uma" ? 1 : 3; // multiplas (default) = 3
+
   useEffect(() => {
     if (semOferta) {
       navigate("/consignado-clt/sem-oferta", { replace: true });
@@ -28,22 +49,35 @@ export default function ConsignadoCLTLoadingPage() {
   }, [semOferta, navigate]);
 
   useEffect(() => {
-    // TODO: substituir setTimeout mock por polling real da API
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    timers.push(
-      setTimeout(() => setActiveStage(1), 3000),
-      setTimeout(() => setActiveStage(2), 6000),
+    if (semOferta) return;
+    // TODO: substituir MOCK_TIMELINE por polling real da API (status por provedor)
+    const timers = MOCK_TIMELINE.map(({ delay, updates }) =>
+      setTimeout(() => setStatus((prev) => ({ ...prev, ...updates })), delay),
     );
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [semOferta]);
 
   useEffect(() => {
-    // Timeout de 30s — se API não retornar, mostrar opção de saída
-    const timeout = setTimeout(() => {
-      setTimedOut(true);
-    }, 30000);
+    if (semOferta) return;
+    // Timeout de 60s — se nem todos os provedores responderem, mostrar opção de saída
+    const timeout = setTimeout(() => setTimedOut(true), 60000);
     return () => clearTimeout(timeout);
-  }, []);
+  }, [semOferta]);
+
+  // Navegação automática quando todos os provedores mock já responderam
+  useEffect(() => {
+    if (semOferta) return;
+    const todosResponderam = PROVEDORES_IDS.every((id) => Boolean(status[id]));
+    if (!todosResponderam) return;
+    const timer = setTimeout(() => {
+      navigate(`/consignado-clt/ofertas?qtd=${qtd}`, { replace: true });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [status, semOferta, qtd, navigate]);
+
+  const handleVerDisponiveis = () => {
+    navigate(`/consignado-clt/ofertas?qtd=${qtd}`);
+  };
 
   return (
     <SubPageLayout title="Consultando oferta" hideNav>
@@ -51,125 +85,76 @@ export default function ConsignadoCLTLoadingPage() {
 
         {/* Bloco — identidade e status */}
         <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
-          <div className="flex flex-col items-center gap-5 text-center">
-            {/* Logo Pode Já */}
+          <div className="flex flex-col items-center gap-2 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E8590A]">
               <Logo variant="white" size="sm" />
             </div>
-
-            {/* Título e subtítulo */}
-            <div className="space-y-1">
+            <div className="mt-2 space-y-1">
               <h1 className="text-lg font-semibold text-foreground">
-                Buscando sua melhor oferta
+                Consultando sua margem...
               </h1>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Estamos consultando várias instituições ao mesmo tempo para encontrar a taxa mais
-                baixa para você.
+                Buscando as melhores condições para você.
               </p>
-            </div>
-
-            {/* Progress bar animada (Framer Motion) */}
-            <div
-              className="w-full overflow-hidden rounded-full bg-muted"
-              style={{ height: "4px" }}
-              role="status"
-              aria-label="Consultando ofertas"
-            >
-              <motion.div
-                className="h-full rounded-full bg-[#E8590A]"
-                style={{ width: "40%" }}
-                animate={{ x: ["-100%", "400%"] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              />
             </div>
           </div>
         </div>
 
-        {/* Bloco — etapas da consulta */}
+        {/* Bloco — status por parceiro */}
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-          <p className="mb-4 text-sm font-semibold text-foreground">Etapas da consulta</p>
+          <p className="mb-4 text-sm font-semibold text-foreground">Status por parceiro</p>
           <div className="space-y-4">
-            {stages.map((stage, index) => {
-              const isDone = index < activeStage;
-              const isActive = index === activeStage;
+            {PROVEDORES_IDS.map((id) => {
+              const nome = NOMES_PROVEDORES[id];
+              const s = status[id];
 
-              return (
-                <div key={stage.id} className="flex items-center gap-3">
-                  <motion.div
-                    className={
-                      isDone
-                        ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700"
-                        : isActive
-                          ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-100 text-[#E8590A]"
-                          : "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-muted"
-                    }
-                    animate={isActive ? { scale: [1, 1.15, 1] } : { scale: 1 }}
-                    transition={
-                      isActive
-                        ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
-                        : {}
-                    }
-                  >
-                    {isDone ? (
-                      <Check size={12} weight="bold" />
-                    ) : isActive ? (
-                      <div className="h-2 w-2 rounded-full bg-[#E8590A]" />
-                    ) : (
-                      <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
-                    )}
-                  </motion.div>
-                  <div className="flex flex-col">
-                    <span
-                      className={
-                        isDone || isActive
-                          ? "text-sm text-foreground"
-                          : "text-sm text-muted-foreground"
-                      }
-                    >
-                      {stage.label}
-                    </span>
-                    {isActive && (
-                      <span className="text-xs font-medium text-[#E8590A]">Em andamento</span>
-                    )}
+              if (s === "oferta") {
+                return (
+                  <div key={id} className="flex items-center gap-3">
+                    <CheckCircle size={18} className="text-green-600" weight="fill" />
+                    <span className="text-sm text-foreground">{nome} encontrou uma oferta</span>
                   </div>
+                );
+              }
+              if (s === "sem_oferta") {
+                return (
+                  <div key={id} className="flex items-center gap-3">
+                    <XCircle size={18} className="text-muted-foreground" weight="fill" />
+                    <span className="text-sm text-muted-foreground">{nome} não encontrou oferta no momento</span>
+                  </div>
+                );
+              }
+              if (s === "aguardando_externo") {
+                return (
+                  <div key={id} className="flex items-center gap-3">
+                    <DeviceMobileSpeaker size={18} className="text-amber-600" />
+                    <span className="text-sm text-foreground">Aguardando verificação do {nome}</span>
+                  </div>
+                );
+              }
+              // consultando (ou ainda sem status inicial)
+              return (
+                <div key={id} className="flex items-center gap-3">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#E8590A] border-t-transparent" />
+                  <span className="text-sm text-foreground">Aguardando {nome}...</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* CTA — condicional por timeout */}
-        <div className="sticky bottom-20 z-40 bg-background pb-6 pt-3 md:bottom-0">
-          {timedOut ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-center text-sm text-muted-foreground">
-                Está demorando mais que o esperado. Você pode aguardar ou voltar depois — sua consulta continua em andamento.
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate("/painel")}
-                className="flex h-12 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-medium text-[#E8590A] transition-colors hover:bg-orange-50"
-              >
-                Voltar para o início
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/consignado-clt/aguardando")}
-                className="py-2 text-center text-sm text-muted-foreground"
-              >
-                Aguardar aqui
-              </button>
-            </div>
-          ) : (
+        {/* CTA — exibido apenas após timeout de 60s */}
+        {timedOut && (
+          <div className="sticky bottom-20 z-40 bg-background pb-6 pt-3 md:bottom-0">
             <button
               type="button"
-              onClick={() => navigate("/consignado-clt/aguardando")}
+              onClick={handleVerDisponiveis}
               className="flex h-12 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-medium text-[#E8590A] transition-colors hover:bg-orange-50"
             >
-              Aguardar e receber notificação
+              Ver ofertas disponíveis até agora
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
       </div>
     </SubPageLayout>

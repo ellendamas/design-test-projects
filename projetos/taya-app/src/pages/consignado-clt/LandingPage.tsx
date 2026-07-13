@@ -67,7 +67,9 @@ export default function ConsignadoCLTLandingPage() {
 
   const handleConsult = () => {
     setIsConsulting(true);
-    navigate("/consignado-clt/loading");
+    // Fluxo padrão: usuário sempre parte do zero, sem nenhum consentimento prévio,
+    // e passa por todas as etapas (escolha de parceiro → consentimento → consulta)
+    navigate("/consignado-clt/provedores");
   };
 
   return (

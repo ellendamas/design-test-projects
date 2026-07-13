@@ -103,6 +103,7 @@ export const contratos = [
     tipo: "clt",
     produto: "Crédito com desconto em folha",
     status: "ativo",
+    provedor: "Bull",
     valorCredito: 10915.31,
     valorLiquido: 10551.58,
     taxaJurosMes: 3.99,

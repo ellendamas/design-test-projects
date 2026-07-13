@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Fingerprint, HourglassMedium } from "@phosphor-icons/react";
+import { DeviceMobileSpeaker, Fingerprint, HourglassMedium } from "@phosphor-icons/react";
 import {
   Dialog,
   DialogContent,
@@ -23,8 +23,12 @@ type UnicoAguardandoProps = {
   descricao?: string;
   labelBotao?: string;
   mostrarBotao?: boolean;
-  onAssinar?: () => void;          // obrigatório se mostrarBotao=true
+  onAssinar?: () => void;          // obrigatório se mostrarBotao=true e mostrarAcoesReenvio=false
   onCancelar?: () => void;         // quando mostrarBotao=true: abre modal de confirmação
+  // Quando mostrarAcoesReenvio=true, substitui o botão "Assinar agora" por "Reenviar SMS" + "Assinar depois"
+  mostrarAcoesReenvio?: boolean;
+  onReenviarSms?: () => void;      // obrigatório se mostrarAcoesReenvio=true
+  onAssinarDepois?: () => void;
   // Props para o estado expirado (mostrarBotao=false)
   descricaoAcao?: string;          // texto do bloco de ação (exibido junto do botão de nova simulação)
   labelAcaoExpirado?: string;      // default: "Iniciar nova simulação"
@@ -59,6 +63,9 @@ export default function UnicoAguardando({
   mostrarBotao = true,
   onAssinar,
   onCancelar,
+  mostrarAcoesReenvio = false,
+  onReenviarSms,
+  onAssinarDepois,
   descricaoAcao,
   labelAcaoExpirado = "Iniciar nova simulação",
   onAcaoExpirado,
@@ -116,14 +123,36 @@ export default function UnicoAguardando({
           {/* Rodapé fixo — botão assinar + link cancelar */}
           <div className="fixed bottom-20 left-0 right-0 z-40 border-t border-border bg-background px-4 py-4 md:relative md:bottom-0 md:border-t-0 md:px-0 md:pt-2">
             <div className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={onAssinar}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
-              >
-                <Fingerprint size={20} />
-                {labelBotao}
-              </button>
+              {mostrarAcoesReenvio ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={onReenviarSms}
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+                  >
+                    <DeviceMobileSpeaker size={20} />
+                    Reenviar SMS
+                  </button>
+                  {onAssinarDepois && (
+                    <button
+                      type="button"
+                      onClick={onAssinarDepois}
+                      className="flex h-11 w-full items-center justify-center rounded-full border border-border text-sm font-semibold text-foreground"
+                    >
+                      Assinar depois
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onAssinar}
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+                >
+                  <Fingerprint size={20} />
+                  {labelBotao}
+                </button>
+              )}
               {onCancelar && (
                 <button
                   type="button"
