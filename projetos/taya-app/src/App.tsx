@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowSquareOut,
+  ArrowsClockwise,
   Bank,
   Bell,
   BookOpen,
@@ -17,6 +18,7 @@ import {
   CaretLeft,
   CaretRight,
   CaretDown,
+  ChartLineUp,
   ChatCircle,
   Check,
   CheckCircle,
@@ -57,6 +59,7 @@ import {
   Newspaper,
   PawPrint,
   PencilSimple,
+  PiggyBank,
   Plus,
   SealCheck,
   ShieldCheck,
@@ -231,6 +234,39 @@ function isValidExpiry(value: string) {
 }
 
 const HERO_IMAGE = "/images/bem-vindo.png";
+
+const NECESSIDADES = [
+  {
+    id: "credito",
+    icon: Money,
+    titulo: "Preciso de dinheiro extra",
+    subtitulo: "Crédito, empréstimo ou antecipação",
+  },
+  {
+    id: "dividas",
+    icon: ArrowsClockwise,
+    titulo: "Quero reduzir minhas dívidas",
+    subtitulo: "Renegociar ou quitar o que devo",
+  },
+  {
+    id: "economizar",
+    icon: PiggyBank,
+    titulo: "Quero economizar no dia a dia",
+    subtitulo: "Reduzir gastos fixos e contas",
+  },
+  {
+    id: "proteger",
+    icon: ShieldCheck,
+    titulo: "Quero proteger minha família",
+    subtitulo: "Seguros e assistências",
+  },
+  {
+    id: "organizar",
+    icon: ChartLineUp,
+    titulo: "Quero entender minha vida financeira",
+    subtitulo: "Organizar e planejar melhor",
+  },
+];
 
 const serviceCopy: Record<
   ServiceType,
@@ -3042,8 +3078,7 @@ function App() {
     erroOtpParam !== null && OTP_ERRO_CATS.includes(erroOtpParam)
   );
   const [mfaCountdown, setMfaCountdown] = useState(30);
-  const [biometria, setBiometria] = useState(false);
-  const [biometriaSheetOpen, setBiometriaSheetOpen] = useState(false);
+  const [necessidades, setNecessidades] = useState<string[]>([]);
   const [storedUser, setStoredUser] = useState<StoredUser | null>(() => getStoredUser());
 
   const [loginCpf, setLoginCpf] = useState("");
@@ -3123,8 +3158,7 @@ function App() {
     setPhone("");
     setCpf("");
     setPin("");
-    setBiometria(false);
-    setBiometriaSheetOpen(false);
+    setNecessidades([]);
     setStoredUser(null);
     setLoginCpf("");
     setLoginSenha("");
@@ -3139,7 +3173,11 @@ function App() {
 
   const completeOnboarding = () => {
     const user = { name, email };
-    if (typeof window !== "undefined") window.localStorage.setItem("podeja_user", JSON.stringify(user));
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("podeja_user", JSON.stringify(user));
+      window.localStorage.setItem("podeja_necessidades", JSON.stringify(necessidades));
+    }
+    // TODO: enviar necessidades ao backend junto com os demais dados do cadastro
     setStoredUser(user);
     navigate("/painel");
   };
@@ -3275,7 +3313,16 @@ function App() {
       }
       setMfaErro("");
     }
+    if (step === 5) {
+      if (necessidades.length === 0) return; // validação
+      completeOnboarding();
+      return;
+    }
     setStep((prev) => prev + 1);
+  };
+
+  const toggleNecessidade = (id: string) => {
+    setNecessidades((prev) => (prev.includes(id) ? prev.filter((n) => n !== id) : [...prev, id]));
   };
 
   const goBack = () => {
@@ -3602,7 +3649,7 @@ function App() {
                   <Card className="border-border shadow-sm">
                     <CardContent className="space-y-4 pt-5">
                       <div className="space-y-1.5"><Label className="text-sm font-medium">Senha numérica (6 dígitos)</Label><Input type="password" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••" className="h-12 rounded-xl text-center text-lg tracking-[0.5em]" />{pin.length===6 && isWeakNumericPin(pin) ? <p className="text-xs text-red-600">Evite sequências como 123456 ou números repetidos.</p> : null}</div>
-                      <ul className="space-y-1.5">{["Não use sequências (123456)", "Não use sua data de nascimento", "Você poderá ativar biometria na próxima tela"].map((rule) => <li key={rule} className="flex items-center gap-2 text-xs text-muted-foreground"><CheckCircle size={13} className="shrink-0 text-muted-foreground/50" />{rule}</li>)}</ul>
+                      <ul className="space-y-1.5">{["Não use sequências (123456)", "Não use sua data de nascimento", "Guarde essa senha em um lugar seguro"].map((rule) => <li key={rule} className="flex items-center gap-2 text-xs text-muted-foreground"><CheckCircle size={13} className="shrink-0 text-muted-foreground/50" />{rule}</li>)}</ul>
                     </CardContent>
                   </Card>
                 </>
@@ -3678,37 +3725,62 @@ function App() {
                 </>
               )}
 
-              {/* ── Step 5 — Conclusão / Biometria ── */}
+              {/* ── Step 5 — Necessidades ── */}
               {step === 5 && (
-                <div className="flex flex-col items-center space-y-4 pt-8 text-center"><CheckCircle size={56} className="text-primary" weight="fill" /><div><h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2><p className="mx-auto mt-2 text-sm text-muted-foreground">A gente já encontrou uma opção para você. Veja o que está disponível na sua conta.</p></div><motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }} className="mt-4 w-full"><Button className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark" onClick={completeOnboarding}>Ver minha conta<ArrowRight size={16} className="ml-2" /></Button></motion.div></div>
+                <div className="flex flex-col gap-6 px-4 py-6">
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold text-foreground">Me conta o que você precisa</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Escolha tudo que faz sentido para você. Você pode mudar isso depois.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    {NECESSIDADES.map((item) => {
+                      const selecionado = necessidades.includes(item.id);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => toggleNecessidade(item.id)}
+                          className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition-all ${
+                            selecionado
+                              ? "border-[#E8590A] bg-[#FEF0E7]"
+                              : "border-border bg-white hover:border-[#E8590A]/40"
+                          }`}
+                        >
+                          <div
+                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                              selecionado ? "bg-[#E8590A] text-white" : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            <item.icon size={22} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{item.subtitulo}</p>
+                          </div>
+                          {selecionado && (
+                            <CheckCircle size={20} className="ml-auto shrink-0 text-[#E8590A]" weight="fill" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {step <= 4 && (
+        {step <= 5 && (
           <div className="grid grid-cols-2 gap-3 pt-6">
             <Button variant="outline" onClick={goBack} className="h-12 rounded-xl border-border text-foreground">Voltar</Button>
             <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
-              <Button onClick={goNext} disabled={!canGoNext} className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40">{step === 4 ? "Validar" : "Continuar"}</Button>
+              <Button onClick={goNext} disabled={step === 5 ? necessidades.length === 0 : !canGoNext} className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40">{step === 4 ? "Validar" : "Continuar"}</Button>
             </motion.div>
           </div>
         )}
       </div>
-
-      {step === 5 && biometriaSheetOpen && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setBiometriaSheetOpen(false)} />
-          <div className="fixed bottom-0 left-1/2 z-50 w-full -translate-x-1/2 rounded-t-2xl bg-white px-6 pb-10 pt-6">
-            <div className="mx-auto mb-6 h-1 w-10 rounded-full bg-border" />
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light"><Fingerprint size={32} className="text-primary" /></div>
-            <h3 className="mb-2 text-center text-xl font-bold text-foreground">Quer entrar com sua digital?</h3>
-            <p className="mb-6 text-center text-sm text-muted-foreground">É mais rápido e você não precisa lembrar da senha.</p>
-            <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}><Button className="mb-3 h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark" onClick={() => { setBiometria(true); setBiometriaSheetOpen(false); }}>Habilitar biometria</Button></motion.div>
-            <Button variant="ghost" className="h-12 w-full font-semibold text-primary" onClick={() => setBiometriaSheetOpen(false)}>Agora não</Button>
-          </div>
-        </>
-      )}
     </main>
   );
 
