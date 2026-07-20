@@ -284,8 +284,10 @@ export default function CreditoPessoalDados() {
               {[
                 { label: "CPF", value: dadosConta.cpf, locked: true, campo: undefined },
                 { label: "Nome completo", value: dadosConta.nome, locked: true, campo: undefined },
-                { label: "E-mail", value: emailLocal, locked: false, campo: "email" as const },
-                { label: "Celular", value: celularLocal, locked: false, campo: "celular" as const },
+                // Bloqueado por segurança: celular é usado como 2FA — edição aqui seria brecha de sequestro de conta.
+                // TODO: avaliar com Erasmo se haverá fluxo separado de troca de telefone com validação reforçada.
+                { label: "E-mail", value: emailLocal, locked: true, campo: "email" as const },
+                { label: "Celular", value: celularLocal, locked: true, campo: "celular" as const },
               ].map(({ label, value, locked, campo }, i, arr) => (
                 <div
                   key={label}

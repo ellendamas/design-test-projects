@@ -185,6 +185,17 @@ export default function CreditoPessoalDadosTomador() {
   const [pepFuncao, setPepFuncao] = useState("");
   const [pepTipoRelacao, setPepTipoRelacao] = useState("");
 
+  // Quando usuário é o próprio PEP: nome autopreenchido e bloqueado (confirmado com Erasmo 16/07)
+  // Quando tem relação com PEP: campo livre para digitar o nome da pessoa exposta
+  // TODO: campos "cargo" e "data do mandato" — aguardando confirmação de Erasmo/Pedro se são obrigatórios
+  useEffect(() => {
+    if (pepTipo === "proprio") {
+      setPepNome(locationState?.dadosConta?.nome ?? "");
+    } else if (pepTipo === "relacao") {
+      setPepNome(""); // limpa para digitação manual
+    }
+  }, [pepTipo]);
+
   const step3Completo =
     pep === false ? pepRespondido :
     pep === true && pepTipo === "proprio" ? !!pepNome && !!pepFuncao :
@@ -713,8 +724,9 @@ export default function CreditoPessoalDadosTomador() {
                       <FieldLabel>{pepTipo === "proprio" ? "Seu nome completo" : "Nome completo da pessoa exposta"}</FieldLabel>
                       <input
                         value={pepNome}
-                        onChange={(e) => setPepNome(e.target.value)}
-                        className={inputClass}
+                        onChange={(e) => pepTipo !== "proprio" ? setPepNome(e.target.value) : undefined}
+                        readOnly={pepTipo === "proprio"}
+                        className={`${inputClass} ${pepTipo === "proprio" ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
                         placeholder="Nome completo"
                       />
                     </div>

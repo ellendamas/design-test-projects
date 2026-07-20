@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  ArrowsLeftRight,
   CalendarCheck,
   CaretDown,
   CheckCircle,
@@ -13,7 +12,6 @@ import {
 } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubPageLayout } from "@/App";
-import { Logo } from "@/components/Logo";
 
 // ---------------------------------------------------------------------------
 // Dados estáticos
@@ -110,20 +108,16 @@ export default function CreditoPessoalLanding() {
         </div>
 
         {/* ── Bloco de parceria Pode Já × Zema Financeira ── */}
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-border bg-white p-3">
           <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex items-center gap-3">
-              <Logo size="md" />
-              <ArrowsLeftRight size={18} className="text-muted-foreground" />
-              <img
-                src="/images/logo-zema-financeira.png"
-                alt="Zema Financeira"
-                className="h-7 object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-            </div>
+            <img
+              src="/images/logo-zema-financeira.png"
+              alt="Zema Financeira"
+              className="h-10 object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
             <p className="text-xs font-medium text-muted-foreground">Parceiro oficial</p>
             <p className="text-xs text-muted-foreground leading-relaxed w-full">
               A Zema Financeira é uma instituição financeira autorizada pelo Banco Central, com mais de 30 anos de mercado e presença em todo o Brasil.

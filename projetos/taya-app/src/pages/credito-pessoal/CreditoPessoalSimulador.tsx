@@ -47,7 +47,7 @@ const MOCK_STATE: SimuladorState = {
   dataNasc: "12/08/1989",
   faixaRenda: "R$ 4.500,00",
   valorMinimo: 50000,  // centavos // TODO: receber da API
-  valorMaximo: 500000, // centavos // TODO: receber da API
+  valorMaximo: 300000, // centavos // TODO: receber da API — teto real da Zema é R$ 3.000,00
 };
 
 // ---------------------------------------------------------------------------

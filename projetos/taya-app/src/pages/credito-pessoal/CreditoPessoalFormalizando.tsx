@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { SubPageLayout } from "@/App";
 import { ErrorScreen, type ErrorCategoria } from "@/components/ErrorScreen";
 
 type LocationState = Record<string, unknown>;
@@ -48,8 +49,8 @@ export default function CreditoPessoalFormalizando() {
       } else if (resultado === "desembolso") {
         navigate("/credito-pessoal/confirmacao", { state: locationState });
       } else {
-        // "formalizada" ou sem param → assinatura
-        navigate("/credito-pessoal/assinatura", { state: locationState });
+        // "formalizada" ou sem param → em análise (antes de liberar a assinatura)
+        navigate("/credito-pessoal/em-analise", { state: locationState });
       }
     }, delay);
   }, [resultado, locationState, navigate]);
@@ -65,7 +66,7 @@ export default function CreditoPessoalFormalizando() {
   if (erroParam && !retrying) {
     const isFraude = erroParam === "fraude_ou_sensivel";
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
+      <SubPageLayout title="Crédito Pessoal" hideNav>
         <ErrorScreen
           categoria={erroParam}
           onTentarNovamente={
@@ -75,31 +76,33 @@ export default function CreditoPessoalFormalizando() {
           }
           labelBotao={isFraude ? "Falar com suporte" : "Tentar novamente"}
         />
-      </div>
+      </SubPageLayout>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-6 text-center">
+    <SubPageLayout title="Crédito Pessoal" hideNav>
       <style>{`@keyframes pulse-dot { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }`}</style>
-      <div className="flex items-center gap-3">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="h-4 w-4 rounded-full bg-[#E8590A]"
-            style={{
-              animation: "pulse-dot 1.2s ease-in-out infinite",
-              animationDelay: `${i * 0.2}s`,
-            }}
-          />
-        ))}
+      <div className="flex flex-col items-center justify-center gap-6 pt-10 text-center">
+        <div className="flex items-center gap-3">
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="h-4 w-4 rounded-full bg-[#E8590A]"
+              style={{
+                animation: "pulse-dot 1.2s ease-in-out infinite",
+                animationDelay: `${i * 0.2}s`,
+              }}
+            />
+          ))}
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Enviando sua proposta...</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Estamos finalizando tudo para você. Não feche o aplicativo.
+          </p>
+        </div>
       </div>
-      <div>
-        <h2 className="text-xl font-bold text-foreground">Enviando sua proposta...</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Estamos finalizando tudo para você. Não feche o aplicativo.
-        </p>
-      </div>
-    </div>
+    </SubPageLayout>
   );
 }

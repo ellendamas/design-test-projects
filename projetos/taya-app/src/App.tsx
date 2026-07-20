@@ -139,6 +139,7 @@ import CreditoPessoalRevisao from "./pages/credito-pessoal/CreditoPessoalRevisao
 import CreditoPessoalDadosTomador from "./pages/credito-pessoal/CreditoPessoalDadosTomador";
 import CreditoPessoalConta from "./pages/credito-pessoal/CreditoPessoalConta";
 import CreditoPessoalFormalizando from "./pages/credito-pessoal/CreditoPessoalFormalizando";
+import CreditoPessoalEmAnalise from "./pages/credito-pessoal/CreditoPessoalEmAnalise";
 import CreditoPessoalAssinatura from "./pages/credito-pessoal/CreditoPessoalAssinatura";
 import CreditoPessoalConfirmacao from "./pages/credito-pessoal/CreditoPessoalConfirmacao";
 import CreditoPessoalReprovada from "./pages/credito-pessoal/CreditoPessoalReprovada";
@@ -3030,11 +3031,10 @@ function App() {
   // Dado sensível — não persistir em localStorage. Usar sessionStorage apenas durante o onboarding.
   const [nascimento, setNascimento] = useState("");
   const [nascimentoErro, setNascimentoErro] = useState<string | undefined>();
-  const [consentido, setConsentido] = useState(false);
   const [mfaCode, setMfaCode] = useState("");
   const [mfaErro, setMfaErro] = useState("");
-  // DESIGN ONLY — ?erro=otp_invalido|otp_expirado|otp_max_tentativas (visível no step 6 do onboarding)
-  // Para simular: avance o onboarding até o step 6 (MFA por SMS) e adicione ?erro=otp_invalido na URL
+  // DESIGN ONLY — ?erro=otp_invalido|otp_expirado|otp_max_tentativas (visível no step 4 do onboarding)
+  // Para simular: avance o onboarding até o step 4 (MFA por SMS) e adicione ?erro=otp_invalido na URL
   // Lê diretamente de window.location para não conflitar com o searchParams que existe mais abaixo no escopo de App()
   const erroOtpParam = new URLSearchParams(window.location.search).get("erro") as ErrorCategoria | null; // DESIGN ONLY
   const OTP_ERRO_CATS = ["otp_invalido", "otp_expirado", "otp_max_tentativas"];
@@ -3042,10 +3042,8 @@ function App() {
     erroOtpParam !== null && OTP_ERRO_CATS.includes(erroOtpParam)
   );
   const [mfaCountdown, setMfaCountdown] = useState(30);
-  const [geoStatus, setGeoStatus] = useState<"idle" | "solicitando" | "concedida" | "negada" | "naoSuportado">("idle");
   const [biometria, setBiometria] = useState(false);
   const [biometriaSheetOpen, setBiometriaSheetOpen] = useState(false);
-  const [interests, setInterests] = useState<ServiceType[]>(["clt"]);
   const [storedUser, setStoredUser] = useState<StoredUser | null>(() => getStoredUser());
 
   const [loginCpf, setLoginCpf] = useState("");
@@ -3076,7 +3074,7 @@ function App() {
   const { dataVisible } = usePrivacy();
 
   const firstName = (storedUser?.name || name || "você").split(" ")[0] || "você";
-  const totalSteps = 7;
+  const totalSteps = 4;
 
   const pageVariants = {
     initial: { opacity: 0, y: 16 },
@@ -3096,12 +3094,10 @@ function App() {
   const canGoNext = useMemo(() => {
     if (step === 1) return name.trim().length > 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10;
     if (step === 2) return isValidCpf(cpf) && isAdultBirthDate(nascimento);
-    if (step === 3) return interests.length > 0;
-    if (step === 4) return pin.length === 6 && !isWeakNumericPin(pin);
-    if (step === 5) return consentido;
-    if (step === 6) return mfaCode.length === 6;
+    if (step === 3) return pin.length === 6 && !isWeakNumericPin(pin);
+    if (step === 4) return mfaCode.length === 6;
     return true;
-  }, [step, name, email, phone, cpf, nascimento, interests, pin, consentido, mfaCode, geoStatus]);
+  }, [step, name, email, phone, cpf, nascimento, pin, mfaCode]);
 
   const loginLockedSeconds = loginLockUntil ? Math.max(0, Math.ceil((loginLockUntil - Date.now()) / 1000)) : 0;
   const recoveryLockedSeconds = recoveryOtpLockUntil ? Math.max(0, Math.ceil((recoveryOtpLockUntil - Date.now()) / 1000)) : 0;
@@ -3129,7 +3125,6 @@ function App() {
     setPin("");
     setBiometria(false);
     setBiometriaSheetOpen(false);
-    setInterests(["clt"]);
     setStoredUser(null);
     setLoginCpf("");
     setLoginSenha("");
@@ -3191,9 +3186,9 @@ function App() {
     return () => window.clearInterval(timer);
   }, [location.pathname, loginStep]);
 
-  // Timer regressivo do MFA do onboarding (step 6) — inicia ao entrar no step
+  // Timer regressivo do MFA do onboarding (step 4) — inicia ao entrar no step
   useEffect(() => {
-    if (!(location.pathname === "/cadastro" && step === 6)) return;
+    if (!(location.pathname === "/cadastro" && step === 4)) return;
     setMfaCountdown(30);
     setMfaCode("");
     setMfaErro("");
@@ -3272,19 +3267,13 @@ function App() {
       // TODO: enviar ao backend junto com os demais dados do cadastro
       sessionStorage.setItem("onboarding_nascimento", nascimento);
     }
-    if (step === 6) {
+    if (step === 4) {
       // TODO: remover após integração SMS
       if (mfaCode !== "123456") {
         setMfaErro("Código inválido. Tente novamente.");
         return;
       }
       setMfaErro("");
-      setGeoStatus(!navigator.geolocation ? "naoSuportado" : "idle"); // pré-detecta suporte
-    }
-    if (step === 7) {
-      setStep(8);
-      setBiometriaSheetOpen(true);
-      return;
     }
     setStep((prev) => prev + 1);
   };
@@ -3296,10 +3285,6 @@ function App() {
       return;
     }
     setStep((prev) => prev - 1);
-  };
-
-  const toggleInterest = (service: ServiceType) => {
-    setInterests((prev) => (prev.includes(service) ? prev.filter((item) => item !== service) : [...prev, service]));
   };
 
   const renderBottomNav = () => (
@@ -3613,37 +3598,7 @@ function App() {
 
               {step === 3 && (
                 <>
-                  <StepHeader step={3} total={totalSteps} title="O que você está precisando?" subtitle="Pode escolher mais de um." />
-                  <div className="space-y-2">
-                    {(Object.keys(serviceCopy) as ServiceType[]).map((service) => {
-                      const checked = interests.includes(service);
-                      const currentService = serviceCopy[service];
-                      return (
-                        <button key={service} type="button" onClick={() => toggleInterest(service)} className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${checked ? "border-primary bg-primary-light" : "border-border bg-card hover:border-primary/40"}`}>
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${checked ? "bg-primary text-white" : "bg-background text-muted-foreground"}`}>{currentService.icon}</div>
-                          <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-foreground">{currentService.title}</p><p className="mt-0.5 text-xs text-muted-foreground">{currentService.subtitle}</p></div>
-                          <Checkbox checked={checked} className={checked ? "border-primary data-[state=checked]:bg-primary" : "border-border"} onCheckedChange={() => toggleInterest(service)} />
-                        </button>
-                      );
-                    })}
-                    <button type="button" disabled className="flex w-full items-center gap-3 rounded-xl border border-dashed border-border bg-background p-4 opacity-60 cursor-not-allowed">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-muted-foreground"><ShieldCheck size={20} /></div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-muted-foreground">Seguro de Vida</p>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"><Clock size={10} /> Em breve</span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Em breve disponível</p>
-                      </div>
-                    </button>
-                    {interests.length === 0 && <p className="pt-1 text-center text-xs text-primary">Selecione pelo menos 1 produto para continuar.</p>}
-                  </div>
-                </>
-              )}
-
-              {step === 4 && (
-                <>
-                  <StepHeader step={4} total={totalSteps} title="Crie sua senha de acesso" subtitle="Vai ser usada para entrar no app." />
+                  <StepHeader step={3} total={totalSteps} title="Crie sua senha de acesso" subtitle="Vai ser usada para entrar no app." />
                   <Card className="border-border shadow-sm">
                     <CardContent className="space-y-4 pt-5">
                       <div className="space-y-1.5"><Label className="text-sm font-medium">Senha numérica (6 dígitos)</Label><Input type="password" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••" className="h-12 rounded-xl text-center text-lg tracking-[0.5em]" />{pin.length===6 && isWeakNumericPin(pin) ? <p className="text-xs text-red-600">Evite sequências como 123456 ou números repetidos.</p> : null}</div>
@@ -3653,92 +3608,10 @@ function App() {
                 </>
               )}
 
-              {/* ── Step 5 — Consentimento ── */}
-              {step === 5 && (
+              {/* ── Step 4 — MFA por SMS ── */}
+              {step === 4 && (
                 <>
-                  <StepHeader step={5} total={totalSteps} title="Seu consentimento" subtitle="Leia os termos abaixo antes de continuar." />
-                  <Card className="border-border shadow-sm">
-                    <CardContent className="space-y-4 pt-5">
-                      {/* Termo exibido diretamente — sem modal ou link */}
-                      <div className="max-h-64 overflow-y-auto rounded-xl border border-border bg-white p-4 text-sm text-foreground leading-relaxed space-y-3">
-                        <p className="font-semibold">TERMO DE CONSENTIMENTO PARA TRATAMENTO DE DADOS PESSOAIS</p>
-                        <p>Para os fins deste Termo, considera-se:</p>
-                        <p><strong>Titular:</strong> Você, {name}, inscrito(a) no CPF sob o nº {cpf}.</p>
-                        <p><strong>Operadora:</strong> TAYA TECNOLOGIA LTDA ("TAYA"), CNPJ nº 49.235.430/0001-81, R. José Versolato, 111, Bl. B, Sala 3102 – Centro, São Bernardo do Campo/SP – CEP 09750-730, que opera a plataforma de conexão entre você e as Instituições Financeiras.</p>
-                        <p><strong>Controladoras:</strong> As Instituições Financeiras parceiras que realizam a análise e concessão do crédito, conforme item 2 deste termo.</p>
-                        <p><strong>Dados Pessoais:</strong> Qualquer informação relacionada a pessoa natural identificada ou identificável, nos termos do art. 5º, I, da Lei Geral de Dados Pessoais (Lei Federal nº 13.709/2018 ou "LGPD").</p>
-                        <p className="font-semibold">1. Finalidade e Base Legal do Tratamento</p>
-                        <p>Eu, como Titular, autorizo, de forma livre, informada e inequívoca, a TAYA a realizar o tratamento dos meus Dados Pessoais, em conjunto com as Instituições Financeiras parceiras, exclusivamente para as seguintes finalidades:</p>
-                        <ul className="list-disc pl-4 space-y-1">
-                          <li>análise de elegibilidade de crédito;</li>
-                          <li>simulação de crédito consignado CLT/FGTS;</li>
-                          <li>formalização de propostas e contratos de empréstimo;</li>
-                          <li>eventual cessão, garantia ou auditoria regulatória da operação.</li>
-                        </ul>
-                        <p>Por este termo, manifesto minha ciência de que nenhum tratamento adicional será realizado sem novo consentimento específico ou outra base legal aplicável, conforme hipóteses previstas no art. 7º da LGPD.</p>
-                        <p>Reconheço que a revogação do consentimento poderá ser feita a qualquer momento, gratuitamente, no canal: https://consentimento.tayatech.com.br/revogacao</p>
-                        <p className="font-semibold">2. Controladores Autorizados</p>
-                        <p>Autorizo que os meus Dados Pessoais sejam compartilhados apenas com as Instituições Financeiras parceiras credenciadas, cuja relação atualizada está disponível em: https://consentimento.tayatech.com.br/instituicoes</p>
-                        <p>A versão vigente na data do aceite será vinculada a este termo.</p>
-                        <p className="font-semibold">3. Consentimento Específico para Dados Biométricos</p>
-                        <p>Para contratar o crédito consignado por meios digitais, a Lei nº 10.820/2003 exige a verificação da sua identidade com alto nível de segurança. Por isso, tenho ciência da possível necessidade de coleta dos meus dados biométricos (ex: reconhecimento facial) para gerar uma assinatura eletrônica avançada.</p>
-                        <p className="font-semibold">4. Dados Pessoais Tratados</p>
-                        <p>Para atingimento das finalidades previstas no item 1, autorizo a coleta dos seguintes Dados Pessoais, obtidos por meio de integração segura com MTE/DATAPREV:</p>
-                        <ul className="list-disc pl-4 space-y-1">
-                          <li><strong>Identificação:</strong> CPF, Nome, Data de Nascimento, Sexo;</li>
-                          <li><strong>Vínculo empregatício:</strong> Matrícula, CNPJ do Empregador, Categoria do Trabalhador, Data de Admissão e Desligamento;</li>
-                          <li><strong>Status funcional:</strong> PEP, afastamentos, aviso prévio;</li>
-                          <li><strong>Dados financeiros:</strong> valor total de vencimentos, base de margem consignável, margem disponível;</li>
-                          <li>Elegibilidade para crédito e motivos de inelegibilidade;</li>
-                          <li>Quantidade e status de contratos ativos, suspensos ou reservados;</li>
-                          <li><strong>Dados Biométricos:</strong> coletados para verificação de identidade e assinatura eletrônica.</li>
-                        </ul>
-                        <p>Autorizo também a coleta de endereço IP, identificação do dispositivo e dados de geolocalização.</p>
-                        <p className="font-semibold">5. Prazo de Validade e Eliminação dos Dados</p>
-                        <p>Este consentimento é válido até que a finalidade seja alcançada ou até sua revogação. Os dados serão anonimizados ou eliminados em até 365 dias, exceto quando necessário para cumprimento de obrigação legal, defesa em processos ou auditorias regulatórias.</p>
-                        <p className="font-semibold">6. Direitos do Titular (LGPD – art. 18)</p>
-                        <p>Você tem direito a: confirmação da existência de tratamento; acesso aos dados; correção de dados; anonimização ou eliminação; portabilidade; revogação do consentimento; informação sobre compartilhamento.</p>
-                        <p>Para exercer seus direitos: privacidade@taya.com.br | https://consentimento.tayatech.com.br/privacidade</p>
-                        <p className="font-semibold">7. Segurança e Rastreabilidade</p>
-                        <p>A TAYA adota medidas de segurança técnicas e administrativas, incluindo criptografia e controle de acesso. As evidências do consentimento são registradas de forma segura para fins de auditoria.</p>
-                        <p className="font-semibold">8. Declaração do Titular</p>
-                        <p>Declaro que fui informado(a) sobre as finalidades do tratamento, compreendo que posso revogar o consentimento a qualquer momento, e confirmo a autenticidade deste aceite eletrônico.</p>
-                        {/* TODO: campos dinâmicos preenchidos pelo backend no momento do registro */}
-                        <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground space-y-1">
-                          <p>Data e hora do aceite: <em>[gerado pelo backend]</em></p>
-                          <p>IP de origem: <em>[gerado pelo backend]</em></p>
-                          <p>Hash do termo: <em>[gerado pelo backend]</em></p>
-                          <p>Canal de 2FA: SMS</p>
-                          <p>2FA validado: <em>[confirmado após step 6]</em></p>
-                        </div>
-                      </div>
-
-                      {/* Checkbox custom — padrão Saque Fácil */}
-                      <button
-                        type="button"
-                        onClick={() => setConsentido((v) => !v)}
-                        className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
-                          consentido ? "border-primary bg-primary-light" : "border-border bg-white hover:border-primary/40"
-                        }`}
-                      >
-                        <div className={`mt-0.5 h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-all ${
-                          consentido ? "bg-primary border-primary" : "border-border bg-white"
-                        }`}>
-                          {consentido && <Check size={12} className="text-white" weight="bold" />}
-                        </div>
-                        <p className="text-sm text-foreground leading-snug">
-                          Li e concordo com os Termos de Consentimento acima
-                        </p>
-                      </button>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-
-              {/* ── Step 6 — MFA por SMS ── */}
-              {step === 6 && (
-                <>
-                  <StepHeader step={6} total={totalSteps} title="Confirme seu telefone" subtitle={`Enviamos um código por SMS para ${(() => { const d = phone.replace(/\D/g, ""); return d.length >= 6 ? `+55 (${d.slice(0,2)}) •••••-${d.slice(-4)}` : phone; })()}`} />
+                  <StepHeader step={4} total={totalSteps} title="Confirme seu telefone" subtitle={`Enviamos um código por SMS para ${(() => { const d = phone.replace(/\D/g, ""); return d.length >= 6 ? `+55 (${d.slice(0,2)}) •••••-${d.slice(-4)}` : phone; })()}`} />
                   <Card className="border-border shadow-sm">
                     <CardContent className="space-y-5 pt-5">
                       <div className="flex justify-center">
@@ -3805,116 +3678,25 @@ function App() {
                 </>
               )}
 
-              {/* ── Step 7 — Geolocalização ── */}
-              {step === 7 && (() => {
-                const isMobile = typeof window !== "undefined" && (("ontouchstart" in window) || window.innerWidth < 768);
-
-                const solicitarGeo = () => {
-                  if (!navigator.geolocation) { setGeoStatus("naoSuportado"); return; }
-                  setGeoStatus("solicitando");
-                  navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                      // TODO: enviar { latitude, longitude, timestamp } ao backend via Pedro
-                      // Não salvar em localStorage nem sessionStorage — dado sensível
-                      void pos; // coordenadas disponíveis em pos.coords.latitude / pos.coords.longitude
-                      setGeoStatus("concedida");
-                      window.setTimeout(() => setStep((prev) => prev + 1), 1500);
-                    },
-                    () => setGeoStatus("negada"),
-                    { enableHighAccuracy: true, timeout: 15000 },
-                  );
-                };
-
-                return (
-                  <>
-                    <StepHeader step={7} total={totalSteps} title={
-                      geoStatus === "concedida" ? "Localização confirmada" :
-                      geoStatus === "negada" ? "Permissão necessária" :
-                      geoStatus === "naoSuportado" ? "Localização não disponível" :
-                      "Precisamos da sua localização"
-                    } subtitle={
-                      geoStatus === "concedida" ? "Tudo certo! Avançando..." :
-                      geoStatus === "solicitando" ? "Uma janela de permissão deve aparecer no seu dispositivo." :
-                      geoStatus === "negada" ? "A localização é obrigatória para validar seu consentimento. Por favor, permita o acesso e tente novamente." :
-                      geoStatus === "naoSuportado" ? "Seu navegador não suporta geolocalização. Por favor, tente acessar pelo aplicativo ou por um navegador atualizado." :
-                      "Para validar seu consentimento e garantir a segurança da operação, precisamos registrar sua localização atual."
-                    } />
-
-                    <Card className="border-border shadow-sm">
-                      <CardContent className="flex flex-col items-center gap-5 pt-6 pb-6 text-center">
-
-                        {/* Ícone de estado */}
-                        {geoStatus === "concedida" ? (
-                          <CheckCircle size={48} weight="fill" className="text-green-500" />
-                        ) : geoStatus === "negada" || geoStatus === "naoSuportado" ? (
-                          <WarningCircle size={48} weight="fill" className="text-[#E8590A]" />
-                        ) : geoStatus === "solicitando" ? (
-                          <SpinnerGap size={48} className="animate-spin text-[#E8590A]" />
-                        ) : (
-                          <MapPin size={48} className="text-[#E8590A]" />
-                        )}
-
-                        {/* Instrução contextual — apenas no estado negado */}
-                        {geoStatus === "negada" && (
-                          <p className="text-xs text-muted-foreground">
-                            {isMobile
-                              ? "Toque em 'Tentar novamente' e aceite quando o sistema perguntar."
-                              : "Clique no ícone de cadeado na barra de endereços do seu navegador e permita o acesso à localização."}
-                          </p>
-                        )}
-
-                        {/* Texto auxiliar — apenas no estado idle */}
-                        {(geoStatus === "idle" || geoStatus === "naoSuportado") && (
-                          <p className="text-xs text-muted-foreground">
-                            {geoStatus === "idle"
-                              ? "Seus dados de localização são armazenados de forma segura e usados apenas para fins de auditoria, conforme o Termo de Consentimento aceito."
-                              : null /* TODO: avaliar com Barreto se há fallback aceitável neste caso */}
-                          </p>
-                        )}
-
-                        {/* CTA */}
-                        {geoStatus !== "concedida" && geoStatus !== "naoSuportado" && (
-                          <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }} className="w-full">
-                            <Button
-                              onClick={solicitarGeo}
-                              disabled={geoStatus === "solicitando"}
-                              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
-                            >
-                              {geoStatus === "solicitando" ? (
-                                <><SpinnerGap size={16} className="mr-2 animate-spin" />Aguardando permissão...</>
-                              ) : geoStatus === "negada" ? (
-                                "Tentar novamente"
-                              ) : (
-                                "Permitir localização"
-                              )}
-                            </Button>
-                          </motion.div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </>
-                );
-              })()}
-
-              {/* ── Step 8 — Conclusão / Biometria ── */}
-              {step === 8 && (
+              {/* ── Step 5 — Conclusão / Biometria ── */}
+              {step === 5 && (
                 <div className="flex flex-col items-center space-y-4 pt-8 text-center"><CheckCircle size={56} className="text-primary" weight="fill" /><div><h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2><p className="mx-auto mt-2 text-sm text-muted-foreground">A gente já encontrou uma opção para você. Veja o que está disponível na sua conta.</p></div><motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }} className="mt-4 w-full"><Button className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark" onClick={completeOnboarding}>Ver minha conta<ArrowRight size={16} className="ml-2" /></Button></motion.div></div>
               )}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {step <= 6 && (
+        {step <= 4 && (
           <div className="grid grid-cols-2 gap-3 pt-6">
             <Button variant="outline" onClick={goBack} className="h-12 rounded-xl border-border text-foreground">Voltar</Button>
             <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
-              <Button onClick={goNext} disabled={!canGoNext} className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40">{step === 6 ? "Validar" : "Continuar"}</Button>
+              <Button onClick={goNext} disabled={!canGoNext} className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40">{step === 4 ? "Validar" : "Continuar"}</Button>
             </motion.div>
           </div>
         )}
       </div>
 
-      {step === 8 && biometriaSheetOpen && (
+      {step === 5 && biometriaSheetOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setBiometriaSheetOpen(false)} />
           <div className="fixed bottom-0 left-1/2 z-50 w-full -translate-x-1/2 rounded-t-2xl bg-white px-6 pb-10 pt-6">
@@ -4869,6 +4651,7 @@ function App() {
             <Route path="/credito-pessoal/dados-tomador" element={getStoredUser() ? <CreditoPessoalDadosTomador /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/conta" element={getStoredUser() ? <CreditoPessoalConta /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/formalizando" element={getStoredUser() ? <CreditoPessoalFormalizando /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/credito-pessoal/em-analise" element={getStoredUser() ? <CreditoPessoalEmAnalise /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/assinatura" element={getStoredUser() ? <CreditoPessoalAssinatura /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/confirmacao" element={getStoredUser() ? <CreditoPessoalConfirmacao /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/reprovada" element={getStoredUser() ? <CreditoPessoalReprovada /> : <Navigate to="/boas-vindas" replace />} />
