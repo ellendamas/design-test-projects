@@ -45,7 +45,7 @@ export default function ConsignadoCLTRedirecionandoPage() {
   const nome = NOMES_PROVEDORES[provedorValido];
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#E8590A] px-6 text-center text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#FD5F31] to-[#FA9832] px-6 text-center text-white">
       <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1, repeat: Infinity }}>
         <ArrowSquareOut size={48} />
       </motion.div>

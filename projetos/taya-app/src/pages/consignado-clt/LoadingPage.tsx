@@ -86,7 +86,7 @@ export default function ConsignadoCLTLoadingPage() {
         {/* Bloco — identidade e status */}
         <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E8590A]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FD5F31]">
               <Logo variant="white" size="sm" />
             </div>
             <div className="mt-2 space-y-1">
@@ -135,7 +135,7 @@ export default function ConsignadoCLTLoadingPage() {
               // consultando (ou ainda sem status inicial)
               return (
                 <div key={id} className="flex items-center gap-3">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#E8590A] border-t-transparent" />
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#FD5F31] border-t-transparent" />
                   <span className="text-sm text-foreground">Aguardando {nome}...</span>
                 </div>
               );
@@ -149,7 +149,7 @@ export default function ConsignadoCLTLoadingPage() {
             <button
               type="button"
               onClick={handleVerDisponiveis}
-              className="flex h-12 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-medium text-[#E8590A] transition-colors hover:bg-orange-50"
+              className="flex h-12 w-full items-center justify-center rounded-full border border-[#FD5F31] text-sm font-medium text-[#FD5F31] transition-colors hover:bg-orange-50"
             >
               Ver ofertas disponíveis até agora
             </button>

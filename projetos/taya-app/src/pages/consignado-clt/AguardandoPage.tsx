@@ -20,7 +20,7 @@ export default function ConsignadoCLTAguardandoPage() {
         <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50">
-              <Clock size={24} className="text-[#E8590A]" />
+              <Clock size={24} className="text-[#FD5F31]" />
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -40,7 +40,7 @@ export default function ConsignadoCLTAguardandoPage() {
         {/* Bloco — estimativa de tempo */}
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <Clock size={16} className="shrink-0 text-[#E8590A]" />
+            <Clock size={16} className="shrink-0 text-[#FD5F31]" />
             <span className="text-sm">
               <span className="text-muted-foreground">Tempo estimado: </span>
               <span className="font-medium text-foreground">algumas horas</span>
@@ -64,7 +64,7 @@ export default function ConsignadoCLTAguardandoPage() {
               <button
                 type="button"
                 onClick={handleEnableNotifications}
-                className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+                className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
               >
                 <Bell size={20} />
                 Ativar notificações

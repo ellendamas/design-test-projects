@@ -121,7 +121,7 @@ export default function ConsignadoCLTProvedoresPage() {
             const avatarENome = (
               <>
                 {/* Avatar do parceiro — placeholder de logo (letra) */}
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-sm font-semibold text-[#E8590A]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-sm font-semibold text-[#FD5F31]">
                   {provedor.nome.charAt(0)}
                 </div>
 
@@ -156,7 +156,7 @@ export default function ConsignadoCLTProvedoresPage() {
                           state: { consentUrl: CONSENT_URL_MOCK, provedor: provedor.id },
                         });
                       }}
-                      className="text-xs font-semibold text-[#E8590A] underline"
+                      className="text-xs font-semibold text-[#FD5F31] underline"
                     >
                       Tentar novamente
                     </button>
@@ -175,8 +175,8 @@ export default function ConsignadoCLTProvedoresPage() {
                   status
                     ? "border-border bg-white opacity-60 pointer-events-none"
                     : selecionado
-                      ? "border-[#E8590A] bg-[#FEF0E7]"
-                      : "border-border bg-white hover:border-[#E8590A]/40"
+                      ? "border-[#FD5F31] bg-[#FFF3EE]"
+                      : "border-border bg-white hover:border-[#FD5F31]/40"
                 }`}
               >
                 {avatarENome}
@@ -210,7 +210,7 @@ export default function ConsignadoCLTProvedoresPage() {
               });
             }}
             className={`flex h-14 w-full items-center justify-center rounded-full text-base font-semibold text-white transition-colors ${
-              provedorAtual ? "bg-[#E8590A] hover:bg-[#d04e08]" : "cursor-not-allowed bg-[#E8590A] opacity-40"
+              provedorAtual ? "bg-[#FD5F31] hover:bg-[#d04e08]" : "cursor-not-allowed bg-[#FD5F31] opacity-40"
             }`}
           >
             {provedorAtual ? `Consultar com ${provedorAtual.nome}` : "Selecione um parceiro"}
@@ -219,7 +219,7 @@ export default function ConsignadoCLTProvedoresPage() {
             <button
               type="button"
               onClick={() => navigate(`/consignado-clt/ofertas?qtd=${qtdOfertas}`)}
-              className="flex h-12 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-medium text-[#E8590A] transition-colors hover:bg-orange-50"
+              className="flex h-12 w-full items-center justify-center rounded-full border border-[#FD5F31] text-sm font-medium text-[#FD5F31] transition-colors hover:bg-orange-50"
             >
               Ver minhas ofertas
             </button>

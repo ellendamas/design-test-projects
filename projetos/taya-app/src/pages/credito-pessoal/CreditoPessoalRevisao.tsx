@@ -86,9 +86,9 @@ export default function CreditoPessoalRevisao() {
       <div className="flex flex-col gap-4 pb-4 md:mx-auto md:max-w-[560px]">
 
         {/* ── Card destaque (laranja) ── */}
-        <div className="rounded-2xl bg-[#FEF0E7] p-5 space-y-1">
+        <div className="rounded-2xl bg-[#FFF3EE] p-5 space-y-1">
           <p className="text-sm text-muted-foreground">Você vai receber</p>
-          <p className="text-3xl font-bold text-[#E8590A]">R$ {formatCents(st.valorSolicitado)}</p>
+          <p className="text-3xl font-bold text-[#FD5F31]">R$ {formatCents(st.valorSolicitado)}</p>
           <p className="text-base text-foreground font-medium">
             {parcelas}x de R$ {formatCents(valorParcela)}
           </p>
@@ -99,7 +99,7 @@ export default function CreditoPessoalRevisao() {
         <button
           type="button"
           onClick={() => setDetalhesAbertos((v) => !v)}
-          className="flex items-center gap-1 text-sm text-[#E8590A] font-medium"
+          className="flex items-center gap-1 text-sm text-[#FD5F31] font-medium"
         >
           {detalhesAbertos ? <CaretUp size={14} /> : <CaretDown size={14} />}
           {detalhesAbertos ? "Ocultar detalhes" : "Ver detalhes"}
@@ -151,13 +151,13 @@ export default function CreditoPessoalRevisao() {
           onClick={() => setAceito((v) => !v)}
           className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-all ${
             aceito
-              ? "border-[#E8590A] bg-[#FEF0E7]"
-              : "border-border bg-white hover:border-[#E8590A]/40"
+              ? "border-[#FD5F31] bg-[#FFF3EE]"
+              : "border-border bg-white hover:border-[#FD5F31]/40"
           }`}
         >
           <div
             className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-              aceito ? "border-[#E8590A] bg-[#E8590A]" : "border-border bg-white"
+              aceito ? "border-[#FD5F31] bg-[#FD5F31]" : "border-border bg-white"
             }`}
           >
             {aceito && <Check size={12} weight="bold" className="text-white" />}
@@ -174,7 +174,7 @@ export default function CreditoPessoalRevisao() {
             disabled={!aceito}
             onClick={() => navigate("/credito-pessoal/dados-tomador", { state: locationState })}
             className={`flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-colors ${
-              aceito ? "bg-[#E8590A] hover:bg-[#A33D05]" : "cursor-not-allowed bg-[#E8590A] opacity-40"
+              aceito ? "bg-[#FD5F31] hover:bg-[#D94E28]" : "cursor-not-allowed bg-[#FD5F31] opacity-40"
             }`}
           >
             Prosseguir para meus dados

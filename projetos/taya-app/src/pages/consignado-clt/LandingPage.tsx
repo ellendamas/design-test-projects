@@ -83,7 +83,7 @@ export default function ConsignadoCLTLandingPage() {
             alt="Consignado CLT"
             className="absolute inset-0 h-full w-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#A33D05] via-[#E8590A]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#D94E28] via-[#FD5F31]/70 to-transparent" />
           <div className="relative z-10 flex min-h-[200px] flex-col justify-end p-5">
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
               Crédito do trabalhador CLT
@@ -104,7 +104,7 @@ export default function ConsignadoCLTLandingPage() {
               key={label}
               className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"
             >
-              <CheckCircle size={12} className="text-[#E8590A]" />
+              <CheckCircle size={12} className="text-[#FD5F31]" />
               {label}
             </div>
           ))}
@@ -115,7 +115,7 @@ export default function ConsignadoCLTLandingPage() {
           <CardContent className="divide-y divide-border pt-0">
             {features.map((f) => (
               <div key={f.title} className="flex gap-3 py-4 first:pt-5 last:pb-5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEF0E7] text-[#E8590A]">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF3EE] text-[#FD5F31]">
                   <f.icon size={20} />
                 </div>
                 <div>
@@ -162,13 +162,13 @@ export default function ConsignadoCLTLandingPage() {
         {/* Consentimento Dataprev */}
         <div className="rounded-xl bg-muted p-3">
           <div className="flex items-start gap-2">
-            <Lock size={14} className="mt-0.5 shrink-0 text-[#E8590A]" />
+            <Lock size={14} className="mt-0.5 shrink-0 text-[#FD5F31]" />
             <p className="text-xs text-muted-foreground">
               Ao continuar, você autoriza a consulta dos seus dados na Carteira de Trabalho
               Digital (Dataprev).{" "}
               <button
                 type="button"
-                className="text-xs text-[#E8590A] underline underline-offset-2"
+                className="text-xs text-[#FD5F31] underline underline-offset-2"
                 onClick={() => {
                   // TODO: abrir modal de Termos de Consulta
                 }}
@@ -186,7 +186,7 @@ export default function ConsignadoCLTLandingPage() {
             disabled={isConsulting}
             onClick={handleConsult}
             className={`flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-colors ${
-              isConsulting ? "cursor-not-allowed bg-[#E8590A] opacity-70" : "bg-[#E8590A] hover:bg-[#d04e08]"
+              isConsulting ? "cursor-not-allowed bg-[#FD5F31] opacity-70" : "bg-[#FD5F31] hover:bg-[#d04e08]"
             }`}
           >
             {isConsulting ? (

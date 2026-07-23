@@ -162,13 +162,13 @@ export default function CreditoPessoalAssinatura() {
           <>
             {/* Card laranja — resumo da proposta (ambos os modos) */}
             {oferta && (
-              <div className="rounded-2xl bg-[#FEF0E7] p-4">
-                <p className="text-sm text-[#A33D05]/70">Você vai receber</p>
-                <p className="text-3xl font-bold text-[#E8590A]">R$ {formatCents(valorSolicitado)}</p>
-                <p className="mt-1 text-base font-medium text-[#A33D05]">
+              <div className="rounded-2xl bg-[#FFF3EE] p-4">
+                <p className="text-sm text-[#D94E28]/70">Você vai receber</p>
+                <p className="text-3xl font-bold text-[#FD5F31]">R$ {formatCents(valorSolicitado)}</p>
+                <p className="mt-1 text-base font-medium text-[#D94E28]">
                   {oferta.parcelas}x de R$ {formatCents(oferta.valorParcela)}
                 </p>
-                <p className="mt-0.5 text-sm text-[#A33D05]/70">1º vencimento: {oferta.primeiroVenc}</p>
+                <p className="mt-0.5 text-sm text-[#D94E28]/70">1º vencimento: {oferta.primeiroVenc}</p>
               </div>
             )}
 
@@ -176,7 +176,7 @@ export default function CreditoPessoalAssinatura() {
             {modoParam === "sms" && (
               <>
                 <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-white p-6 shadow-sm text-center">
-                  <DeviceMobileSpeaker size={48} className="text-[#E8590A]" />
+                  <DeviceMobileSpeaker size={48} className="text-[#FD5F31]" />
                   <div className="space-y-1">
                     <h2 className="text-lg font-bold text-foreground">Verifique seu celular</h2>
                     <p className="text-sm leading-relaxed text-muted-foreground">
@@ -193,7 +193,7 @@ export default function CreditoPessoalAssinatura() {
                       // TODO: endpoint de reenvio de SMS
                       toast("Reenvio solicitado.");
                     }}
-                    className="flex h-11 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A] transition-colors hover:bg-[#FEF0E7]"
+                    className="flex h-11 w-full items-center justify-center rounded-full border border-[#FD5F31] text-sm font-semibold text-[#FD5F31] transition-colors hover:bg-[#FFF3EE]"
                   >
                     Não recebi o SMS
                   </button>
@@ -283,7 +283,7 @@ export default function CreditoPessoalAssinatura() {
                 <button
                   type="button"
                   onClick={() => navigate("/painel")}
-                  className="flex h-11 flex-1 items-center justify-center rounded-full bg-[#E8590A] text-sm font-semibold text-white"
+                  className="flex h-11 flex-1 items-center justify-center rounded-full bg-[#FD5F31] text-sm font-semibold text-white"
                 >
                   Ir para o painel
                 </button>

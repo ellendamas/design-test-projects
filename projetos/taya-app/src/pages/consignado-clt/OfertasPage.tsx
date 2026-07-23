@@ -102,7 +102,7 @@ export default function ConsignadoCLTOfertasPage() {
               <button
                 type="button"
                 onClick={() => navigate("/consignado-clt/provedores")}
-                className="flex h-12 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A]"
+                className="flex h-12 w-full items-center justify-center rounded-full border border-[#FD5F31] text-sm font-semibold text-[#FD5F31]"
               >
                 Tentar com outro parceiro
               </button>
@@ -122,7 +122,7 @@ export default function ConsignadoCLTOfertasPage() {
               <button
                 type="button"
                 onClick={() => navigate("/credito-pessoal")}
-                className="flex items-center gap-2 text-sm font-semibold text-[#E8590A]"
+                className="flex items-center gap-2 text-sm font-semibold text-[#FD5F31]"
               >
                 <ArrowRight size={16} />
                 Crédito Pessoal — sem desconto em folha
@@ -162,11 +162,11 @@ export default function ConsignadoCLTOfertasPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") setPropostaSelecionada(p.id);
                 }}
-                className="relative w-full cursor-pointer rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#E8590A]/40 active:bg-[#FEF0E7]/30 md:flex md:items-end md:justify-between md:gap-4"
+                className="relative w-full cursor-pointer rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#FD5F31]/40 active:bg-[#FFF3EE]/30 md:flex md:items-end md:justify-between md:gap-4"
               >
                 {/* Label — fixada na extremidade superior direita do card */}
                 {label && (
-                  <span className="absolute right-4 top-4 rounded-full bg-[#FEF0E7] px-2 py-0.5 text-[10px] font-semibold text-[#E8590A]">
+                  <span className="absolute right-4 top-4 rounded-full bg-[#FFF3EE] px-2 py-0.5 text-[10px] font-semibold text-[#FD5F31]">
                     {label}
                   </span>
                 )}
@@ -174,7 +174,7 @@ export default function ConsignadoCLTOfertasPage() {
                 <div className="space-y-3 md:flex-1">
                   {/* Header: avatar + nome do provedor */}
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-sm font-semibold text-[#E8590A]">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-sm font-semibold text-[#FD5F31]">
                       {p.provedor.charAt(0)}
                     </div>
                     <p className="text-sm font-semibold text-foreground">{p.provedor}</p>
@@ -198,7 +198,7 @@ export default function ConsignadoCLTOfertasPage() {
                       e.stopPropagation();
                       setPropostaSelecionada(p.id);
                     }}
-                    className="flex items-center gap-1 text-xs font-semibold text-[#E8590A]"
+                    className="flex items-center gap-1 text-xs font-semibold text-[#FD5F31]"
                   >
                     Ver condições
                     <CaretRight size={12} />
@@ -256,7 +256,7 @@ export default function ConsignadoCLTOfertasPage() {
               onClick={() => navigate("/consignado-clt/simular", {
                 state: { proposta, provedor: proposta.provedor },
               })}
-              className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white"
+              className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white"
             >
               Escolher esta oferta
             </button>

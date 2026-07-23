@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   CaretDown,
-  CreditCard,
   FileX,
   Wallet,
   CurrencyCircleDollar,
@@ -29,7 +28,7 @@ export default function FGTSSemSaldoPage() {
           <button
             type="button"
             onClick={() => navigate("/fgts/copiloto")}
-            className="flex items-center gap-1 text-xs font-medium text-[#E8590A]"
+            className="flex items-center gap-1 text-xs font-medium text-[#FD5F31]"
           >
             Tentar autorizar de novo <ArrowRight size={12} />
           </button>
@@ -109,21 +108,21 @@ export default function FGTSSemSaldoPage() {
             </p>
           </div>
 
-          {/* Saque Fácil — clicável */}
+          {/* Crédito Pessoal — clicável */}
           <button
             type="button"
-            onClick={() => navigate("/saque-facil")}
-            className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#E8590A]/40"
+            onClick={() => navigate("/credito-pessoal")}
+            className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7]">
-                <CreditCard size={20} className="text-[#E8590A]" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE]">
+                <Wallet size={20} className="text-[#FD5F31]" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">Saque Fácil no cartão</p>
-                <p className="mt-0.5 text-xs font-medium text-[#E8590A]">Aprovação em minutos</p>
+                <p className="text-sm font-semibold text-foreground">Crédito Pessoal</p>
+                <p className="mt-0.5 text-xs font-medium text-[#FD5F31]">Dinheiro na conta em minutos</p>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Use o limite do seu cartão de crédito. Sem consulta ao Serasa, sem análise de crédito.
+                  Sem precisar de FGTS ou desconto em folha.
                 </p>
               </div>
               <ArrowRight size={16} className="mt-1 shrink-0 text-muted-foreground" />
@@ -134,20 +133,20 @@ export default function FGTSSemSaldoPage() {
           <button
             type="button"
             onClick={() => navigate("/consignado-clt")}
-            className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#E8590A]/40"
+            className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7]">
-                <CurrencyCircleDollar size={20} className="text-[#E8590A]" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE]">
+                <CurrencyCircleDollar size={20} className="text-[#FD5F31]" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">Consignado CLT</p>
-                  <span className="rounded-full bg-[#FEF0E7] px-2 py-0.5 text-[10px] font-medium text-[#E8590A]">
+                  <p className="text-sm font-semibold text-foreground">Crédito Consignado CLT</p>
+                  <span className="rounded-full bg-[#FFF3EE] px-2 py-0.5 text-[10px] font-medium text-[#FD5F31]">
                     Para CLT
                   </span>
                 </div>
-                <p className="mt-0.5 text-xs font-medium text-[#E8590A]">Menor taxa do mercado</p>
+                <p className="mt-0.5 text-xs font-medium text-[#FD5F31]">Menor taxa do mercado</p>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   Desconto em folha. Sem aprovação da empresa, 100% digital.
                 </p>
@@ -155,36 +154,16 @@ export default function FGTSSemSaldoPage() {
               <ArrowRight size={16} className="mt-1 shrink-0 text-muted-foreground" />
             </div>
           </button>
-
-          {/* Crédito Pessoal — em breve */}
-          <div className="w-full rounded-2xl border border-border bg-white p-4 opacity-60 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-                <Wallet size={20} className="text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">Crédito Pessoal</p>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                    Em breve
-                  </span>
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Crédito sem vínculo empregatício, com parcelas que cabem no seu bolso.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Rodapé */}
         <div className="space-y-1 pt-2">
           <button
             type="button"
-            onClick={() => navigate("/saque-facil")}
-            className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+            onClick={() => navigate("/credito-pessoal")}
+            className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
           >
-            Conhecer o Saque Fácil
+            Conhecer o Crédito Pessoal
           </button>
           <button
             type="button"

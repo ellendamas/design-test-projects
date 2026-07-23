@@ -109,7 +109,7 @@ export default function ConsignadoCLTRevisaoPage() {
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-base font-semibold text-foreground">Sua oferta</p>
-            <span className="rounded-full bg-[#FEF0E7] px-2.5 py-1 text-[11px] font-semibold text-[#E8590A]">
+            <span className="rounded-full bg-[#FFF3EE] px-2.5 py-1 text-[11px] font-semibold text-[#FD5F31]">
               {provedor}
             </span>
           </div>
@@ -133,8 +133,8 @@ export default function ConsignadoCLTRevisaoPage() {
         {/* TODO: receber datas reais da API */}
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
           <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEF0E7]">
-              <CalendarBlank size={16} className="text-[#E8590A]" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF3EE]">
+              <CalendarBlank size={16} className="text-[#FD5F31]" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Previsão de crédito na conta</p>
@@ -145,35 +145,35 @@ export default function ConsignadoCLTRevisaoPage() {
           </div>
         </div>
 
-        {/* Bloco 3 — Detalhes do consignado (bg laranja, padrão Saque Fácil) */}
-        <div className="rounded-2xl bg-[#FEF0E7] p-4">
-          <p className="mb-3 text-sm font-semibold text-[#A33D05]">Detalhes do consignado</p>
+        {/* Bloco 3 — Detalhes do consignado (bg laranja) */}
+        <div className="rounded-2xl bg-[#FFF3EE] p-4">
+          <p className="mb-3 text-sm font-semibold text-[#D94E28]">Detalhes do consignado</p>
 
           <div className="space-y-2">
             {linhasDetalhes.map((linha) => (
               <div key={linha.label} className="flex items-center justify-between">
-                <span className="text-xs text-[#A33D05]/70">{linha.label}</span>
-                <span className="text-xs font-medium text-[#A33D05]">{linha.value}</span>
+                <span className="text-xs text-[#D94E28]/70">{linha.label}</span>
+                <span className="text-xs font-medium text-[#D94E28]">{linha.value}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Consentimento — botão-checkbox custom (padrão exato do Saque Fácil) */}
+        {/* Consentimento — botão-checkbox custom */}
         <button
           type="button"
           onClick={() => setTermoAceito(!termoAceito)}
           className={cn(
             "flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-all",
             termoAceito
-              ? "border-[#E8590A] bg-[#FEF0E7]"
-              : "border-border bg-white hover:border-[#E8590A]/40"
+              ? "border-[#FD5F31] bg-[#FFF3EE]"
+              : "border-border bg-white hover:border-[#FD5F31]/40"
           )}
         >
           <div
             className={cn(
               "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors",
-              termoAceito ? "border-[#E8590A] bg-[#E8590A]" : "border-border bg-white"
+              termoAceito ? "border-[#FD5F31] bg-[#FD5F31]" : "border-border bg-white"
             )}
           >
             {termoAceito && <Check size={12} className="text-white" weight="bold" />}
@@ -182,7 +182,7 @@ export default function ConsignadoCLTRevisaoPage() {
             Ao continuar, concordo com os{" "}
             <a
               href="#"
-              className="text-[#E8590A] underline underline-offset-2"
+              className="text-[#FD5F31] underline underline-offset-2"
               onClick={(e) => e.stopPropagation()}
             >
               Termos do Contrato
@@ -202,8 +202,8 @@ export default function ConsignadoCLTRevisaoPage() {
           className={cn(
             "flex h-14 w-full items-center justify-center rounded-full text-base font-semibold text-white transition-colors",
             termoAceito
-              ? "bg-[#E8590A] hover:bg-[#d04e08]"
-              : "cursor-not-allowed bg-[#E8590A] opacity-40"
+              ? "bg-[#FD5F31] hover:bg-[#d04e08]"
+              : "cursor-not-allowed bg-[#FD5F31] opacity-40"
           )}
         >
           Aceitar e continuar

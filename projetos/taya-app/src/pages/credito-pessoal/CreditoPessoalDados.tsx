@@ -106,8 +106,8 @@ function OptionBtn({
       onClick={onClick}
       className={`h-11 rounded-xl border px-3 text-sm transition-colors ${
         selected
-          ? "border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]"
-          : "border-border text-foreground hover:border-[#E8590A]/40"
+          ? "border-[#FD5F31] bg-[#FFF3EE] text-[#D94E28]"
+          : "border-border text-foreground hover:border-[#FD5F31]/40"
       }`}
     >
       {children}
@@ -196,7 +196,7 @@ export default function CreditoPessoalDados() {
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Button variant="outline" className="h-12 rounded-xl" onClick={() => setCampoEditandoCP(null)}>Cancelar</Button>
         <Button
-          className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]"
+          className="h-12 rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]"
           onClick={() => {
             if (campoEditandoCP === "email") {
               if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valorTempCP)) { setEditErrorCP("E-mail inválido"); return; }
@@ -225,7 +225,7 @@ export default function CreditoPessoalDados() {
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-colors ${
-                i <= idx ? "bg-[#E8590A]" : "bg-[#F5F4F2]"
+                i <= idx ? "bg-[#FD5F31]" : "bg-[#F0F0F0]"
               }`}
             />
           ))}
@@ -237,7 +237,7 @@ export default function CreditoPessoalDados() {
         {step === "intro" && (
           <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">
                 <ClipboardText size={36} />
               </div>
               <div>
@@ -256,7 +256,7 @@ export default function CreditoPessoalDados() {
                   "Endereço de correspondência",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-foreground">
-                    <CheckCircle size={16} className="shrink-0 text-[#E8590A]" weight="fill" />
+                    <CheckCircle size={16} className="shrink-0 text-[#FD5F31]" weight="fill" />
                     {item}
                   </li>
                 ))}
@@ -271,8 +271,8 @@ export default function CreditoPessoalDados() {
         {step === "dados_conta" && (
           <div className="space-y-3">
             <div className="flex flex-col items-center gap-2 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
-                <User size={28} className="text-[#E8590A]" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+                <User size={28} className="text-[#FD5F31]" />
               </div>
               <h2 className="text-xl font-bold text-foreground">Seus dados cadastrais</h2>
               <p className="text-sm text-muted-foreground">
@@ -305,7 +305,7 @@ export default function CreditoPessoalDados() {
                     <button
                       type="button"
                       onClick={() => { setCampoEditandoCP(campo!); setValorTempCP(value); setEditErrorCP(""); }}
-                      className="text-sm font-medium text-[#E8590A] hover:underline"
+                      className="text-sm font-medium text-[#FD5F31] hover:underline"
                     >
                       Alterar
                     </button>
@@ -322,8 +322,8 @@ export default function CreditoPessoalDados() {
         {step === "nascimento" && (
           <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
             <div className="mb-4 flex flex-col items-center text-center">
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
-                <Cake size={28} className="text-[#E8590A]" />
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+                <Cake size={28} className="text-[#FD5F31]" />
               </div>
               <h2 className="text-xl font-bold text-foreground">Data de nascimento</h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -357,8 +357,8 @@ export default function CreditoPessoalDados() {
         {step === "renda" && (
           <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
             <div className="mb-4 flex flex-col items-center text-center">
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
-                <CurrencyCircleDollar size={28} className="text-[#E8590A]" />
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+                <CurrencyCircleDollar size={28} className="text-[#FD5F31]" />
               </div>
               <h2 className="text-xl font-bold text-foreground">Qual é sua renda mensal?</h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -446,7 +446,7 @@ export default function CreditoPessoalDados() {
             <button
               type="button"
               onClick={goBack}
-              className="flex h-12 items-center justify-center rounded-full border border-border text-sm font-medium text-foreground transition-colors hover:border-[#E8590A]/40"
+              className="flex h-12 items-center justify-center rounded-full border border-border text-sm font-medium text-foreground transition-colors hover:border-[#FD5F31]/40"
             >
               Voltar
             </button>
@@ -456,8 +456,8 @@ export default function CreditoPessoalDados() {
               onClick={goNext}
               className={`flex h-12 items-center justify-center gap-2 rounded-full text-sm font-semibold text-white transition-colors ${
                 canAdvance
-                  ? "bg-[#E8590A] hover:bg-[#d04e08]"
-                  : "cursor-not-allowed bg-[#E8590A] opacity-40"
+                  ? "bg-[#FD5F31] hover:bg-[#d04e08]"
+                  : "cursor-not-allowed bg-[#FD5F31] opacity-40"
               }`}
             >
               {step === "intro" ? "Começar" : "Continuar"}
@@ -468,9 +468,9 @@ export default function CreditoPessoalDados() {
 
         {/* Indicador de localização */}
         {step === "endereco" && (
-          <div className="flex items-center gap-1.5 rounded-xl bg-[#FEF0E7] px-3 py-2">
-            <MapPin size={14} className="shrink-0 text-[#E8590A]" />
-            <p className="text-xs text-[#A33D05]">
+          <div className="flex items-center gap-1.5 rounded-xl bg-[#FFF3EE] px-3 py-2">
+            <MapPin size={14} className="shrink-0 text-[#FD5F31]" />
+            <p className="text-xs text-[#D94E28]">
               Último passo antes de consultar sua oferta
             </p>
           </div>

@@ -78,8 +78,8 @@ function OptionBtn({ selected, onClick, children }: { selected: boolean; onClick
       onClick={onClick}
       className={`h-11 rounded-xl border px-3 text-sm transition-colors ${
         selected
-          ? "border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]"
-          : "border-border text-foreground hover:border-[#E8590A]/40"
+          ? "border-[#FD5F31] bg-[#FFF3EE] text-[#D94E28]"
+          : "border-border text-foreground hover:border-[#FD5F31]/40"
       }`}
     >
       {children}
@@ -343,7 +343,7 @@ export default function CreditoPessoalDadosTomador() {
               {formStepsAtivos.map((_, i) => (
                 <div
                   key={i}
-                  className={`h-1 flex-1 rounded-full transition-colors ${i <= stepIndex ? "bg-[#E8590A]" : "bg-border"}`}
+                  className={`h-1 flex-1 rounded-full transition-colors ${i <= stepIndex ? "bg-[#FD5F31]" : "bg-border"}`}
                 />
               ))}
             </div>
@@ -359,8 +359,8 @@ export default function CreditoPessoalDadosTomador() {
         {currentStep === "intro" && (
           <div className="space-y-4">
             <div className="flex flex-col items-center gap-4 py-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7]">
-                <ClipboardText size={32} className="text-[#E8590A]" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]">
+                <ClipboardText size={32} className="text-[#FD5F31]" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-foreground">Mais alguns dados necessários</h2>
@@ -380,8 +380,8 @@ export default function CreditoPessoalDadosTomador() {
                 const { icon: Icon, text } = item as { icon: React.ElementType; text: string };
                 return (
                   <div key={text} className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEF0E7]">
-                      <Icon size={18} className="text-[#E8590A]" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF3EE]">
+                      <Icon size={18} className="text-[#FD5F31]" />
                     </div>
                     <p className="text-sm text-foreground">{text}</p>
                   </div>
@@ -393,7 +393,7 @@ export default function CreditoPessoalDadosTomador() {
               <button
                 type="button"
                 onClick={handleIntroNext}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]"
               >
                 Começar
                 <ArrowRight size={18} />
@@ -432,11 +432,11 @@ export default function CreditoPessoalDadosTomador() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-[#E8590A]/20 bg-[#FEF0E7] px-4 py-3">
-              <ClipboardText size={20} className="shrink-0 text-[#E8590A]" />
+            <div className="flex items-center gap-3 rounded-2xl border border-[#FD5F31]/20 bg-[#FFF3EE] px-4 py-3">
+              <ClipboardText size={20} className="shrink-0 text-[#FD5F31]" />
               <p className="text-sm text-foreground">
                 Você tem mais{" "}
-                <span className="font-semibold text-[#E8590A]">
+                <span className="font-semibold text-[#FD5F31]">
                   {dadosFaltando} {dadosFaltando === 1 ? "dado" : "dados"}
                 </span>{" "}
                 para nos passar
@@ -447,7 +447,7 @@ export default function CreditoPessoalDadosTomador() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]"
               >
                 Completar cadastro
                 <ArrowRight size={18} />
@@ -519,7 +519,7 @@ export default function CreditoPessoalDadosTomador() {
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}
-                  className="h-4 w-4 rounded-full bg-[#E8590A]"
+                  className="h-4 w-4 rounded-full bg-[#FD5F31]"
                   style={{ animation: "pulse-dot 1.2s ease-in-out infinite", animationDelay: `${i * 0.2}s` }}
                 />
               ))}
@@ -654,8 +654,8 @@ export default function CreditoPessoalDadosTomador() {
                 onClick={() => handlePep(true)}
                 className={`flex h-14 items-center justify-center rounded-2xl border text-sm font-semibold transition-all ${
                   pep === true
-                    ? "border-[#E8590A] bg-[#FEF0E7] text-[#E8590A]"
-                    : "border-border bg-white text-foreground hover:border-[#E8590A]/40"
+                    ? "border-[#FD5F31] bg-[#FFF3EE] text-[#FD5F31]"
+                    : "border-border bg-white text-foreground hover:border-[#FD5F31]/40"
                 }`}
               >
                 Sim
@@ -665,8 +665,8 @@ export default function CreditoPessoalDadosTomador() {
                 onClick={() => handlePep(false)}
                 className={`flex h-14 items-center justify-center rounded-2xl border text-sm font-semibold transition-all ${
                   pep === false && pepRespondido
-                    ? "border-[#E8590A] bg-[#FEF0E7] text-[#E8590A]"
-                    : "border-border bg-white text-foreground hover:border-[#E8590A]/40"
+                    ? "border-[#FD5F31] bg-[#FFF3EE] text-[#FD5F31]"
+                    : "border-border bg-white text-foreground hover:border-[#FD5F31]/40"
                 }`}
               >
                 Não
@@ -785,7 +785,7 @@ export default function CreditoPessoalDadosTomador() {
             <button
               type="button"
               onClick={goBack}
-              className="flex h-12 items-center justify-center rounded-full border border-border text-sm font-medium text-foreground transition-colors hover:border-[#E8590A]/40"
+              className="flex h-12 items-center justify-center rounded-full border border-border text-sm font-medium text-foreground transition-colors hover:border-[#FD5F31]/40"
             >
               Voltar
             </button>
@@ -794,7 +794,7 @@ export default function CreditoPessoalDadosTomador() {
               disabled={!canAdvance}
               onClick={goNext}
               className={`flex h-12 items-center justify-center gap-2 rounded-full text-sm font-semibold text-white transition-colors ${
-                canAdvance ? "bg-[#E8590A] hover:bg-[#A33D05]" : "cursor-not-allowed bg-[#E8590A] opacity-40"
+                canAdvance ? "bg-[#FD5F31] hover:bg-[#D94E28]" : "cursor-not-allowed bg-[#FD5F31] opacity-40"
               }`}
             >
               Continuar

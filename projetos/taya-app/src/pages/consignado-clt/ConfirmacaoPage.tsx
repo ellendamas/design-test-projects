@@ -54,17 +54,17 @@ export default function ConsignadoCLTConfirmacaoPage() {
     {
       label: "Parceiro",
       value: provedor,
-      valueClass: "text-sm font-semibold text-[#A33D05]",
+      valueClass: "text-sm font-semibold text-[#D94E28]",
     },
     {
       label: "Valor a receber",
       value: `R$ ${formatCurrency(valor)}`,
-      valueClass: "text-lg font-bold text-[#A33D05]",
+      valueClass: "text-lg font-bold text-[#D94E28]",
     },
     {
       label: "Parcela mensal",
       value: `${prazo}x de R$ ${formatCurrency(valorParcela)}`,
-      valueClass: "text-sm text-[#A33D05]",
+      valueClass: "text-sm text-[#D94E28]",
     },
     {
       label: "Primeira parcela",
@@ -106,13 +106,13 @@ export default function ConsignadoCLTConfirmacaoPage() {
         </div>
 
         {/* Card resumo */}
-        <div className="w-full rounded-2xl bg-[#FEF0E7] p-4">
+        <div className="w-full rounded-2xl bg-[#FFF3EE] p-4">
           {linhasResumo.map((linha) => (
             <div
               key={linha.label}
-              className="flex items-center justify-between border-b border-[#E8590A]/20 py-1.5 last:border-0"
+              className="flex items-center justify-between border-b border-[#FD5F31]/20 py-1.5 last:border-0"
             >
-              <span className="text-sm text-[#A33D05]/70">{linha.label}</span>
+              <span className="text-sm text-[#D94E28]/70">{linha.label}</span>
               <span className={linha.valueClass}>{linha.value}</span>
             </div>
           ))}
@@ -123,7 +123,7 @@ export default function ConsignadoCLTConfirmacaoPage() {
           <button
             type="button"
             onClick={() => navigate("/contratos")}
-            className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+            className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
           >
             Ver meu contrato
           </button>

@@ -167,8 +167,8 @@ export default function ContaSelector({
     <div className="space-y-3">
       {/* Cabeçalho */}
       <div className="flex flex-col items-center gap-3 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
-          <Bank size={28} className="text-[#E8590A]" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+          <Bank size={28} className="text-[#FD5F31]" />
         </div>
         <h2 className="text-lg font-semibold text-foreground">
           Para qual conta enviamos o dinheiro?
@@ -191,8 +191,8 @@ export default function ContaSelector({
                   className={cn(
                     "w-full rounded-2xl border p-4 text-left transition-all",
                     isSelected
-                      ? "border-[#E8590A] bg-[#FEF0E7]"
-                      : "border-border bg-white hover:border-[#E8590A]/40",
+                      ? "border-[#FD5F31] bg-[#FFF3EE]"
+                      : "border-border bg-white hover:border-[#FD5F31]/40",
                   )}
                 >
                   <div className="flex items-start gap-3 pr-20">
@@ -201,7 +201,7 @@ export default function ContaSelector({
                       className={cn(
                         "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                         isSelected
-                          ? "border-[#E8590A] bg-[#E8590A]"
+                          ? "border-[#FD5F31] bg-[#FD5F31]"
                           : "border-border bg-white",
                       )}
                     >
@@ -209,7 +209,7 @@ export default function ContaSelector({
                     </div>
                     <div className="min-w-0 flex-1">
                       {idx === contasProp.length - 1 && (
-                        <span className="mb-1 inline-block text-[10px] font-semibold uppercase tracking-wide text-[#E8590A]">
+                        <span className="mb-1 inline-block text-[10px] font-semibold uppercase tracking-wide text-[#FD5F31]">
                           Último utilizado
                         </span>
                       )}
@@ -225,7 +225,7 @@ export default function ContaSelector({
                   <button type="button" onClick={() => tentarExcluir(idx)} className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-red-500 md:flex">
                     <Trash size={24} />
                   </button>
-                  <button type="button" onClick={() => abrirEdicao(idx)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-[#E8590A]">
+                  <button type="button" onClick={() => abrirEdicao(idx)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-[#FD5F31]">
                     <PencilSimple size={24} />
                   </button>
                 </div>
@@ -244,7 +244,7 @@ export default function ContaSelector({
         <button
           type="button"
           onClick={() => onConfirmar(lista[selectedIdx])}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#d04e08] active:scale-[0.98]"
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#d04e08] active:scale-[0.98]"
         >
           {semProximoPasso ? "Salvar conta" : "Avançar"}
         </button>
@@ -255,7 +255,7 @@ export default function ContaSelector({
         <button
           type="button"
           onClick={abrirNovaConta}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium text-foreground transition-colors hover:border-[#E8590A]/40 hover:text-[#E8590A]"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium text-foreground transition-colors hover:border-[#FD5F31]/40 hover:text-[#FD5F31]"
         >
           <Plus size={16} />
           {lista.length === 0 ? "Informar conta bancária" : "Adicionar outra conta"}
@@ -409,7 +409,7 @@ function ContaFormContent({
               <button
                 key={`${b.cod}-${b.nome}`}
                 type="button"
-                className="flex w-full items-center rounded-lg px-2 py-2 text-left text-sm hover:bg-[#F5F4F2]"
+                className="flex w-full items-center rounded-lg px-2 py-2 text-left text-sm hover:bg-[#F0F0F0]"
                 onClick={() => { setBancoSelecionado(b); setOpenBanco(false); }}
               >
                 <span className="mr-2 text-xs text-muted-foreground">{b.cod}</span>
@@ -430,7 +430,7 @@ function ContaFormContent({
             className={cn(
               "flex-1 rounded-xl border py-2.5 text-sm transition-colors",
               tipoConta === tipo
-                ? "border-[#E8590A] bg-[#FEF0E7] text-[#E8590A]"
+                ? "border-[#FD5F31] bg-[#FFF3EE] text-[#FD5F31]"
                 : "border-border text-foreground",
             )}
           >
@@ -453,7 +453,7 @@ function ContaFormContent({
         </button>
         <button type="button" disabled={!podeAdicionarForm} onClick={handleSalvar}
           className={cn("flex h-11 flex-1 items-center justify-center rounded-full text-sm font-semibold text-white transition-colors",
-            podeAdicionarForm ? "bg-[#E8590A] hover:bg-[#d04e08]" : "cursor-not-allowed bg-[#E8590A] opacity-40")}>
+            podeAdicionarForm ? "bg-[#FD5F31] hover:bg-[#d04e08]" : "cursor-not-allowed bg-[#FD5F31] opacity-40")}>
           Salvar alterações
         </button>
       </div>

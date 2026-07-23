@@ -91,14 +91,14 @@ export default function UnicoAguardando({
       <button
         type="button"
         onClick={handleConfirmarCancelamento}
-        className="flex h-12 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A] hover:bg-[#FEF0E7]"
+        className="flex h-12 w-full items-center justify-center rounded-full border border-[#FD5F31] text-sm font-semibold text-[#FD5F31] hover:bg-[#FFF3EE]"
       >
         Sim, cancelar
       </button>
       <button
         type="button"
         onClick={() => setCancelarAberto(false)}
-        className="flex h-12 w-full items-center justify-center rounded-full bg-[#E8590A] text-sm font-semibold text-white hover:bg-[#A33D05]"
+        className="flex h-12 w-full items-center justify-center rounded-full bg-[#FD5F31] text-sm font-semibold text-white hover:bg-[#D94E28]"
       >
         Não, continuar
       </button>
@@ -111,8 +111,8 @@ export default function UnicoAguardando({
         /* ── Estado ativo ─────────────────────────────────────────────────── */
         <>
           <div className="flex flex-col items-center gap-5 pb-32 pt-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7]">
-              <HourglassMedium size={32} className="text-[#E8590A]" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]">
+              <HourglassMedium size={32} className="text-[#FD5F31]" />
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-foreground">{titulo}</h2>
@@ -128,7 +128,7 @@ export default function UnicoAguardando({
                   <button
                     type="button"
                     onClick={onReenviarSms}
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
                   >
                     <DeviceMobileSpeaker size={20} />
                     Reenviar SMS
@@ -147,7 +147,7 @@ export default function UnicoAguardando({
                 <button
                   type="button"
                   onClick={onAssinar}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
                 >
                   <Fingerprint size={20} />
                   {labelBotao}
@@ -172,8 +172,8 @@ export default function UnicoAguardando({
 
             {/* Ícone + título centralizados */}
             <div className="flex flex-col items-center gap-4 py-2 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7]">
-                <HourglassMedium size={32} className="text-[#E8590A]" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]">
+                <HourglassMedium size={32} className="text-[#FD5F31]" />
               </div>
               <h2 className="text-xl font-bold text-foreground">{titulo}</h2>
             </div>
@@ -187,15 +187,15 @@ export default function UnicoAguardando({
 
             {/* Card de ação — texto + botão juntos */}
             {(descricaoAcao || onAcaoExpirado) && (
-              <div className="rounded-2xl border border-[#E8590A]/20 bg-[#FEF0E7] p-4 space-y-3">
+              <div className="rounded-2xl border border-[#FD5F31]/20 bg-[#FFF3EE] p-4 space-y-3">
                 {descricaoAcao && (
-                  <p className="text-sm leading-relaxed text-[#A33D05]">{descricaoAcao}</p>
+                  <p className="text-sm leading-relaxed text-[#D94E28]">{descricaoAcao}</p>
                 )}
                 {onAcaoExpirado && (
                   <button
                     type="button"
                     onClick={onAcaoExpirado}
-                    className="flex h-12 w-full items-center justify-center rounded-full bg-[#E8590A] text-sm font-semibold text-white transition-colors hover:bg-[#d04e08]"
+                    className="flex h-12 w-full items-center justify-center rounded-full bg-[#FD5F31] text-sm font-semibold text-white transition-colors hover:bg-[#d04e08]"
                   >
                     {labelAcaoExpirado}
                   </button>

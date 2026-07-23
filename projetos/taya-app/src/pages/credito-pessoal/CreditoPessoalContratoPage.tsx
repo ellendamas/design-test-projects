@@ -182,7 +182,7 @@ export default function CreditoPessoalContratoPage() {
         </div>
 
         {/* ── Seção 4 — Card de parcelas ── */}
-        <div className="rounded-2xl bg-[#A33D05] p-4 text-white">
+        <div className="rounded-2xl bg-[#D94E28] p-4 text-white">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-bold">Parcelas</h3>
             <span className="text-xs opacity-80">{totalParcelas - parcelasPagas} de {totalParcelas} restantes</span>
@@ -222,7 +222,7 @@ export default function CreditoPessoalContratoPage() {
           href="#"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A] transition-colors hover:bg-[#FEF0E7]"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#FD5F31] text-sm font-semibold text-[#FD5F31] transition-colors hover:bg-[#FFF3EE]"
           // TODO: substituir "#" pela url_boleto de GET /propostas/{id}/boleto/detalhes
         >
           <FilePdf size={18} />
@@ -323,7 +323,7 @@ export default function CreditoPessoalContratoPage() {
             <button
               type="button"
               onClick={() => setMostrarOnboardingZema(true)}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-sm font-semibold text-white"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-sm font-semibold text-white"
             >
               <UserPlus size={18} />
               Criar minha conta na Zema Financeira
@@ -333,7 +333,7 @@ export default function CreditoPessoalContratoPage() {
               href="https://minhaconta.zemafinanceira.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-sm font-semibold text-white"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-sm font-semibold text-white"
             >
               <ArrowSquareOut size={18} />
               Acessar minha conta Zema
@@ -382,7 +382,7 @@ export default function CreditoPessoalContratoPage() {
                 { numero: "4", titulo: "Pronto!", descricao: "Lá você encontra seus boletos, histórico de pagamentos e segunda via." },
               ].map((passo) => (
                 <div key={passo.numero} className="flex gap-3">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-xs font-bold text-[#E8590A]">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-xs font-bold text-[#FD5F31]">
                     {passo.numero}
                   </div>
                   <div>
@@ -401,7 +401,7 @@ export default function CreditoPessoalContratoPage() {
               href="https://minhaconta.zemafinanceira.com/cadastro-dados-pessoais"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-sm font-semibold text-white"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-sm font-semibold text-white"
             >
               <ArrowSquareOut size={18} />
               Ir para o cadastro da Zema

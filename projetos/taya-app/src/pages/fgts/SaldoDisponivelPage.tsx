@@ -46,7 +46,7 @@ export default function FGTSSaldoDisponivelPage() {
                 key={pill}
                 className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs"
               >
-                <CheckCircle size={11} className="text-[#E8590A]" weight="fill" />
+                <CheckCircle size={11} className="text-[#FD5F31]" weight="fill" />
                 {pill}
               </div>
             ))}
@@ -54,15 +54,15 @@ export default function FGTSSaldoDisponivelPage() {
         </div>
 
         {/* Card de saldo em destaque */}
-        <div className="rounded-2xl bg-[#FEF0E7] p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-[#A33D05]">
+        <div className="rounded-2xl bg-[#FFF3EE] p-5">
+          <p className="text-xs font-medium uppercase tracking-wide text-[#D94E28]">
             Seu saldo disponível
           </p>
           {/* TODO: receber da API BMP */}
-          <p className="mt-1 text-4xl font-bold text-[#A33D05]">
+          <p className="mt-1 text-4xl font-bold text-[#D94E28]">
             R$ {formatCurrency(SALDO_DISPONIVEL_MOCK)}
           </p>
-          <p className="mt-1 text-xs text-[#A33D05]/70">
+          <p className="mt-1 text-xs text-[#D94E28]/70">
             Consultado agora via Caixa Econômica Federal
           </p>
         </div>
@@ -72,7 +72,7 @@ export default function FGTSSaldoDisponivelPage() {
           <button
             type="button"
             onClick={() => navigate("/fgts/simular")}
-            className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+            className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
           >
             Simular agora
           </button>

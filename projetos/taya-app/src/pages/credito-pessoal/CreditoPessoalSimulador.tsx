@@ -81,7 +81,7 @@ const calcIOF = (pv: number, n: number): number => {
 };
 
 const maskedInputClass =
-  "flex h-14 w-full rounded-xl border border-border bg-white px-4 py-2 text-xl font-bold text-[#E8590A] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
+  "flex h-14 w-full rounded-xl border border-border bg-white px-4 py-2 text-xl font-bold text-[#FD5F31] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
 // ---------------------------------------------------------------------------
 // Componente
@@ -128,7 +128,7 @@ export default function CreditoPessoalSimulador() {
         <div className="space-y-3 rounded-2xl border border-border bg-white p-4 shadow-sm">
           <p className="text-sm text-muted-foreground">Quanto você precisa?</p>
           <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-[#E8590A]">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-[#FD5F31]">
               R$
             </span>
             <IMaskInput
@@ -144,7 +144,7 @@ export default function CreditoPessoalSimulador() {
               max={valorMaximo / 100}
               value={valorStr}
               onAccept={(v) => setValorStr(String(v))}
-              className="flex h-14 w-full rounded-xl border border-border bg-white pl-12 pr-4 py-2 text-xl font-bold text-[#E8590A] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="flex h-14 w-full rounded-xl border border-border bg-white pl-12 pr-4 py-2 text-xl font-bold text-[#FD5F31] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               placeholder="0,00"
               inputMode="numeric"
             />
@@ -190,8 +190,8 @@ export default function CreditoPessoalSimulador() {
                   onClick={() => setOfertaSelecionada(oferta)}
                   className={`h-12 rounded-xl border text-sm font-semibold transition-colors ${
                     sel
-                      ? "border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]"
-                      : "border-border bg-white text-foreground hover:border-[#E8590A]/40"
+                      ? "border-[#FD5F31] bg-[#FFF3EE] text-[#D94E28]"
+                      : "border-border bg-white text-foreground hover:border-[#FD5F31]/40"
                   }`}
                 >
                   {oferta.parcelas}x
@@ -203,10 +203,10 @@ export default function CreditoPessoalSimulador() {
 
         {/* ── Detalhe da oferta selecionada ── */}
         {ofertaSelecionada && (
-          <div className="space-y-2.5 rounded-2xl border border-[#E8590A]/25 bg-[#FEF0E7] p-4">
+          <div className="space-y-2.5 rounded-2xl border border-[#FD5F31]/25 bg-[#FFF3EE] p-4">
             <div className="flex items-baseline justify-between">
               <p className="text-sm text-muted-foreground">Valor da parcela</p>
-              <p className="text-lg font-bold text-[#A33D05]">
+              <p className="text-lg font-bold text-[#D94E28]">
                 R$ {formatCents(valorParcelaCalc)}
               </p>
             </div>
@@ -216,7 +216,7 @@ export default function CreditoPessoalSimulador() {
                 R$ {formatCents(totalAPagarCalc)}
               </p>
             </div>
-            <div className="h-px bg-[#E8590A]/15" />
+            <div className="h-px bg-[#FD5F31]/15" />
             <div className="flex justify-between">
               <p className="text-sm text-muted-foreground">Juros</p>
               <p className="text-sm text-foreground">
@@ -275,8 +275,8 @@ export default function CreditoPessoalSimulador() {
             }
             className={`flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-colors ${
               ofertaSelecionada
-                ? "bg-[#E8590A] hover:bg-[#A33D05]"
-                : "cursor-not-allowed bg-[#E8590A] opacity-40"
+                ? "bg-[#FD5F31] hover:bg-[#D94E28]"
+                : "cursor-not-allowed bg-[#FD5F31] opacity-40"
             }`}
           >
             Continuar com esta oferta

@@ -61,21 +61,17 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
   const { assistencias, energia } = useInteresse();
   const { streak, saldo } = useSeubolso();
 
+  // DESIGN ONLY — ?recomendacoes=vazio força zero cards, para visualizar o painel sem "Para você agora"
+  // Provider fica fora do <BrowserRouter> (main.tsx), por isso lê a URL direto em vez de useSearchParams()
+  // TODO: remover quando P2/P4 estiverem ligados a uma condição real (endereço/conta cadastrados)
+  const forcarRecomendacoesVazias =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("recomendacoes") === "vazio";
+
   const [dispensados, setDispensados] = useState<DispensadoPersistido[]>(() => getDispensadosStorage());
   const [dispensadosSessao, setDispensadosSessao] = useState<string[]>([]);
 
   const cardsBase = useMemo<RecomendacaoCard[]>(
     () => [
-      {
-        id: "P3",
-        grupo: "P",
-        prioridade: 1,
-        icone: "CalendarCheck",
-        texto: "Sua parcela de junho vence em 12 dias.",
-        cta: "Ver contrato",
-        destino: "/contratos/saque-facil-001",
-        dispensavel: false,
-      },
       {
         id: "P2",
         grupo: "P",
@@ -97,23 +93,13 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         dispensavel: false,
       },
       {
-        id: "P1",
-        grupo: "P",
-        prioridade: 4,
-        icone: "CreditCard",
-        texto: "Você simulou R$ 2.000 no Saque Fácil. Quer continuar?",
-        cta: "Continuar",
-        destino: "/saque-facil",
-        dispensavel: true,
-      },
-      {
         id: "O1",
         grupo: "O",
         prioridade: 5,
         icone: "Coins",
         texto: "Você tem FGTS disponível para antecipar?",
         cta: "Simular",
-        destino: "/saque-facil",
+        destino: "/fgts",
         dispensavel: true,
         reexibirApos: 30,
       },
@@ -142,7 +128,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         grupo: "O",
         prioridade: 8,
         icone: "Wallet",
-        texto: "Crédito CLT disponível. Parcelas fixas no seu salário.",
+        texto: "Crédito Consignado CLT disponível. Parcelas fixas no seu salário.",
         cta: "Consultar",
         destino: "/painel",
         dispensavel: true,
@@ -175,6 +161,8 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
   );
 
   const cards = useMemo(() => {
+    if (forcarRecomendacoesVazias) return []; // DESIGN ONLY
+
     const now = Date.now();
 
     const isDispensadoPersistido = (card: RecomendacaoCard) => {
@@ -208,7 +196,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     }
 
     return ativos.sort((a, b) => a.prioridade - b.prioridade);
-  }, [assistencias, cardsBase, dispensados, dispensadosSessao, energia, saldo, streak]);
+  }, [assistencias, cardsBase, dispensados, dispensadosSessao, energia, saldo, streak, forcarRecomendacoesVazias]);
 
   const dispensar = (id: string) => {
     const card = cardsBase.find((item) => item.id === id);

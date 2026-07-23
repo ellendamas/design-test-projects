@@ -3,18 +3,13 @@ import { IMaskInput } from "react-imask";
 import {
   ArrowLeft,
   ArrowRight,
-  ArrowSquareOut,
   ArrowsClockwise,
   Bank,
   Bell,
   BookOpen,
   Brain,
   Briefcase,
-  Buildings,
-  Cake,
   CalendarCheck,
-  Camera,
-  Car,
   CaretLeft,
   CaretRight,
   CaretDown,
@@ -22,14 +17,11 @@ import {
   ChatCircle,
   Check,
   CheckCircle,
-  ClipboardText,
   Clock,
   Coins,
   CreditCard,
   CurrencyCircleDollar,
-  CurrencyDollar,
   DeviceMobile,
-  DownloadSimple,
   EnvelopeSimple,
   Eye,
   EyeSlash,
@@ -37,16 +29,12 @@ import {
   Fingerprint,
   Fire,
   FirstAid,
-  ForkKnife,
   Gear,
-  GenderIntersex,
   Gift,
   HandHeart,
   Headset,
   Heartbeat,
   House,
-  HouseLine,
-  IdentificationCard,
   Image,
   Info,
   Lightning,
@@ -60,28 +48,20 @@ import {
   PawPrint,
   PencilSimple,
   PiggyBank,
-  Plus,
   SealCheck,
   ShieldCheck,
-  ShoppingBag,
   Signature,
   SignOut,
-  Sliders,
-  SpinnerGap,
   Stethoscope,
   Tag,
   Tooth,
-  TrendUp,
   Trophy,
   Trash,
   Umbrella,
-  User,
   UserCircle,
   Users,
   Wallet,
   VideoCamera,
-  Warning,
-  WarningCircle,
   WhatsappLogo,
   X,
 } from "@phosphor-icons/react";
@@ -90,7 +70,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } fr
 import { Toaster, toast } from "sonner";
 
 import FaqAcordeon from "@/components/FaqAcordeon";
-import { ErrorScreen, ERROS, type ErrorCategoria } from "@/components/ErrorScreen";
+import { TermosModal } from "@/components/TermosModal";
 import { useInteresse } from "@/context/InteresseContext";
 import { useRecomendacoes } from "@/context/RecomendacoesContext";
 import { Badge } from "@/components/ui/badge";
@@ -107,7 +87,6 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { contratos } from "@/data/contratos";
 import { usePrivacy } from "@/context/PrivacyContext";
 import { useNotificacoes } from "@/context/NotificacoesContext";
-import { CreditCardProvider, useCreditCard } from "@/context/CreditCardContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
@@ -150,13 +129,11 @@ import CreditoPessoalPendente from "./pages/credito-pessoal/CreditoPessoalPenden
 import CreditoPessoalContratoPage from "./pages/credito-pessoal/CreditoPessoalContratoPage";
 import EnderecoSelector, { type EnderecoData } from "@/components/EnderecoSelector";
 import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
-import Cards from "react-credit-cards-2";
-import "react-credit-cards-2/dist/es/styles-compiled.css";
 import { Logo } from "@/components/Logo";
 
-type ServiceType = "clt" | "fgts" | "saque-facil" | "credito-pessoal" | "assistencias" | "energia";
+type ServiceType = "clt" | "fgts" | "credito-pessoal" | "assistencias" | "energia";
 type OtpChannel = "whatsapp" | "email" | "sms";
-type StoredUser = { name: string; email: string };
+type StoredUser = { name: string; email: string; cpf?: string };
 type RecoveryChannel = "whatsapp" | "sms" | "email";
 type RecoveryRouteState = {
   cpf?: string;
@@ -281,10 +258,10 @@ const serviceCopy: Record<
   }
 > = {
   clt: {
-    title: "Crédito CLT",
+    title: "Crédito Consignado CLT",
     subtitle: "Para quem tem carteira assinada",
     description: "Parcelas fixas descontadas direto do seu salário. Sem susto no fim do mês.",
-    cta: "Consultar crédito CLT",
+    cta: "Consultar agora",
     icon: <Briefcase size={20} />,
     highlight: "Descubra quanto você pode ter",
     photo: "/images/card-dash-clt.png",
@@ -297,15 +274,6 @@ const serviceCopy: Record<
     icon: <FgtsCustomIcon size={20} />,
     highlight: "Receba seu saldo em até 15 minutos",
     photo: "/images/card-dash-fgts.png",
-  },
-  "saque-facil": {
-    title: "Saque Fácil no cartão",
-    subtitle: "Saque com limite do seu cartão",
-    description: "Use o limite do seu cartão de crédito. Sem consulta de crédito. Aprovação rápida!",
-    cta: "Simular agora",
-    icon: <CreditCard size={20} />,
-    highlight: "Aprovação em minutos",
-    photo: "/images/card-dash-credit-card.png",
   },
   "credito-pessoal": {
     title: "Crédito Pessoal",
@@ -400,7 +368,7 @@ function RecoveryStepHeader({
           <button
             type="button"
             onClick={() => navigate(backPath)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F5F4F2]"
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0]"
             aria-label="Voltar"
           >
             <ArrowLeft size={20} className="text-foreground" />
@@ -434,7 +402,7 @@ function PrivacyToggle({ size = 20, variant = "dark" }: { size?: number; variant
   return (
     <button
       onClick={toggleVisibility}
-      className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-white/20 md:hover:bg-[#F5F4F2]"
+      className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-white/20 md:hover:bg-[#F0F0F0]"
       aria-label={dataVisible ? "Ocultar dados sensíveis" : "Mostrar dados sensíveis"}
       title={dataVisible ? "Ocultar dados" : "Mostrar dados"}
     >
@@ -486,14 +454,14 @@ function FakeDoorCTA({
 }) {
   if (registrado) {
     return (
-      <Button disabled variant="outline" className="h-12 w-full rounded-xl border-[#E8590A] bg-[#FEF0E7] text-[#E8590A] opacity-100">
+      <Button disabled variant="outline" className="h-12 w-full rounded-xl border-[#FD5F31] bg-[#FFF3EE] text-[#FD5F31] opacity-100">
         <CheckCircle size={18} className="mr-2" weight="fill" />
         Interesse registrado
       </Button>
     );
   }
   return (
-    <Button className="h-12 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={onRegister}>
+    <Button className="h-12 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" onClick={onRegister}>
       {label}
     </Button>
   );
@@ -553,14 +521,14 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
 
       <main className="flex-1 bg-background">
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-white px-4 py-4 md:px-8">
-          <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F5F4F2]">
+          <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0]">
             <ArrowLeft size={20} className="text-foreground" />
           </button>
           <h1 className="flex-1 text-base font-semibold text-foreground">{title}</h1>
           <PrivacyToggle size={18} variant="dark" />
-          <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F5F4F2]">
+          <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0]">
             <Bell size={18} className="text-muted-foreground" />
-            {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#E8590A] text-[9px] font-bold text-white">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
+            {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FD5F31] text-[9px] font-bold text-white">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
           </button>
         </header>
         <div className={`px-4 py-5 md:mx-auto md:max-w-[640px] md:px-0 md:py-8 ${hideNav ? "pb-6" : "pb-28"}`}>{children}</div>
@@ -585,954 +553,15 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
   );
 }
 
-type SaqueFacilStep = "data_intro" | "rg" | "birth" | "income" | "civil" | "gender" | "card_due_day" | "address" | "bank" | "unico_intro" | "stark_analysis" | "card_type" | "card" | "selfie_ownership" | "selfie_identity";
-
-const etapasSaqueFacil = [
-  { id: "simulacao", label: "Simulação" },
-  { id: "dados", label: "Seus dados" },
-  { id: "cartao", label: "Cartão" },
-  { id: "verificacao", label: "Verificação" },
-  { id: "confirmacao", label: "Confirmar" },
-] as const;
-
-function StepperSaqueFacil({ etapaAtual }: { etapaAtual: string }) {
-  const idx = etapasSaqueFacil.findIndex((e) => e.id === etapaAtual);
-  return (
-    <div className="mb-6 flex w-full items-center justify-between px-1">
-      {etapasSaqueFacil.map((etapa, i) => (
-        <motion.div key={etapa.id} className="contents">
-          <div key={etapa.id} className="flex min-w-0 flex-col items-center gap-1">
-            <div
-              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-all ${
-                i < idx
-                  ? "bg-[#E8590A] text-white"
-                  : i === idx
-                    ? "bg-[#E8590A] text-white ring-4 ring-[#FEF0E7]"
-                    : "border border-border bg-[#F5F4F2] text-muted-foreground"
-              }`}
-            >
-              {i < idx ? <CheckCircle size={14} weight="fill" /> : i + 1}
-            </div>
-            <span
-              className={`max-w-[52px] text-center text-[10px] leading-tight ${
-                i === idx ? "font-semibold text-[#E8590A]" : i < idx ? "text-[#E8590A]" : "text-muted-foreground"
-              }`}
-            >
-              {etapa.label}
-            </span>
-          </div>
-          {i < etapasSaqueFacil.length - 1 ? <div className={`mx-1 mb-4 h-0.5 flex-1 ${i < idx ? "bg-[#E8590A]" : "bg-[#F5F4F2]"}`} /> : null}
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
 function OptionButton({ selected, onClick, children, fullWidth = false }: { selected: boolean; onClick: () => void; children: ReactNode; fullWidth?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${fullWidth ? "w-full" : ""} ${selected ? "border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]" : "border-border bg-white text-foreground hover:border-[#E8590A]/40"}`}
+      className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${fullWidth ? "w-full" : ""} ${selected ? "border-[#FD5F31] bg-[#FFF3EE] text-[#D94E28]" : "border-border bg-white text-foreground hover:border-[#FD5F31]/40"}`}
     >
       {children}
     </button>
-  );
-}
-
-function SaqueFacilIntroPage() {
-  const navigate = useNavigate();
-  const [faqOpen, setFaqOpen] = useState<number | null>(0);
-
-  const faq = [
-    { q: "Quem pode usar o Saque Fácil?", a: "Qualquer pessoa com cartão de crédito com bandeira reconhecida (Visa, Mastercard, Elo, Hipercard ou Amex), função crédito ativa e limite disponível. Cartões Alelo, Sodexo e VR não são aceitos." },
-    { q: "Como aparece na fatura?", a: "A cobrança aparece como STARK*PODEJA junto ao valor de cada parcela." },
-    { q: "O que acontece com meu limite?", a: "Seu limite é usado na contratação e vai sendo liberado conforme você paga as parcelas mensais, igual a uma compra comum." },
-    { q: "É seguro?", a: "Sim. A operação usa tecnologia Unico para validar sua identidade e seu cartão, com assinatura eletrônica com validade jurídica." },
-  ];
-
-  return (
-    <SubPageLayout title="Saque Fácil no cartão">
-      <div className="space-y-6 px-4 pb-24 md:mx-auto md:max-w-[640px]">
-        <div className="relative mb-5 min-h-[200px] overflow-hidden rounded-2xl">
-          <img
-            src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80&fit=crop&crop=center"
-            alt="Saque Fácil"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#A33D05] via-[#E8590A]/70 to-transparent" />
-          <div className="relative z-10 flex min-h-[200px] flex-col justify-end p-5">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/75">Saque Fácil no cartão</p>
-            <h1 className="mb-2 text-2xl font-bold leading-tight text-white">Transforme o limite do seu cartão em dinheiro na conta</h1>
-            <p className="text-sm text-white/85">Em poucos minutos, sem análise de crédito</p>
-          </div>
-        </div>
-
-        <div className="mb-6 flex flex-wrap gap-2">
-          <div className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"><CheckCircle size={12} className="text-[#E8590A]" />100% digital</div>
-          <div className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"><CheckCircle size={12} className="text-[#E8590A]" />Sem burocracia</div>
-          <div className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"><ShieldCheck size={12} className="text-[#E8590A]" />Com segurança</div>
-        </div>
-
-        <Card className="mb-6 border-border shadow-sm">
-          <CardContent className="divide-y divide-border pt-0">
-            {[{ icon: <Lightning size={20} />, titulo: "Dinheiro em até 30 minutos", desc: "Após a aprovação, o valor cai direto na sua conta." }, { icon: <X size={20} />, titulo: "Sem análise de crédito", desc: "Não consultamos SPC ou Serasa. Só precisa ter limite disponível." }, { icon: <Sliders size={20} />, titulo: "Você escolhe as parcelas", desc: "De 4 a 12 vezes, no limite do seu cartão de crédito." }].map((b) => (
-              <div key={b.titulo} className="flex gap-3 py-4 first:pt-5 last:pb-5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEF0E7] text-[#E8590A]">{b.icon}</div>
-                <div><p className="text-sm font-semibold text-foreground">{b.titulo}</p><p className="mt-0.5 text-xs text-muted-foreground">{b.desc}</p></div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <div className="space-y-2">
-          <p className="mb-3 text-base font-semibold text-foreground">Saiba mais sobre o Saque Fácil</p>
-          {faq.map((item, i) => {
-            const open = faqOpen === i;
-            return (
-              <Card key={item.q} className="border-border">
-                <CardContent className="p-0">
-                  <button className="flex w-full items-center justify-between px-4 py-3 text-left" onClick={() => setFaqOpen(open ? null : i)}>
-                    <span className="text-sm font-medium text-foreground">{item.q}</span>
-                    <CaretDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
-                  </button>
-                  {open ? <p className="px-4 pb-4 text-xs leading-relaxed text-muted-foreground">{item.a}</p> : null}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <div className="sticky bottom-0 bg-background pb-6 pt-3">
-          <Button className="h-12 w-full rounded-xl bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]" onClick={() => navigate("/saque-facil/simulacao")}>Quero simular <ArrowRight size={16} className="ml-2" /></Button>
-        </div>
-      </div>
-    </SubPageLayout>
-  );
-}
-
-// TODO: receber da API — fatores de simulação
-// DESIGN ONLY — estado simulado via URL param ?valor=2000&parcelas=4
-const FATORES: Record<number, number> = {
-  4:  1.51008,
-  5:  1.52098,
-  6:  1.53128,
-  7:  1.54188,
-  8:  1.55260,
-  9:  1.56218,
-  10: 1.57232,
-  11: 1.58244,
-  12: 1.59280,
-};
-
-function SaqueFacilSimulacaoPage() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [taxasOpen, setTaxasOpen] = useState(false);
-
-  const toCurrency = (value: number) =>
-    value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  const parseCurrency = (value: string) => {
-    const normalized = value.replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
-    return Number(normalized) || 0;
-  };
-
-  // DESIGN ONLY — query params para preencher estado inicial
-  const valorParam = parseCurrency(searchParams.get("valor") ?? "0");
-  const parcelasParam = Number(searchParams.get("parcelas") ?? "4");
-  const parcelasInicial = parcelasParam >= 4 && parcelasParam <= 12 ? parcelasParam : 4;
-
-  const [valorDesejado, setValorDesejado] = useState(valorParam);
-  const [numParcelas, setNumParcelas] = useState(parcelasInicial);
-
-  const fator = FATORES[numParcelas] ?? 1.51008; // TODO: receber da API
-  const desembolso = valorDesejado * fator; // TODO: receber da API
-  const valorParcela = desembolso / numParcelas; // TODO: receber da API
-
-  return (
-    <SubPageLayout title="Saque Fácil no cartão" hideNav>
-      <div className="space-y-4 md:mx-auto md:max-w-[640px]">
-        <StepperSaqueFacil etapaAtual="simulacao" />
-        <div className="space-y-4">
-          <div><h2 className="text-xl font-bold text-foreground">Quanto você quer receber?</h2><p className="mt-1 text-sm text-muted-foreground">Informe o valor e veja o desembolso estimado.</p></div>
-          <IMaskInput mask={Number} scale={2} signed={false} thousandsSeparator="." radix="," mapToRadix={["."]} normalizeZeros padFractionalZeros value={valorDesejado.toString()} onAccept={(v) => setValorDesejado(parseCurrency(String(v)))} className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold" placeholder="R$ 0,00" />
-          <div>
-            <p className="mb-2 text-sm font-medium text-foreground">Número de parcelas</p>
-            <input type="range" min={4} max={12} step={1} value={numParcelas} onChange={(e) => setNumParcelas(Number(e.target.value))} className="w-full accent-[#E8590A]" />
-            <div className="mt-1 flex justify-between text-xs" style={{ paddingLeft: "8px", paddingRight: "8px" }}>{[4,5,6,7,8,9,10,11,12].map((n)=><span key={n} className={n===numParcelas?"font-bold text-[#E8590A]":"text-muted-foreground"}>{n}</span>)}</div>
-          </div>
-          <div className="mt-4">
-            <div className="rounded-2xl bg-[#FEF0E7] p-4">
-              <p className="mb-1 text-xs font-medium text-[#A33D05]">Desembolso estimado</p>
-              <p className="text-3xl font-bold text-[#E8590A]">R$ {toCurrency(desembolso)}</p>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-base font-bold text-[#A33D05]">R$ {toCurrency(valorDesejado)}</p></div>
-                <div><p className="text-xs text-[#A33D05]/70">Parcelas de</p><p className="text-base font-bold text-[#A33D05]">{numParcelas}x R$ {toCurrency(valorParcela)}</p></div>
-              </div>
-              <p className="mt-3 text-xs text-[#A33D05]/60">Valores estimados</p>
-            </div>
-            <button className="mt-3 flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm" onClick={() => setTaxasOpen((p) => !p)}>
-              Ver taxas da operação
-              <CaretDown size={16} className={`transition-transform ${taxasOpen ? "rotate-180" : ""}`} />
-            </button>
-            {taxasOpen ? <div className="mt-2 rounded-xl bg-white p-3 text-xs text-muted-foreground">CET estimado: varia conforme prazo. IOF e encargos já incluídos na simulação.</div> : null}
-          </div>
-          <div className="grid grid-cols-2 gap-3 pt-2 md:flex md:justify-end">
-            <Button variant="outline" onClick={() => navigate("/saque-facil/introducao")} className="h-11 rounded-xl border-border md:min-w-[160px]">Voltar</Button>
-            <Button
-              disabled={valorDesejado === 0}
-              onClick={() => navigate("/saque-facil/dados", { state: { valorDesejado, numParcelas, desembolso, valorParcela } })}
-              className="h-11 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px] disabled:opacity-40"
-            >
-              Continuar <ArrowRight size={16} className="ml-2" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </SubPageLayout>
-  );
-}
-
-const SF_ENDERECOS_MOCK: EnderecoData[] = [
-  { logradouro: "Rua Dona Ana Neri", numero: "581", complemento: "de 501/502 ao fim", bairro: "Cambuci", cidade: "São Paulo", estado: "SP", cep: "01522-000" },
-  { logradouro: "Av. Paulista", numero: "1374", bairro: "Bela Vista", cidade: "São Paulo", estado: "SP", cep: "01310-100" },
-  { logradouro: "Rua Augusta", numero: "2140", complemento: "Apto 42", bairro: "Consolação", cidade: "São Paulo", estado: "SP", cep: "01412-100" },
-  { logradouro: "Rua Oscar Freire", numero: "900", bairro: "Jardins", cidade: "São Paulo", estado: "SP", cep: "01426-001" },
-  { logradouro: "Av. Rebouças", numero: "3970", complemento: "Bloco B", bairro: "Pinheiros", cidade: "São Paulo", estado: "SP", cep: "05402-600" },
-];
-
-const SF_CONTAS_MOCK: ContaSelectorData[] = [
-  { banco: { codigo: "077", nome: "Banco Inter" }, tipoConta: "Conta corrente", agencia: "1234", conta: "12345", digito: "6" },
-  { banco: { codigo: "260", nome: "Nubank" }, tipoConta: "Conta corrente", agencia: "0001", conta: "987654", digito: "3" },
-  { banco: { codigo: "341", nome: "Itaú Unibanco" }, tipoConta: "Conta poupança", agencia: "5678", conta: "11111", digito: "0" },
-  { banco: { codigo: "237", nome: "Bradesco" }, tipoConta: "Conta corrente", agencia: "0123", conta: "55555", digito: "9" },
-  { banco: { codigo: "033", nome: "Santander" }, tipoConta: "Conta corrente", agencia: "9999", conta: "66666", digito: "1" },
-];
-
-function SaqueFacilDadosPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const { valorDesejado = 0, numParcelas = 4, desembolso = 0, valorParcela: valorParcelaEstimado = 0 } = (location.state as any) ?? {};
-  const { state, setState } = useCreditCard();
-  const { adicionarPontos } = useSeubolso();
-  const [step, setStep] = useState<SaqueFacilStep>("data_intro");
-  const pontosRegistradosRef = useRef(false);
-  const [orgaoExpedidor, setOrgaoExpedidor] = useState("SSP");
-  const [faixaRenda, setFaixaRenda] = useState("");
-  const [taxasOpen, setTaxasOpen] = useState(false);
-  const [focused, setFocused] = useState<"number" | "name" | "expiry" | "cvc" | "">("");
-  const [cardType, setCardType] = useState("");
-  const [cardDueDay, setCardDueDay] = useState("");
-  const [usarOutroDia, setUsarOutroDia] = useState(false);
-  const [enderecoSelecionado, setEnderecoSelecionado] = useState<EnderecoData | null>(null);
-  const [contaSelecionada, setContaSelecionada] = useState<ContaSelectorData | null>(null);
-  const [unicoLogoError, setUnicoLogoError] = useState(false);
-
-  // DESIGN ONLY — ?endereco=N (0–5) e ?conta=N (0–5)
-  const nEnderecos = Math.min(5, Math.max(0, parseInt(searchParams.get("endereco") ?? "1", 10) || 0));
-  const nContas = Math.min(5, Math.max(0, parseInt(searchParams.get("conta") ?? "1", 10) || 0));
-  const enderecosMock = SF_ENDERECOS_MOCK.slice(0, nEnderecos);
-  const contasMock = SF_CONTAS_MOCK.slice(0, nContas);
-  const [starkProgress, setStarkProgress] = useState(0);
-  const [starkApproved, setStarkApproved] = useState<boolean | null>(null);
-  const [showStarkButton, setShowStarkButton] = useState(false);
-
-  const flow: SaqueFacilStep[] = ["data_intro", "rg", "birth", "income", "civil", "gender", "card_due_day", "address", "bank", "unico_intro", "stark_analysis", "card_type", "card", "selfie_ownership", "selfie_identity"];
-  const index = flow.indexOf(step);
-
-  const toCurrency = (value: number) =>
-    value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  const cardFinal = state.numeroCartao.replace(/\s/g, "").slice(-4) || "----";
-
-  const stepMap: Record<SaqueFacilStep, string> = {
-    data_intro: "credit_card_data_intro",
-    rg: "credit_card_rg",
-    birth: "credit_card_birth_date",
-    income: "credit_card_income",
-    civil: "credit_card_civil_status",
-    gender: "credit_card_gender",
-    card_due_day: "credit_card_due_day",
-    address: "credit_card_address_confirmation",
-    bank: "credit_card_bank_confirmation",
-    unico_intro: "credit_card_unico_intro",
-    stark_analysis: "credit_card_stark_analysis",
-    card_type: "credit_card_type_selection",
-    card: "credit_card_card_data",
-    selfie_ownership: "credit_card_selfie_ownership",
-    selfie_identity: "credit_card_selfie_identity",
-  };
-
-  useEffect(() => {
-    trackStep(stepMap[step]);
-  }, [step]);
-
-  useEffect(() => {
-    if (step !== "selfie_ownership") return;
-    const timer = window.setTimeout(() => {
-      setState((prev) => ({ ...prev, selfieOwnershipOk: true }));
-      setStep("selfie_identity");
-    }, 3000);
-    return () => window.clearTimeout(timer);
-  }, [step, setState]);
-
-  useEffect(() => {
-    if (step !== "selfie_identity") return;
-    const timer = window.setTimeout(() => {
-      setState((prev) => ({ ...prev, selfieIdentityOk: true }));
-      navigate("/saque-facil/revisao", {
-        state: {
-          valorDesejado,
-          numParcelas,
-          desembolso,
-          valorParcela: valorParcelaEstimado,
-          rg: state.rg,
-          dataNascimento: state.dataNascimento,
-          estadoCivil: state.estadoCivil,
-          sexo: state.sexo,
-          enderecoConfirmado: state.enderecoConfirmado,
-          bancoConfirmado: state.bancoConfirmado,
-          numeroCartao: state.numeroCartao,
-          nomeCartao: state.nomeCartao,
-          agencia: contaSelecionada?.agencia ?? "",
-          bankName: contaSelecionada?.banco.nome ?? "",
-          cardFinal,
-        },
-      });
-    }, 3000);
-    return () => window.clearTimeout(timer);
-  }, [step, setState]);
-
-  useEffect(() => {
-    if (step !== "stark_analysis") return;
-    setStarkApproved(null);
-    setShowStarkButton(false);
-    setStarkProgress(0);
-
-    const start = Date.now();
-    const interval = window.setInterval(() => {
-      const elapsed = Date.now() - start;
-      const pct = Math.min(100, Math.round((elapsed / 4000) * 100));
-      setStarkProgress(pct);
-    }, 120);
-
-    const timer = window.setTimeout(() => {
-      window.clearInterval(interval);
-      setStarkProgress(100);
-      setStarkApproved(true);
-      window.setTimeout(() => setShowStarkButton(true), 1000);
-    }, 4000);
-
-    return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(timer);
-    };
-  }, [step]);
-
-  const goBack = () => {
-    if (step === "data_intro") return navigate("/saque-facil/simulacao");
-    if (index > 0) return setStep(flow[index - 1]);
-    navigate("/painel");
-  };
-
-  const goNext = () => {
-    if (index >= 0 && index < flow.length - 1) setStep(flow[index + 1]);
-  };
-
-  const canAdvance = useMemo(() => {
-    if (step === "data_intro") return true;
-    if (step === "rg") return state.rg.trim().length >= 5 && orgaoExpedidor.length > 0;
-    if (step === "birth") return isAdultBirthDate(state.dataNascimento);
-    if (step === "income") return Boolean(faixaRenda);
-    if (step === "civil") return Boolean(state.estadoCivil);
-    if (step === "gender") return Boolean(state.sexo);
-    if (step === "card_due_day") return Boolean(cardDueDay);
-    if (step === "address") return false; // EnderecoSelector handles its own confirm CTA
-    if (step === "bank") return false; // ContaSelector handles its own confirm CTA
-    if (step === "stark_analysis") return starkApproved === true && showStarkButton;
-    if (step === "card_type") return Boolean(cardType);
-    if (step === "card") return Boolean(isValidCardNumber(state.numeroCartao) && state.nomeCartao.trim().length >= 3 && isValidExpiry(state.vencimento) && state.cvv.replace(/\D/g, "").length >= 3);
-    return true;
-  }, [step, state, orgaoExpedidor, faixaRenda, cardDueDay, starkApproved, showStarkButton, cardType]);
-
-  const subtelaParaEtapa: Record<SaqueFacilStep, string> = {
-    data_intro: "dados",
-    rg: "dados",
-    birth: "dados",
-    income: "dados",
-    civil: "dados",
-    gender: "dados",
-    card_due_day: "dados",
-    address: "dados",
-    bank: "dados",
-    card_type: "cartao",
-    card: "cartao",
-    unico_intro: "verificacao",
-    stark_analysis: "verificacao",
-    selfie_ownership: "verificacao",
-    selfie_identity: "verificacao",
-  };
-
-  return (
-    <SubPageLayout title="Saque Fácil no cartão" hideNav>
-      <style>{`.rccs__card--front{background:linear-gradient(135deg,#1C1917,#374151)!important}.rccs__card--back{background:linear-gradient(135deg,#374151,#1C1917)!important}`}</style>
-      <div className="space-y-4 md:mx-auto md:max-w-[640px]">
-        <StepperSaqueFacil etapaAtual={subtelaParaEtapa[step]} />
-
-        <div>
-        {step === "data_intro" && (
-          <Card className="border-border">
-            <CardContent className="space-y-4 p-6 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><ClipboardText size={36} /></div>
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">Agora precisamos de alguns dados seus</h2>
-                <p className="mt-1 text-sm text-muted-foreground">São informações necessárias para o seu contrato. Leva menos de 2 minutos.</p>
-              </div>
-              <ul className="space-y-2 text-left text-sm">
-                {[
-                  "Documento de identidade (RG)",
-                  "Data de nascimento e renda",
-                  "Endereço de cobrança",
-                  "Conta bancária para receber",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-foreground"><CheckCircle size={16} className="text-[#E8590A]" />{item}</li>
-                ))}
-              </ul>
-              <SecurityStrip />
-            </CardContent>
-          </Card>
-        )}
-
-        {step === "simulation" && (
-          <div className="space-y-4">
-            <div><h2 className="text-xl font-bold text-foreground">Quanto você quer receber?</h2><p className="mt-1 text-sm text-muted-foreground">Informe o valor e veja quanto de limite você vai precisar no cartão.</p></div>
-            <IMaskInput mask={Number} scale={2} signed={false} thousandsSeparator="." radix="," mapToRadix={["."]} normalizeZeros padFractionalZeros value={valorReceber.toString()} onAccept={(v) => setState((prev) => ({ ...prev, valorDesejado: parseCurrency(String(v)) }))} className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold" placeholder="R$ 0,00" />
-            <div>
-              <p className="mb-2 text-sm font-medium text-foreground">Número de parcelas</p>
-              <input type="range" min={4} max={12} step={1} value={state.numeroParcelas} onChange={(e) => setState((prev) => ({ ...prev, numeroParcelas: Number(e.target.value) }))} className="w-full accent-[#E8590A]" />
-              <div className="mt-1 flex justify-between text-xs" style={{ paddingLeft: "8px", paddingRight: "8px" }}>{[4,5,6,7,8,9,10,11,12].map((n)=><span key={n} className={n===state.numeroParcelas?"font-bold text-[#E8590A]":"text-muted-foreground"}>{n}</span>)}</div>
-            </div>
-            <div className="mt-4">
-              <div className="rounded-2xl bg-[#FEF0E7] p-4">
-                <p className="mb-1 text-xs font-medium text-[#A33D05]">Você precisa ter este limite disponível no cartão</p>
-                <p className="text-3xl font-bold text-[#E8590A]">R$ {toCurrency(limiteCartaoNecessario)}</p>
-                <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-base font-bold text-[#A33D05]">R$ {toCurrency(valorReceber)}</p></div><div><p className="text-xs text-[#A33D05]/70">Parcelas de</p><p className="text-base font-bold text-[#A33D05]">{state.numeroParcelas}x R$ {toCurrency(valorParcela)}</p></div></div>
-              </div>
-              <button className="mt-3 flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm" onClick={() => setTaxasOpen((p) => !p)}>
-                Ver taxas da operação
-                <CaretDown size={16} className={`transition-transform ${taxasOpen ? "rotate-180" : ""}`} />
-              </button>
-              {taxasOpen ? <div className="mt-2 rounded-xl bg-white p-3 text-xs text-muted-foreground">CET estimado: 13,15%. IOF e encargos já incluídos na simulação.</div> : null}
-            </div>
-          </div>
-        )}
-
-        {step === "rg" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><IdentificationCard size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Qual é o seu RG?</h2><p className="text-sm text-muted-foreground">O formato varia conforme o estado emissor</p></div><Input value={state.rg} onChange={(e) => setState((p) => ({ ...p, rg: e.target.value }))} placeholder="Digite seu RG" className="h-12 rounded-xl" /><div className="grid grid-cols-3 gap-2">{["SSP","DETRAN","PC","PM","SSPDS","Outro"].map((o)=><OptionButton key={o} selected={orgaoExpedidor===o} onClick={()=>setOrgaoExpedidor(o)}>{o}</OptionButton>)}</div></CardContent></Card>}
-        {step === "birth" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><Cake size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Data de nascimento</h2></div><IMaskInput mask="00/00/0000" value={state.dataNascimento} onAccept={(v) => setState((p) => ({ ...p, dataNascimento: String(v) }))} placeholder="DD/MM/AAAA" className={maskedInputClass} /></CardContent></Card>}
-        {step === "income" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><CurrencyCircleDollar size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Qual é sua renda?</h2></div><div className="grid grid-cols-2 gap-2">{["Até R$ 2.000","R$ 2.001 a R$ 4.000","R$ 4.001 a R$ 8.000","Acima de R$ 8.000"].map((f)=><button key={f} onClick={()=>{ setFaixaRenda(f); setState((p)=>({...p,renda: f==="Até R$ 2.000"?2000:f==="R$ 2.001 a R$ 4.000"?4000:f==="R$ 4.001 a R$ 8.000"?8000:10000})); }} className={`rounded-xl border px-3 py-2 text-xs ${faixaRenda===f?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>{f}</button>)}</div></CardContent></Card>}
-        {step === "civil" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><Users size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Estado civil</h2></div><div className="grid grid-cols-2 gap-2">{["Solteiro(a)","Casado(a)","Divorciado(a)","Viúvo(a)"].map((v)=><OptionButton key={v} selected={state.estadoCivil===v} onClick={()=>setState((p)=>({...p,estadoCivil:v}))}>{v}</OptionButton>)}</div></CardContent></Card>}
-        {step === "gender" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><GenderIntersex size={28} className="text-[#E8590A]" /><User size={0} className="hidden" /></div><h2 className="text-xl font-bold">Sexo</h2><p className="text-sm text-muted-foreground">Informação necessária para o seu contrato.</p></div><div className="grid grid-cols-2 gap-2"><button onClick={()=>setState((p)=>({...p,sexo:"M"}))} className={`h-11 rounded-xl border text-sm ${state.sexo==="M"?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>Masculino</button><button onClick={()=>setState((p)=>({...p,sexo:"F"}))} className={`h-11 rounded-xl border text-sm ${state.sexo==="F"?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>Feminino</button><button onClick={()=>setState((p)=>({...p,sexo:"N"}))} className={`col-span-2 h-11 rounded-xl border text-sm ${state.sexo==="N"?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>Prefiro não informar</button></div></CardContent></Card>}
-        {step === "card_due_day" && <Card className="border-border"><CardContent className="space-y-3 p-4"><h2 className="text-xl font-bold text-foreground">Dia do vencimento do cartão que será usado</h2><p className="text-sm text-muted-foreground">Selecione o dia de vencimento.</p><div className="grid grid-cols-4 gap-2">{[1,5,10,15,20,25].map((d)=><button key={d} onClick={()=>{setUsarOutroDia(false); setCardDueDay(String(d));}} className={`h-10 rounded-xl border text-sm ${cardDueDay===String(d)&&!usarOutroDia?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>{d}</button>)}<button onClick={()=>{setUsarOutroDia(true); if(!cardDueDay) setCardDueDay("1");}} className={`h-10 rounded-xl border text-sm ${usarOutroDia?"border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]":"border-border"}`}>Outro</button></div>{usarOutroDia ? <select value={cardDueDay} onChange={(e)=>setCardDueDay(String(Number(e.target.value)))} className="mt-2 h-12 w-full rounded-xl border border-border bg-white px-4 text-foreground">{Array.from({length:31},(_,i)=>i+1).map((d)=><option key={d} value={d}>Dia {d}</option>)}</select> : null}</CardContent></Card>}
-        {step === "address" && (
-          <EnderecoSelector
-            enderecos={enderecosMock}
-            onConfirmar={(endereco) => {
-              setEnderecoSelecionado(endereco);
-              setState((p) => ({ ...p, enderecoConfirmado: true }));
-              goNext();
-            }}
-          />
-        )}
-        {step === "bank" && (
-          <ContaSelector
-            contas={contasMock}
-            onConfirmar={(conta) => {
-              setContaSelecionada(conta);
-              setState((p) => ({ ...p, bancoConfirmado: true }));
-              goNext();
-            }}
-          />
-        )}
-
-        {step === "card_type" && <Card className="border-border"><CardContent className="space-y-3 p-4"><div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><CreditCard size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Que tipo de cartão você vai usar?</h2><p className="text-sm text-muted-foreground">Vamos identificar as melhores condições para o seu cartão.</p></div><div className="grid grid-cols-2 gap-2">{[{value:"rede",label:"Banco de rede",desc:"Itaú, Bradesco, Santander, BB...",icon:<Bank size={20}/>},{value:"digital",label:"Banco digital",desc:"Nubank, Inter, C6, PicPay...",icon:<DeviceMobile size={20}/>},{value:"porto",label:"Porto Seguro",desc:"Cartão Porto Bank",icon:<ShieldCheck size={20}/>},{value:"inss",label:"Cartão INSS",desc:"Consignado para aposentados",icon:<IdentificationCard size={20}/>},{value:"siape",label:"SIAPE / Servidor",desc:"Funcional público",icon:<Buildings size={20}/>},{value:"loja",label:"Cartão de loja",desc:"Magalu, Renner, Riachuelo...",icon:<ShoppingBag size={20}/>}].map((t)=><button key={t.value} onClick={()=>setCardType(t.value)} className={`rounded-xl border p-3 text-left ${cardType===t.value?"border-[#E8590A] bg-[#FEF0E7]":"border-border"}`}><div className="mb-1 text-[#E8590A]">{t.icon}</div><p className="text-sm font-semibold text-foreground">{t.label}</p><p className="text-xs text-muted-foreground">{t.desc}</p></button>)}</div></CardContent></Card>}
-
-        {step === "unico_intro" && (
-          <div className="space-y-4 pb-4">
-            {/* Card principal */}
-            <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
-              <div className="flex flex-col items-center gap-4 text-center">
-                <div className="flex h-10 items-center justify-center">
-                  {!unicoLogoError ? (
-                    <img
-                      src="/images/unico-logo.png"
-                      alt="Unico"
-                      className="h-8 object-contain"
-                      onError={() => setUnicoLogoError(true)}
-                    />
-                  ) : (
-                    <span className="text-xl font-bold tracking-tight text-foreground">unico</span>
-                  )}
-                </div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Verificação de identidade
-                </p>
-                <h2 className="text-xl font-semibold text-foreground">
-                  Você será direcionado para o ambiente seguro da Unico
-                </h2>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  A Unico é nossa parceira de verificação de identidade. O processo acontece
-                  inteiramente no ambiente deles — seguro, rápido e regulamentado.
-                </p>
-              </div>
-            </div>
-            {/* 3 itens */}
-            <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-              <div className="divide-y divide-border">
-                {([
-                  { Icon: ShieldCheck, titulo: "Ambiente seguro", desc: "Verificação criptografada" },
-                  { Icon: Camera, titulo: "Selfie rápida", desc: "Menos de 1 minuto" },
-                  { Icon: FileText, titulo: "Assinatura digital", desc: "Válida juridicamente" },
-                ] as const).map(({ Icon, titulo, desc }) => (
-                  <div key={titulo} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7]">
-                      <Icon size={20} className="text-[#E8590A]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{titulo}</p>
-                      <p className="text-xs text-muted-foreground">{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <p className="text-center text-xs leading-relaxed text-muted-foreground">
-              Seus dados são protegidos conforme a LGPD.
-            </p>
-            {/* CTA interno */}
-            <button
-              type="button"
-              onClick={goNext}
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
-            >
-              <Fingerprint size={20} />
-              Continuar para verificação
-            </button>
-          </div>
-        )}
-
-        {step === "stark_analysis" && (
-          <Card className="border-border">
-            <CardContent className="space-y-4 p-6 text-center">
-              {starkApproved === null ? (
-                <>
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><MagnifyingGlass size={32} className="animate-pulse" /></div>
-                  <h2 className="text-xl font-bold text-foreground">Verificando sua elegibilidade...</h2>
-                  <p className="text-sm text-muted-foreground">Estamos consultando os dados junto ao nosso parceiro.</p>
-                  <Progress value={starkProgress} className="h-2 bg-secondary [&>div]:bg-[#E8590A]" />
-                  <p className="text-xs text-muted-foreground">Protegido por Stark</p>
-                </>
-              ) : (
-                <>
-                  <CheckCircle size={44} weight="fill" className="mx-auto text-[#E8590A]" />
-                  <h2 className="text-xl font-bold text-foreground">Tudo certo!</h2>
-                  <p className="text-sm text-muted-foreground">Seus dados foram verificados. Agora é só adicionar o cartão.</p>
-                  {showStarkButton ? <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:w-auto md:min-w-[160px]" onClick={goNext}>Adicionar meu cartão <ArrowRight size={16} className="ml-2" /></Button> : null}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {step === "card" && (
-          <Card className="border-border">
-            <CardContent className="space-y-3 p-4">
-              <div className="mb-2 flex flex-col items-center text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]"><CreditCard size={28} className="text-[#E8590A]" /></div><h2 className="text-xl font-bold">Dados do cartão</h2></div>
-               <div className="mb-4 flex items-center gap-2 rounded-xl bg-[#FEF0E7] px-3 py-2.5"><LockSimple size={16} className="shrink-0 text-[#A33D05]" /><div><p className="text-xs font-semibold text-[#A33D05]">Ambiente seguro</p><p className="text-xs text-[#A33D05]/80">Seus dados são criptografados e nunca armazenados sem sua autorização.</p></div><ShieldCheck size={20} className="ml-auto shrink-0 text-[#E8590A]" /></div>
-               <div className="mb-2 flex justify-center"><Cards number={state.numeroCartao} name={state.nomeCartao} expiry={state.vencimento.replace("/", "")} cvc={state.cvv} focused={focused} placeholders={{ name: "Seu nome aqui" }} locale={{ valid: "Validade" }} /></div>
-              <IMaskInput mask="0000 0000 0000 0000" value={state.numeroCartao} onAccept={(v) => setState((p) => ({ ...p, numeroCartao: String(v) }))} onFocus={() => setFocused("number")} onBlur={() => setFocused("")} placeholder="Número do cartão" className={maskedInputClass} />
-              <Input value={state.nomeCartao} onChange={(e) => setState((p) => ({ ...p, nomeCartao: e.target.value }))} onFocus={() => setFocused("name")} onBlur={() => setFocused("")} className="h-12 rounded-xl" placeholder="Nome impresso no cartão" />
-              <div className="grid grid-cols-2 gap-2"><IMaskInput mask="00/00" value={state.vencimento} onAccept={(v) => setState((p) => ({ ...p, vencimento: String(v) }))} onFocus={() => setFocused("expiry")} onBlur={() => setFocused("")} placeholder="MM/AA" className={maskedInputClass} /><IMaskInput mask="000" value={state.cvv} onAccept={(v) => setState((p) => ({ ...p, cvv: String(v) }))} onFocus={() => setFocused("cvc")} onBlur={() => setFocused("")} placeholder="CVV" className={maskedInputClass} /></div>
-            </CardContent>
-          </Card>
-        )}
-
-        {(step === "selfie_ownership" || step === "selfie_identity") && (
-          <Card className="border-border">
-            <CardContent className="flex flex-col items-center space-y-4 p-8 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Fingerprint size={28} className="animate-pulse" /></div>
-              <SpinnerGap size={28} className="animate-spin text-[#E8590A]" />
-              <h2 className="text-xl font-bold text-foreground">{step === "selfie_ownership" ? "Validando titularidade do cartão..." : "Confirmando sua identidade..."}</h2>
-              <p className="text-sm text-muted-foreground">{step === "selfie_ownership" ? "Verificando se o cartão pertence a você. Aguarde." : "Verificando seus documentos com segurança."}</p>
-              <p className="text-xs text-muted-foreground">Protegido por Unico</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {step === "confirmation" && (
-          <Card className="border-border">
-            <CardContent className="space-y-4 p-4">
-              <div className="flex flex-col items-center text-center"><CheckCircle size={42} className="text-[#E8590A]" /><h2 className="mt-2 text-xl font-bold">Tudo pronto. Só falta confirmar.</h2><p className="text-sm text-muted-foreground">Revise os dados e confirme para liberar o dinheiro.</p></div>
-              <div className="space-y-2.5 rounded-2xl bg-[#FEF0E7] p-4">{[{label:"Você vai receber",value:`R$ ${toCurrency(valorReceber)}`},{label:"Limite usado no cartão",value:`R$ ${toCurrency(limiteCartaoNecessario)}`},{label:"Parcelas",value:`${state.numeroParcelas}x de R$ ${toCurrency(valorParcela)}`},{label:"Cartão",value:`Final ${cardFinal}`},{label:"Conta de destino",value:`Banco ag. ${agencia}`},{label:"Na fatura aparece como",value:"STARK*PODEJA"}].map((item)=><div key={item.label} className="flex items-center justify-between gap-2"><p className="text-xs text-[#A33D05]/70">{item.label}</p><p className="text-xs font-semibold text-[#A33D05]">{item.value}</p></div>)}</div>
-              <button
-                type="button"
-                onClick={() => setState((p) => ({ ...p, termoAceito: !p.termoAceito }))}
-                className={`w-full text-left flex items-start gap-3 rounded-xl border p-4 transition-all ${
-                  state.termoAceito ? "border-[#E8590A] bg-[#FEF0E7]" : "border-border bg-white hover:border-[#E8590A]/40"
-                }`}
-              >
-                <div
-                  className={`h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                    state.termoAceito ? "bg-[#E8590A] border-[#E8590A]" : "border-border bg-white"
-                  }`}
-                >
-                  {state.termoAceito && <Check size={12} className="text-white" weight="bold" />}
-                </div>
-                <p className="text-sm text-foreground leading-snug">
-                  Confirmo que li e aceito os <a href="#" className="text-[#E8590A] underline underline-offset-2">termos</a> desta operação, incluindo as condições
-                  de pagamento e o uso do limite do meu cartão de crédito.
-                </p>
-              </button>
-            </CardContent>
-          </Card>
-        )}
-
-        {step === "success" && (
-          <Card className="border-border">
-            <CardContent className="space-y-4 p-6 text-center">
-              <CheckCircle size={48} weight="fill" className="mx-auto text-[#E8590A]" />
-              <h2 className="text-2xl font-bold text-foreground">Pronto, {firstName}.</h2>
-              <p className="text-sm text-muted-foreground">O dinheiro está a caminho. Deve cair em até 30 minutos.</p>
-              <div className="rounded-2xl bg-[#FEF0E7] p-4 text-left"><p className="text-xs text-[#A33D05]/70">Você vai receber</p><p className="text-xl font-bold text-[#A33D05]">R$ {toCurrency(valorReceber)}</p><p className="mt-1 text-xs text-[#A33D05]/70">Cartão final {cardFinal} · {state.numeroParcelas}x</p></div>
-              <Card className="border-border bg-white shadow-sm"><CardContent className="flex items-center justify-between gap-3 p-3"><div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Coins size={16} /></div><p className="text-sm text-foreground">+300 seubônus adicionados ao seu saldo</p></div><button className="text-sm font-medium text-[#E8590A]" onClick={() => navigate("/seubolso")}>Ver meu seubônus <CaretRight size={14} className="inline" /></button></CardContent></Card>
-              <div className="grid gap-2 md:flex md:justify-center"><Button className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px]" onClick={() => navigate("/contratos/saque-facil-001")}>Ver meu contrato</Button><Button variant="ghost" className="h-12 rounded-xl md:min-w-[160px]" onClick={() => navigate("/painel")}>Voltar para o início</Button></div>
-            </CardContent>
-          </Card>
-        )}
-
-        {step !== "selfie_ownership" && step !== "selfie_identity" && step !== "stark_analysis" && step !== "unico_intro" && (
-          <div className="grid grid-cols-2 gap-3 pt-2 md:flex md:justify-end">
-            <Button variant="outline" onClick={goBack} className="h-11 rounded-xl border-border md:min-w-[160px]">Voltar</Button>
-            {step !== "address" && step !== "bank" ? <Button disabled={!canAdvance} onClick={goNext} className="h-11 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px] disabled:opacity-40">{step === "data_intro" ? "Completar meus dados" : "Continuar"} <ArrowRight size={16} className="ml-2" /></Button> : null}
-          </div>
-        )}
-        </div>
-      </div>
-    </SubPageLayout>
-  );
-}
-
-function EditSimulacaoForm({
-  editValor, setEditValor,
-  editParcelas, setEditParcelas,
-  editDesembolso, editValorParcela,
-  parseCurrency,
-  onCancel, onSalvar,
-}: {
-  editValor: number; setEditValor: (v: number) => void;
-  editParcelas: number; setEditParcelas: (v: number) => void;
-  editDesembolso: number; editValorParcela: number;
-  parseCurrency: (v: string) => number;
-  onCancel: () => void; onSalvar: () => void;
-}) {
-  const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return (
-    <div className="space-y-4">
-      <div>
-        <p className="mb-1.5 text-sm font-medium text-foreground">Valor que você quer receber</p>
-        <IMaskInput
-          mask={Number} scale={2} signed={false} thousandsSeparator="." radix="," mapToRadix={["."]} normalizeZeros padFractionalZeros
-          value={editValor.toString()}
-          onAccept={(v) => setEditValor(parseCurrency(String(v)))}
-          className="h-14 w-full rounded-xl border border-border px-4 text-center text-2xl font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          placeholder="R$ 0,00"
-        />
-      </div>
-      <div>
-        <p className="mb-2 text-sm font-medium text-foreground">
-          Número de parcelas: <span className="font-bold text-[#E8590A]">{editParcelas}x</span>
-        </p>
-        <input type="range" min={4} max={12} step={1} value={editParcelas} onChange={(e) => setEditParcelas(Number(e.target.value))} className="w-full accent-[#E8590A]" />
-        <div className="mt-1 flex justify-between text-xs" style={{ paddingLeft: "8px", paddingRight: "8px" }}>
-          {[4,5,6,7,8,9,10,11,12].map((n) => (
-            <span key={n} className={n === editParcelas ? "font-bold text-[#E8590A]" : "text-muted-foreground"}>{n}</span>
-          ))}
-        </div>
-      </div>
-      <div className="rounded-2xl bg-[#FEF0E7] p-4">
-        <p className="text-xs font-medium text-[#A33D05]">Desembolso estimado</p>
-        <p className="text-2xl font-bold text-[#E8590A]">R$ {fmt(editDesembolso)}</p>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <div><p className="text-xs text-[#A33D05]/70">Você recebe</p><p className="text-sm font-bold text-[#A33D05]">R$ {fmt(editValor)}</p></div>
-          <div><p className="text-xs text-[#A33D05]/70">Parcelas de</p><p className="text-sm font-bold text-[#A33D05]">{editParcelas}x R$ {fmt(editValorParcela)}</p></div>
-        </div>
-        <p className="mt-2 text-xs text-[#A33D05]/60">Valores estimados</p>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Button variant="outline" className="h-12 rounded-xl" onClick={onCancel}>Cancelar</Button>
-        <Button disabled={editValor === 0} className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] disabled:opacity-40" onClick={onSalvar}>Salvar</Button>
-      </div>
-    </div>
-  );
-}
-
-function SaqueFacilRevisaoPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const locState = (location.state as any) ?? {};
-  const [valorDesejado, setValorDesejado] = useState<number>(locState.valorDesejado ?? 0);
-  const [numParcelas, setNumParcelas] = useState<number>(locState.numParcelas ?? 4);
-  const agencia: string = locState.agencia ?? "";
-  const bankName: string = locState.bankName ?? "";
-  const cardFinal: string = locState.cardFinal ?? "----";
-
-  const fator = FATORES[numParcelas] ?? 1.51008;
-  const desembolso = valorDesejado * fator;
-  const valorParcela = desembolso / numParcelas;
-
-  const firstName = (getStoredUser()?.name || "Cliente").split(" ")[0];
-  const { adicionarPontos } = useSeubolso();
-  const pontosRegistradosRef = useRef(false);
-  const [status, setStatus] = useState<"loading" | "success" | "error" | "processando" | "sucesso_final">("loading");
-
-  const FRASES_PROCESSANDO = [
-    "Estamos preparando tudo para você...",
-    "Confirmando os dados do contrato...",
-    "Enviando o dinheiro para sua conta...",
-    "Finalizando a operação com segurança...",
-  ];
-  const [fraseIdx, setFraseIdx] = useState(0);
-
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [editOpen, setEditOpen] = useState(false);
-  const [editValor, setEditValor] = useState(valorDesejado);
-  const [editParcelas, setEditParcelas] = useState(numParcelas);
-
-  const parseCurrency = (v: string) => {
-    const n = v.replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
-    return Number(n) || 0;
-  };
-  const editFator = FATORES[editParcelas] ?? 1.51008;
-  const editDesembolso = editValor * editFator;
-  const editValorParcela = editDesembolso / editParcelas;
-
-  const toCurrency = (value: number) =>
-    value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  const runMock = () => {
-    setStatus("loading");
-    window.setTimeout(() => {
-      // TODO: integrar API real — por ora sempre sucesso
-      setStatus("success");
-    }, 1500);
-  };
-
-  useEffect(() => {
-    runMock();
-  }, []);
-
-  useEffect(() => {
-    if (status !== "processando") return;
-    setFraseIdx(0);
-    const interval = window.setInterval(() => {
-      setFraseIdx((i) => Math.min(i + 1, FRASES_PROCESSANDO.length - 1));
-    }, 1600);
-    const timer = window.setTimeout(() => {
-      window.clearInterval(interval);
-      setStatus("sucesso_final");
-    }, 5200);
-    return () => { window.clearInterval(interval); window.clearTimeout(timer); };
-  }, [status]);
-
-  useEffect(() => {
-    if (status !== "sucesso_final" || pontosRegistradosRef.current) return;
-    if (typeof window !== "undefined" && window.sessionStorage.getItem("seubolso_saque_facil_awarded") === "1") return;
-    pontosRegistradosRef.current = true;
-    if (typeof window !== "undefined") window.sessionStorage.setItem("seubolso_saque_facil_awarded", "1");
-    adicionarPontos(300, "Saque Fácil contratado");
-    const timer = window.setTimeout(() => {
-      toast("Pode Já", {
-        description: "Você ganhou 300 seubônus por contratar o Saque Fácil!",
-        icon: <Coins size={16} className="text-[#E8590A]" />,
-        duration: 4000,
-      });
-    }, 1500);
-    return () => window.clearTimeout(timer);
-  }, [status, adicionarPontos]);
-
-  return (
-    <SubPageLayout title="Saque Fácil no cartão" hideNav>
-      <div className="space-y-4 md:mx-auto md:max-w-[640px]">
-        <StepperSaqueFacil etapaAtual="confirmacao" />
-
-        {status === "loading" && (
-          <Card className="border-border">
-            <CardContent className="flex flex-col items-center space-y-4 p-8 text-center">
-              <SpinnerGap size={40} className="animate-spin text-[#E8590A]" />
-              <p className="text-base font-semibold text-foreground">Confirmando sua simulacao...</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {status === "error" && (
-          <Card className="border-border">
-            <CardContent className="flex flex-col items-center space-y-4 p-8 text-center">
-              <Warning size={40} className="text-red-500" />
-              <h2 className="text-xl font-bold text-foreground">Algo deu errado</h2>
-              <p className="text-sm text-muted-foreground">Nao foi possivel confirmar sua simulacao. Tente novamente.</p>
-              <Button className="h-11 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={runMock}>Tentar novamente</Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {status === "success" && (
-          <div className="space-y-4">
-            <div><h2 className="text-xl font-bold text-foreground">Sua proposta esta pronta</h2><p className="mt-1 text-sm text-muted-foreground">Revise os valores e contrate.</p></div>
-            <div className="rounded-2xl bg-[#E8590A] p-5 text-white">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/75">Resumo da operacao</p>
-              <p className="mb-3 text-3xl font-bold">R$ {toCurrency(valorDesejado)}</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div><p className="text-xs text-white/70">Desembolso total</p><p className="text-base font-bold">R$ {toCurrency(desembolso)}</p></div>
-                <div><p className="text-xs text-white/70">Parcelas</p><p className="text-base font-bold">{numParcelas}x de R$ {toCurrency(valorParcela)}</p></div>
-              </div>
-              <p className="mt-3 text-xs text-white/60">TODO: receber da API</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => { setEditValor(valorDesejado); setEditParcelas(numParcelas); setEditOpen(true); }}
-              className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-[#E8590A] hover:text-[#E8590A]"
-            >
-              <PencilSimple size={15} />
-              Editar valor
-            </button>
-            <Button
-              className="h-12 w-full rounded-xl bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
-              onClick={() => setStatus("processando")}
-            >
-              Contratar <ArrowRight size={16} className="ml-2" />
-            </Button>
-          </div>
-        )}
-
-        {status === "processando" && (
-          <Card className="border-border">
-            <CardContent className="flex flex-col items-center space-y-6 p-10 text-center">
-              <div className="relative flex h-20 w-20 items-center justify-center">
-                <div className="absolute inset-0 rounded-full border-4 border-[#FEF0E7]" />
-                <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[#E8590A]" />
-                <CurrencyDollar size={32} className="text-[#E8590A]" />
-              </div>
-              <div className="space-y-2">
-                <p className="text-base font-semibold text-foreground transition-all">
-                  {FRASES_PROCESSANDO[fraseIdx]}
-                </p>
-                <p className="text-xs text-muted-foreground">Isso pode levar alguns segundos</p>
-              </div>
-              <div className="flex gap-1.5">
-                {FRASES_PROCESSANDO.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-1.5 rounded-full transition-all duration-500 ${i <= fraseIdx ? "w-6 bg-[#E8590A]" : "w-1.5 bg-border"}`}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {status === "sucesso_final" && (
-          <div className="space-y-4">
-            {/* Hero de sucesso */}
-            <div className="rounded-2xl bg-green-100 p-8 text-center shadow-sm">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-200">
-                <CheckCircle size={44} weight="fill" className="text-green-700" />
-              </div>
-              <h2 className="text-2xl font-bold text-green-900">Pronto, {firstName}!</h2>
-              <p className="mt-1 text-sm text-green-700">O dinheiro está a caminho</p>
-              <div className="mt-5 rounded-2xl bg-white/60 p-4">
-                <p className="text-xs text-green-700/70">Você vai receber</p>
-                <p className="text-3xl font-bold text-green-900">R$ {toCurrency(valorDesejado)}</p>
-                <p className="mt-1 text-xs text-green-700/70">em até 30 minutos · cartão final {cardFinal}</p>
-              </div>
-            </div>
-
-            {/* Timeline do dinheiro */}
-            <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-              <p className="mb-3 text-sm font-semibold text-foreground">O que acontece agora</p>
-              <div className="space-y-3">
-                {[
-                  { label: "Contrato assinado", sub: "Você receberá uma cópia por e-mail", done: true },
-                  { label: "Dinheiro enviado", sub: "Transferência em andamento", done: true },
-                  { label: "Valor disponível", sub: "Previsão: em até 30 minutos", done: false },
-                ].map(({ label, sub, done }, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${done ? "bg-green-100 text-green-700" : "border border-border bg-muted"}`}>
-                      {done ? <Check size={11} weight="bold" /> : <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{label}</p>
-                      <p className="text-xs text-muted-foreground">{sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Seubônus */}
-            <div className="rounded-2xl border border-border bg-white p-3 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Coins size={16} /></div>
-                  <p className="text-sm text-foreground">+300 seubônus adicionados ao seu saldo</p>
-                </div>
-                <button className="shrink-0 text-sm font-medium text-[#E8590A]" onClick={() => navigate("/seubolso")}>
-                  Ver <CaretRight size={14} className="inline" />
-                </button>
-              </div>
-            </div>
-
-            {/* CTAs */}
-            <div className="grid gap-2 md:flex md:justify-center">
-              <Button className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:min-w-[160px]" onClick={() => navigate("/contratos/saque-facil-001")}>Ver meu contrato</Button>
-              <Button variant="ghost" className="h-12 rounded-xl md:min-w-[160px]" onClick={() => navigate("/painel")}>Voltar para o início</Button>
-            </div>
-          </div>
-        )}
-
-        {/* Drawer mobile / Dialog desktop */}
-        {isDesktop ? (
-          <Dialog open={editOpen} onOpenChange={setEditOpen}>
-            <DialogContent className="max-w-md">
-              <DialogClose onClose={() => setEditOpen(false)} />
-              <DialogHeader><DialogTitle>Editar simulação</DialogTitle></DialogHeader>
-              <EditSimulacaoForm
-                editValor={editValor} setEditValor={setEditValor}
-                editParcelas={editParcelas} setEditParcelas={setEditParcelas}
-                editDesembolso={editDesembolso} editValorParcela={editValorParcela}
-                parseCurrency={parseCurrency}
-                onCancel={() => setEditOpen(false)}
-                onSalvar={() => { setValorDesejado(editValor); setNumParcelas(editParcelas); setEditOpen(false); }}
-              />
-            </DialogContent>
-          </Dialog>
-        ) : (
-          <Drawer open={editOpen} onOpenChange={setEditOpen}>
-            <DrawerContent>
-              <DrawerHeader><DrawerTitle>Editar simulação</DrawerTitle></DrawerHeader>
-              <EditSimulacaoForm
-                editValor={editValor} setEditValor={setEditValor}
-                editParcelas={editParcelas} setEditParcelas={setEditParcelas}
-                editDesembolso={editDesembolso} editValorParcela={editValorParcela}
-                parseCurrency={parseCurrency}
-                onCancel={() => setEditOpen(false)}
-                onSalvar={() => { setValorDesejado(editValor); setNumParcelas(editParcelas); setEditOpen(false); }}
-              />
-            </DrawerContent>
-          </Drawer>
-        )}
-      </div>
-    </SubPageLayout>
   );
 }
 
@@ -1625,14 +654,14 @@ function MeusDadosPage() {
       {campoEditando === "sexo" && (
         <div className="grid gap-2">
           {[{ v: "M", label: "Masculino" }, { v: "F", label: "Feminino" }, { v: "N", label: "Prefiro não informar" }].map(({ v, label }) => (
-            <button key={v} type="button" onClick={() => setValorTemp(v)} className={`h-11 rounded-xl border text-sm transition-colors ${valorTemp === v ? "border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]" : "border-border text-foreground"}`}>{label}</button>
+            <button key={v} type="button" onClick={() => setValorTemp(v)} className={`h-11 rounded-xl border text-sm transition-colors ${valorTemp === v ? "border-[#FD5F31] bg-[#FFF3EE] text-[#D94E28]" : "border-border text-foreground"}`}>{label}</button>
           ))}
         </div>
       )}
       {campoEditando === "estadoCivil" && (
         <div className="grid grid-cols-2 gap-2">
           {["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viúvo(a)"].map((v) => (
-            <button key={v} type="button" onClick={() => setValorTemp(v)} className={`h-11 rounded-xl border text-sm transition-colors ${valorTemp === v ? "border-[#E8590A] bg-[#FEF0E7] text-[#A33D05]" : "border-border text-foreground"}`}>{v}</button>
+            <button key={v} type="button" onClick={() => setValorTemp(v)} className={`h-11 rounded-xl border text-sm transition-colors ${valorTemp === v ? "border-[#FD5F31] bg-[#FFF3EE] text-[#D94E28]" : "border-border text-foreground"}`}>{v}</button>
           ))}
         </div>
       )}
@@ -1645,7 +674,7 @@ function MeusDadosPage() {
       {editError && <p className="mt-2 text-xs text-red-500">{editError}</p>}
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Button variant="outline" className="h-12 rounded-xl" onClick={fecharEdicao}>Cancelar</Button>
-        <Button className="h-12 rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={salvarEdicao}>Salvar</Button>
+        <Button className="h-12 rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" onClick={salvarEdicao}>Salvar</Button>
       </div>
     </>
   );
@@ -1704,7 +733,7 @@ function MeusDadosPage() {
                     <p className="text-xs text-muted-foreground">{label}</p>
                     <p className="mt-0.5 truncate text-sm font-medium text-foreground">{value}</p>
                   </div>
-                  <button type="button" onClick={() => abrirEdicao(campo)} className="ml-3 shrink-0 text-sm font-medium text-[#E8590A] hover:underline">Alterar</button>
+                  <button type="button" onClick={() => abrirEdicao(campo)} className="ml-3 shrink-0 text-sm font-medium text-[#FD5F31] hover:underline">Alterar</button>
                 </div>
               ))}
             </div>
@@ -1717,15 +746,27 @@ function MeusDadosPage() {
             </div>
             <div className="divide-y divide-border px-4">
               {[
-                { label: "E-mail", value: email, campo: "email" as CampoEditavel },
-                { label: "Celular", value: celular, campo: "celular" as CampoEditavel },
-              ].map(({ label, value, campo }) => (
+                { label: "E-mail", value: email, campo: "email" as CampoEditavel, storageKey: "podeja_email_validado" },
+                { label: "Celular", value: celular, campo: "celular" as CampoEditavel, storageKey: "podeja_telefone_validado" },
+              ].map(({ label, value, campo, storageKey }) => (
                 <div key={label} className="flex items-center justify-between py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground">{label}</p>
+                    {/* Label com badge de verificação */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{label}</span>
+                      {localStorage.getItem(storageKey) === "true" ? (
+                        <span className="flex items-center gap-0.5 text-[10px] font-semibold text-green-600">
+                          <CheckCircle size={10} weight="fill" /> Verificado
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-600">
+                          <Clock size={10} /> Pendente
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-0.5 truncate text-sm font-medium text-foreground">{value}</p>
                   </div>
-                  <button type="button" onClick={() => abrirEdicao(campo)} className="ml-3 shrink-0 text-sm font-medium text-[#E8590A] hover:underline">Alterar</button>
+                  <button type="button" onClick={() => abrirEdicao(campo)} className="ml-3 shrink-0 text-sm font-medium text-[#FD5F31] hover:underline">Alterar</button>
                 </div>
               ))}
             </div>
@@ -1742,7 +783,7 @@ function MeusDadosPage() {
                   <p className="text-xs text-muted-foreground">Renda mensal</p>
                   <p className="mt-0.5 truncate text-sm font-medium text-foreground">R$ {toCurrency(rendaMensal)}</p>
                 </div>
-                <button type="button" onClick={() => abrirEdicao("rendaMensal")} className="ml-3 shrink-0 text-sm font-medium text-[#E8590A] hover:underline">Alterar</button>
+                <button type="button" onClick={() => abrirEdicao("rendaMensal")} className="ml-3 shrink-0 text-sm font-medium text-[#FD5F31] hover:underline">Alterar</button>
               </div>
             </div>
           </div>
@@ -1806,12 +847,12 @@ function EditarEnderecoPage() {
     return (
       <SubPageLayout title="Editar endereço">
         <div className="flex flex-col items-center space-y-4 py-12 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
-            <CheckCircle size={32} className="text-[#E8590A]" weight="fill" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+            <CheckCircle size={32} className="text-[#FD5F31]" weight="fill" />
           </div>
           <h2 className="text-lg font-bold text-foreground">Endereço atualizado.</h2>
           <p className="text-sm text-muted-foreground">Suas informações foram salvas com sucesso.</p>
-          <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={() => navigate("/minha-conta")}>
+          <Button className="h-11 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" onClick={() => navigate("/minha-conta")}>
             Voltar para minha conta
           </Button>
         </div>
@@ -1856,15 +897,15 @@ function DadosBancariosPage() {
     return (
       <SubPageLayout title="Dados bancários">
         <div className="flex flex-col items-center space-y-4 py-12 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
-            <Check size={28} className="text-[#E8590A]" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+            <Check size={28} className="text-[#FD5F31]" />
           </div>
           <div className="space-y-1">
             <p className="text-base font-semibold text-foreground">Conta salva com sucesso</p>
             <p className="text-sm text-muted-foreground">{contaSalva.banco.nome} · {contaSalva.tipoConta}</p>
             <p className="text-sm text-muted-foreground">Ag {contaSalva.agencia} · {contaSalva.conta}-{contaSalva.digito}</p>
           </div>
-          <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={() => navigate("/minha-conta")}>
+          <Button className="h-11 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" onClick={() => navigate("/minha-conta")}>
             Voltar para minha conta
           </Button>
         </div>
@@ -1921,14 +962,14 @@ function BankFormContent({
         <button className={`h-11 rounded-xl border text-sm ${tipo === "corrente" ? "border-primary bg-primary-light text-primary" : "border-border"}`} onClick={() => setTipo("corrente")}>Conta corrente</button>
         <button className={`h-11 rounded-xl border text-sm ${tipo === "poupanca" ? "border-primary bg-primary-light text-primary" : "border-border"}`} onClick={() => setTipo("poupanca")}>Conta poupança</button>
       </div>
-      <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" disabled={!agencia || !conta || !digito} onClick={() => setConfirmando(true)}>Confirmar</Button>
+      <Button className="h-11 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" disabled={!agencia || !conta || !digito} onClick={() => setConfirmando(true)}>Confirmar</Button>
 
       {confirmando && (
         <div className="space-y-4 rounded-xl border border-border p-4">
           <h2 className="text-lg font-bold text-foreground">Confirmar conta</h2>
-          <div className="flex gap-3 rounded-xl bg-[#FEF0E7] p-3">
-            <Bank size={18} className="mt-0.5 shrink-0 text-[#E8590A]" />
-            <p className="text-xs leading-snug text-[#A33D05]">A conta bancária precisa estar no seu nome para que o valor seja depositado para você.</p>
+          <div className="flex gap-3 rounded-xl bg-[#FFF3EE] p-3">
+            <Bank size={18} className="mt-0.5 shrink-0 text-[#FD5F31]" />
+            <p className="text-xs leading-snug text-[#D94E28]">A conta bancária precisa estar no seu nome para que o valor seja depositado para você.</p>
           </div>
           <div className="space-y-3">
             <div><p className="text-xs text-muted-foreground">Instituição bancária</p><p className="text-sm font-semibold text-foreground">{selected.nome}</p></div>
@@ -1939,7 +980,7 @@ function BankFormContent({
           </div>
           <div className="flex flex-col gap-2 md:flex-row md:justify-end">
             <Button variant="outline" className="rounded-xl border-border md:w-auto" onClick={() => setConfirmando(false)}>Alterar conta</Button>
-            <Button className="rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] md:w-auto" onClick={onConfirmSave}>Confirmar</Button>
+            <Button className="rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28] md:w-auto" onClick={onConfirmSave}>Confirmar</Button>
           </div>
         </div>
       )}
@@ -1977,7 +1018,7 @@ function PasswordTelField({
             onChange(val);
             requestAnimationFrame(() => inputRef.current?.focus());
           }}
-          className="h-12 w-full rounded-xl border border-border bg-white px-4 text-center text-lg tracking-[0.4em] text-foreground focus:border-[#E8590A] focus:outline-none focus:ring-2 focus:ring-[#E8590A]/20"
+          className="h-12 w-full rounded-xl border border-border bg-white px-4 text-center text-lg tracking-[0.4em] text-foreground focus:border-[#FD5F31] focus:outline-none focus:ring-2 focus:ring-[#FD5F31]/20"
         />
         <button type="button" onClick={onToggle} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
           {show ? <EyeSlash size={16} /> : <Eye size={16} />}
@@ -2019,7 +1060,7 @@ function AlterarSenhaPage() {
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
       </div>
       <Button
-        className="mt-5 h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05] disabled:opacity-40"
+        className="mt-5 h-11 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28] disabled:opacity-40"
         disabled={!canSave}
         onClick={() => {
           if (current !== "142536") {
@@ -2057,20 +1098,20 @@ function ContratosPage() {
 
       {lista.length < 1 ? (
         <div className="flex flex-col items-center space-y-4 px-6 py-16 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF0E7]"><FileText size={32} className="text-[#E8590A]" /></div>
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]"><FileText size={32} className="text-[#FD5F31]" /></div>
           <div>
             <h2 className="text-lg font-bold text-foreground">Você ainda não tem contratos.</h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Quando você contratar um produto, ele aparece aqui para você acompanhar tudo.</p>
           </div>
-          <Button className="h-11 w-full rounded-xl bg-[#E8590A] font-semibold text-white hover:bg-[#A33D05]" onClick={() => navigate("/painel")}>Ver ofertas disponíveis</Button>
+          <Button className="h-11 w-full rounded-xl bg-[#FD5F31] font-semibold text-white hover:bg-[#D94E28]" onClick={() => navigate("/painel")}>Ver ofertas disponíveis</Button>
         </div>
       ) : (
         <div className="space-y-3">
           {lista.map((contrato) => (
-            <button key={contrato.id} onClick={() => navigate(contrato.tipo === "credito-pessoal" ? `/credito-pessoal/contrato/${contrato.id}` : `/contratos/${contrato.id}`)} className="w-full rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#E8590A]/40">
+            <button key={contrato.id} onClick={() => navigate(contrato.tipo === "credito-pessoal" ? `/credito-pessoal/contrato/${contrato.id}` : `/contratos/${contrato.id}`)} className="w-full rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#FD5F31]/40">
               <div className="mb-3 flex items-center justify-between">
-                <span className="rounded-full bg-[#FEF0E7] px-2.5 py-1 text-xs font-semibold text-[#A33D05]">
-                  {contrato.tipo === "seguro" ? "Seguro de Vida" : contrato.tipo === "saque-facil" ? "Saque Fácil" : contrato.tipo === "fgts" ? "Antecipação FGTS" : contrato.tipo === "credito-pessoal" ? "Crédito Pessoal" : "Crédito CLT"}
+                <span className="rounded-full bg-[#FFF3EE] px-2.5 py-1 text-xs font-semibold text-[#D94E28]">
+                  {contrato.tipo === "seguro" ? "Seguro de Vida" : contrato.tipo === "fgts" ? "Antecipação FGTS" : contrato.tipo === "credito-pessoal" ? "Crédito Pessoal" : "Crédito Consignado CLT"}
                 </span>
                 <span className="flex items-center gap-1.5 text-xs font-medium text-green-700"><div className="h-1.5 w-1.5 rounded-full bg-green-500" />Ativo</span>
               </div>
@@ -2091,7 +1132,7 @@ function ContratosPage() {
                   <div className="text-right"><p className="text-xs text-muted-foreground">Próximo desconto</p><p className="text-sm font-semibold text-foreground">{contrato.proximoDesconto}</p></div>
                 </div>
               )}
-              <div className="mt-3 flex items-center gap-1 border-t border-border pt-3 text-xs font-medium text-[#E8590A]">Ver detalhes<CaretRight size={12} /></div>
+              <div className="mt-3 flex items-center gap-1 border-t border-border pt-3 text-xs font-medium text-[#FD5F31]">Ver detalhes<CaretRight size={12} /></div>
             </button>
           ))}
         </div>
@@ -2107,7 +1148,7 @@ function AccordionItemContrato({ cobertura, hideValue }: { cobertura: { nome: st
       <div className="p-4">
         <p className="text-sm font-semibold text-foreground">{cobertura.nome}</p>
         {!hideValue && <p className="mt-0.5 text-xs text-muted-foreground">Cobertura de R$ {cobertura.valor.toLocaleString("pt-BR")},00</p>}
-        <button onClick={() => setOpen((o) => !o)} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#E8590A]">{open ? "Mostrar menos" : "Mostrar mais"}<CaretDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} /></button>
+        <button onClick={() => setOpen((o) => !o)} className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#FD5F31]">{open ? "Mostrar menos" : "Mostrar mais"}<CaretDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} /></button>
       </div>
       {open && <div className="px-4 pb-4 pt-0"><p className="text-xs leading-relaxed text-muted-foreground">{cobertura.descricao}</p></div>}
     </div>
@@ -2127,8 +1168,8 @@ function ContratoSeguroPage() {
         <div><p className="text-xs text-muted-foreground">Valor mensal</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
       </div>
       <div className="mb-6 flex items-center gap-2 border-b border-border pb-6"><CreditCard size={16} className="text-muted-foreground" /><span className="text-sm text-muted-foreground">Cartão cadastrado</span><span className="text-sm font-semibold text-foreground">Final ***{contrato.cartaoFinal}</span></div>
-      <div className="mb-6"><div className="mb-3 flex items-center gap-2"><ShieldCheck size={18} className="text-[#E8590A]" /><h3 className="text-base font-bold text-foreground">Coberturas</h3></div>{contrato.coberturas.map((c) => <AccordionItemContrato cobertura={c} key={c.nome} />)}</div>
-      <div className="flex items-start gap-2 border-t border-border pt-4"><Info size={14} className="mt-0.5 shrink-0 text-muted-foreground" /><p className="text-xs text-muted-foreground">Consulte os <a href={contrato.linkTermos} target="_blank" className="text-[#E8590A] underline underline-offset-2">Termos do Seguro</a> e o <a href={contrato.linkPrivacidade} target="_blank" className="text-[#E8590A] underline underline-offset-2">Aviso de Privacidade da Seguradora</a>.</p></div>
+      <div className="mb-6"><div className="mb-3 flex items-center gap-2"><ShieldCheck size={18} className="text-[#FD5F31]" /><h3 className="text-base font-bold text-foreground">Coberturas</h3></div>{contrato.coberturas.map((c) => <AccordionItemContrato cobertura={c} key={c.nome} />)}</div>
+      <div className="flex items-start gap-2 border-t border-border pt-4"><Info size={14} className="mt-0.5 shrink-0 text-muted-foreground" /><p className="text-xs text-muted-foreground">Consulte os <a href={contrato.linkTermos} target="_blank" className="text-[#FD5F31] underline underline-offset-2">Termos do Seguro</a> e o <a href={contrato.linkPrivacidade} target="_blank" className="text-[#FD5F31] underline underline-offset-2">Aviso de Privacidade da Seguradora</a>.</p></div>
     </SubPageLayout>
   );
 }
@@ -2149,13 +1190,13 @@ function ContratoCLTPage() {
         <div><p className="text-xs text-muted-foreground">Valor líquido recebido</p><p className="text-sm font-semibold text-foreground">R$ {contrato.valorLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
       </div>
       <div className="mb-5 rounded-2xl bg-white p-4 shadow-sm border border-border">
-        <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-bold text-[#A33D05]">Parcelas</h3><span className="text-xs text-[#A33D05]">{contrato.parcelasRestantes} de {contrato.totalParcelas} restantes</span></div>
-        <div className="mb-3 h-2 rounded-full bg-[#A33D05]/20"><div className="h-2 rounded-full bg-[#E8590A] transition-all" style={{ width: `${progresso}%` }} /></div>
+        <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-bold text-[#D94E28]">Parcelas</h3><span className="text-xs text-[#D94E28]">{contrato.parcelasRestantes} de {contrato.totalParcelas} restantes</span></div>
+        <div className="mb-3 h-2 rounded-full bg-[#D94E28]/20"><div className="h-2 rounded-full bg-[#FD5F31] transition-all" style={{ width: `${progresso}%` }} /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><p className="text-xs text-[#A33D05]/70">Valor da parcela</p><p className="text-sm font-bold text-[#A33D05]">R$ {contrato.valorParcela.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
-          <div><p className="text-xs text-[#A33D05]/70">Próximo desconto</p><p className="text-sm font-bold text-[#A33D05]">{contrato.proximoDesconto}</p></div>
-          <div><p className="text-xs text-[#A33D05]/70">Saldo devedor</p><SensitiveData value={`R$ ${contrato.saldoDevedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} type="currency" /></div>
-          <div><p className="text-xs text-[#A33D05]/70">Dia de pagamento</p><p className="text-sm font-bold text-[#A33D05]">Todo dia {contrato.diaPagamento}</p></div>
+          <div><p className="text-xs text-[#D94E28]/70">Valor da parcela</p><p className="text-sm font-bold text-[#D94E28]">R$ {contrato.valorParcela.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p></div>
+          <div><p className="text-xs text-[#D94E28]/70">Próximo desconto</p><p className="text-sm font-bold text-[#D94E28]">{contrato.proximoDesconto}</p></div>
+          <div><p className="text-xs text-[#D94E28]/70">Saldo devedor</p><SensitiveData value={`R$ ${contrato.saldoDevedor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} type="currency" /></div>
+          <div><p className="text-xs text-[#D94E28]/70">Dia de pagamento</p><p className="text-sm font-bold text-[#D94E28]">Todo dia {contrato.diaPagamento}</p></div>
         </div>
       </div>
       <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-3 text-sm font-bold text-foreground">Taxas e custos</h3><div className="space-y-2.5">{[{ label: "Taxa de juros", value: `${contrato.taxaJurosMes}% a.m. / ${contrato.taxaJurosAno}% a.a.` }, { label: "Custo Efetivo Total (CET)", value: `${contrato.cet}% a.a.` }, { label: "IOF", value: `R$ ${contrato.iof.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` }, { label: "Valor total das parcelas", value: `R$ ${contrato.valorTotalParcelas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` }].map((item) => <div key={item.label} className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{item.label}</p><p className="text-xs font-semibold text-foreground">{item.value}</p></div>)}</div></div>
@@ -2194,12 +1235,12 @@ function ContratoFGTSPage() {
 
       {/* Card Parcelas */}
       <div className="mb-5 rounded-2xl border border-border bg-white p-4 shadow-sm">
-        <h3 className="mb-3 text-sm font-bold text-[#A33D05]">{contrato.numParcelas} parcela{contrato.numParcelas !== 1 ? "s" : ""} anuais{/* TODO: receber da API BMP */}</h3>
+        <h3 className="mb-3 text-sm font-bold text-[#D94E28]">{contrato.numParcelas} parcela{contrato.numParcelas !== 1 ? "s" : ""} anuais{/* TODO: receber da API BMP */}</h3>
         <div className="grid grid-cols-2 gap-3">
-          <div><p className="text-xs text-[#A33D05]/70">Próxima parcela</p><p className="text-sm font-bold text-[#A33D05]">{contrato.proximoDesconto}{/* TODO: receber da API BMP */}</p></div>
-          <div><p className="text-xs text-[#A33D05]/70">Valor da parcela</p><p className="text-sm font-bold text-[#A33D05]">R$ {contrato.valorParcela.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}{/* TODO: receber da API BMP */}</p></div>
-          <div><p className="text-xs text-[#A33D05]/70">Saldo a descontar</p><SensitiveData value={`R$ ${contrato.saldoADescontar.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} type="currency" />{/* TODO: receber da API BMP */}</div>
-          <div><p className="text-xs text-[#A33D05]/70">Data do desconto</p><p className="text-sm font-bold text-[#A33D05]">{contrato.dataDesconto}</p></div>
+          <div><p className="text-xs text-[#D94E28]/70">Próxima parcela</p><p className="text-sm font-bold text-[#D94E28]">{contrato.proximoDesconto}{/* TODO: receber da API BMP */}</p></div>
+          <div><p className="text-xs text-[#D94E28]/70">Valor da parcela</p><p className="text-sm font-bold text-[#D94E28]">R$ {contrato.valorParcela.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}{/* TODO: receber da API BMP */}</p></div>
+          <div><p className="text-xs text-[#D94E28]/70">Saldo a descontar</p><SensitiveData value={`R$ ${contrato.saldoADescontar.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} type="currency" />{/* TODO: receber da API BMP */}</div>
+          <div><p className="text-xs text-[#D94E28]/70">Data do desconto</p><p className="text-sm font-bold text-[#D94E28]">{contrato.dataDesconto}</p></div>
         </div>
       </div>
 
@@ -2275,47 +1316,21 @@ function ContratoFGTSPage() {
   );
 }
 
-function ContratoSaqueFacilPage() {
-  const contrato = contratos.find((c) => c.id === "saque-facil-001");
-  if (!contrato) return <Navigate to="/contratos" replace />;
-  const handleDownload = () => {
-    const conteudo = `CÉDULA DE CRÉDITO BANCÁRIO — SAQUE FÁCIL\n==========================================\n\nI — PREÂMBULO\nEMITENTE\nNome: [DADO SENSÍVEL]\nCPF: [DADO SENSÍVEL]\nEndereço: [DADO SENSÍVEL]\n\nCREDORA\nNome: Stark Sociedade de Crédito Direto S.A.\nCNPJ: 39.908.427/0001-28\nEndereço: Rua Pamplona, 145 - Bela Vista - 01405-100 - São Paulo/SP\n\nII — CARACTERÍSTICAS DO CRÉDITO\nValor Principal: R$ 106,74\nValor Liberado: R$ 100,00\nData de Emissão: 08/05/2026\nTaxa de Juros Efetiva Mensal: 6,84% ao mês\nTaxa de Juros Efetiva Anual: 121,29% ao ano\nCET Anual: 190,73% ao ano\nIOF: 1,63%\nTarifa de Cadastro: R$ 5,00\n\nIII — LIBERAÇÃO DO CRÉDITO\nForma: Transferência Pix\nData Prevista: 08/05/2026\nData Máxima: 15/05/2026\n\nIV — PAGAMENTO\nForma: Pix Cobrança\nParcelas:\n1 — 08/06/2026 — R$ 25,98\n2 — 08/07/2026 — R$ 25,96\n3 — 08/08/2026 — R$ 25,96\n4 — 08/09/2026 — R$ 25,96\n5 — 08/10/2026 — R$ 25,96`;
-    const blob = new Blob([conteudo], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "contrato-saque-facil.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-  return (
-    <SubPageLayout title="Contrato — Saque Fácil" hideNav>
-      <div className="mb-3 flex justify-end"><button onClick={handleDownload} className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-[#F5F4F2]" aria-label="Baixar contrato"><DownloadSimple size={18} className="text-foreground" /></button></div>
-      <div className="mb-5"><div className="mb-1 flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-green-500" /><span className="text-sm font-medium text-green-700">Ativo</span></div><h2 className="text-2xl font-bold text-foreground">Saque Fácil no cartão</h2></div>
-      <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Dados do emitente</h3><p className="text-xs text-muted-foreground">Emitente</p><p className="text-sm"><SensitiveData value={contrato.emitente.nome} /></p><p className="text-sm"><SensitiveData value={contrato.emitente.cpf} type="cpf" /></p><p className="text-sm"><SensitiveData value={contrato.emitente.endereco} /></p><p className="mt-3 text-xs text-muted-foreground">Credora</p><p className="text-sm font-semibold">{contrato.credora.nome}</p><p className="text-xs">CNPJ {contrato.credora.cnpj}</p></div>
-      <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Características do crédito</h3><div className="grid grid-cols-2 gap-3 text-xs"><p>Principal: R$ {contrato.valorPrincipal.toFixed(2).replace(".", ",")}</p><p>Liberado: R$ {contrato.valorLiberado.toFixed(2).replace(".", ",")}</p><p>Taxa mensal: {contrato.taxaMensal}%</p><p>Taxa anual: {contrato.taxaAnual}%</p></div></div>
-      <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm"><h3 className="mb-2 text-sm font-bold">Parcelas</h3><div className="overflow-hidden rounded-xl border border-border"><div className="grid grid-cols-2 bg-[#F8F7F5] px-3 py-2 text-[11px] font-semibold text-muted-foreground"><span>Vencimento</span><span className="text-right">Valor</span></div>{contrato.parcelas.map((p)=><div key={p.numero} className="grid grid-cols-2 border-t border-border px-3 py-2 text-xs"><span>{p.vencimento}</span><span className="text-right font-semibold text-foreground">R$ {p.valor.toFixed(2).replace(".", ",")}</span></div>)}</div></div>
-      {/* TODO: atualizar para domínio definitivo quando registrado */}
-      <p className="text-xs text-muted-foreground">Documento com validade jurídica. Consulte os termos em podeja.com.br.</p>
-    </SubPageLayout>
-  );
-}
-
 function NotificacaoCard({ notificacao }: { notificacao: Notificacao }) {
   const iconePorTipo: Record<NotificacaoTipo, ReactNode> = {
     transacional: <CheckCircle size={18} weight="fill" className="text-green-600" />,
-    lembrete: <Clock size={18} weight="fill" className="text-[#E8590A]" />,
-    oferta: <Tag size={18} weight="fill" className="text-[#E8590A]" />,
+    lembrete: <Clock size={18} weight="fill" className="text-[#FD5F31]" />,
+    oferta: <Tag size={18} weight="fill" className="text-[#FD5F31]" />,
     sistema: <Info size={18} weight="fill" className="text-blue-500" />,
   };
 
   return (
-    <div className={`flex gap-3 rounded-2xl border p-4 transition-colors ${!notificacao.lida ? "border-[#E8590A]/20 bg-[#FEF0E7]" : "border-border bg-white"}`}>
-      <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${!notificacao.lida ? "bg-white" : "bg-[#F5F4F2]"}`}>{iconePorTipo[notificacao.tipo]}</div>
+    <div className={`flex gap-3 rounded-2xl border p-4 transition-colors ${!notificacao.lida ? "border-[#FD5F31]/20 bg-[#FFF3EE]" : "border-border bg-white"}`}>
+      <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${!notificacao.lida ? "bg-white" : "bg-[#F0F0F0]"}`}>{iconePorTipo[notificacao.tipo]}</div>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <p className={`text-sm leading-snug ${!notificacao.lida ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>{notificacao.titulo}</p>
-          {!notificacao.lida ? <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#E8590A]" /> : null}
+          {!notificacao.lida ? <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#FD5F31]" /> : null}
         </div>
         <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{notificacao.descricao}</p>
         <p className="mt-1.5 text-[11px] text-muted-foreground/60">{notificacao.data}</p>
@@ -2344,7 +1359,7 @@ function NotificacoesPage() {
     <SubPageLayout title="Notificações">
       {notificacoes.length === 0 ? (
         <div className="flex flex-col items-center space-y-4 px-6 py-16 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F5F4F2]"><Bell size={32} className="text-muted-foreground" /></div>
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F0F0F0]"><Bell size={32} className="text-muted-foreground" /></div>
           <div>
             <h2 className="text-lg font-bold text-foreground">Nada por aqui ainda.</h2>
             <p className="mx-auto mt-1 max-w-[260px] text-sm leading-relaxed text-muted-foreground">Quando tiver novidades sobre seus contratos, ofertas e pagamentos, a gente avisa aqui.</p>
@@ -2375,6 +1390,7 @@ function NotificacoesPage() {
 }
 
 function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "default" }) {
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState(false);
   const [canLeft, setCanLeft] = useState(false);
@@ -2455,7 +1471,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
                   </button>
                 )}
                 <div className="mb-2">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{iconMap[card.icone]}</div>
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">{iconMap[card.icone]}</div>
                   <p className="text-sm font-semibold text-foreground">{card.texto}</p>
                 </div>
                 {card.cta && (
@@ -2463,9 +1479,9 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (card.destino) window.location.hash = card.destino;
+                      if (card.destino) navigate(card.destino);
                     }}
-                    className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]"
+                    className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]"
                   >
                     {card.cta} <CaretRight size={12} />
                   </button>
@@ -2480,7 +1496,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
           type="button"
           onClick={() => scrollRef.current?.scrollBy({ left: -280, behavior: "smooth" })}
           disabled={!canLeft}
-          className="pointer-events-auto -ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#E8590A] shadow disabled:opacity-40"
+          className="pointer-events-auto -ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#FD5F31] shadow disabled:opacity-40"
           aria-label="Ver recomendações anteriores"
         >
           <CaretLeft size={16} />
@@ -2491,7 +1507,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
           type="button"
           onClick={() => scrollRef.current?.scrollBy({ left: 280, behavior: "smooth" })}
           disabled={!canRight}
-          className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#E8590A] shadow disabled:opacity-50"
+          className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#FD5F31] shadow disabled:opacity-50"
           aria-label="Ver próximas recomendações"
         >
           <CaretRight size={16} />
@@ -2513,19 +1529,19 @@ function AssistenciasPage() {
   const dragStartScroll = useRef(0);
 
   const categorias = [
-    { nome: "Saúde", icon: <Stethoscope size={20} className="text-[#E8590A]" />, hero: <Stethoscope size={48} />, beneficio: "Consultas a partir de R$ 39,90", tag: "Clínico geral e 5 especialidades" },
-    { nome: "Odonto", icon: <Tooth size={20} className="text-[#E8590A]" />, hero: <Tooth size={48} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
-    { nome: "Pet", icon: <PawPrint size={20} className="text-[#E8590A]" />, hero: <PawPrint size={48} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
-    { nome: "Psicologia", icon: <Brain size={20} className="text-[#E8590A]" />, hero: <Brain size={48} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
-    { nome: "Previdência", icon: <Umbrella size={20} className="text-[#E8590A]" />, hero: <Umbrella size={48} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
-    { nome: "Bem-estar", icon: <Heartbeat size={20} className="text-[#E8590A]" />, hero: <Heartbeat size={48} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
-    { nome: "Educação", icon: <BookOpen size={20} className="text-[#E8590A]" />, hero: <BookOpen size={48} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
-    { nome: "Tecnologia", icon: <DeviceMobile size={20} className="text-[#E8590A]" />, hero: <DeviceMobile size={48} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
-    { nome: "Residência", icon: <House size={20} className="text-[#E8590A]" />, hero: <House size={48} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
-    { nome: "Prevenção", icon: <FirstAid size={20} className="text-[#E8590A]" />, hero: <FirstAid size={48} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
-    { nome: "Notícias", icon: <Newspaper size={20} className="text-[#E8590A]" />, hero: <Newspaper size={48} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
-    { nome: "Recompensa", icon: <Gift size={20} className="text-[#E8590A]" />, hero: <Gift size={48} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
-    { nome: "Sorteio", icon: <Trophy size={20} className="text-[#E8590A]" />, hero: <Trophy size={48} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
+    { nome: "Saúde", icon: <Stethoscope size={20} className="text-[#FD5F31]" />, hero: <Stethoscope size={48} />, beneficio: "Consultas a partir de R$ 39,90", tag: "Clínico geral e 5 especialidades" },
+    { nome: "Odonto", icon: <Tooth size={20} className="text-[#FD5F31]" />, hero: <Tooth size={48} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
+    { nome: "Pet", icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <PawPrint size={48} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
+    { nome: "Psicologia", icon: <Brain size={20} className="text-[#FD5F31]" />, hero: <Brain size={48} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
+    { nome: "Previdência", icon: <Umbrella size={20} className="text-[#FD5F31]" />, hero: <Umbrella size={48} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
+    { nome: "Bem-estar", icon: <Heartbeat size={20} className="text-[#FD5F31]" />, hero: <Heartbeat size={48} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
+    { nome: "Educação", icon: <BookOpen size={20} className="text-[#FD5F31]" />, hero: <BookOpen size={48} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
+    { nome: "Tecnologia", icon: <DeviceMobile size={20} className="text-[#FD5F31]" />, hero: <DeviceMobile size={48} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
+    { nome: "Residência", icon: <House size={20} className="text-[#FD5F31]" />, hero: <House size={48} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
+    { nome: "Prevenção", icon: <FirstAid size={20} className="text-[#FD5F31]" />, hero: <FirstAid size={48} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
+    { nome: "Notícias", icon: <Newspaper size={20} className="text-[#FD5F31]" />, hero: <Newspaper size={48} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
+    { nome: "Recompensa", icon: <Gift size={20} className="text-[#FD5F31]" />, hero: <Gift size={48} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
+    { nome: "Sorteio", icon: <Trophy size={20} className="text-[#FD5F31]" />, hero: <Trophy size={48} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
   ];
 
   const faqItems = [
@@ -2559,7 +1575,7 @@ function AssistenciasPage() {
     registrarInteresse("assistencias");
     toast("Em breve!", {
       duration: 5000,
-      icon: <Bell size={16} className="text-[#E8590A]" />,
+      icon: <Bell size={16} className="text-[#FD5F31]" />,
       description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
     });
   };
@@ -2579,9 +1595,9 @@ function AssistenciasPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 bg-[#FEF0E7] shadow-sm">
+        <Card className="border-0 bg-[#FFF3EE] shadow-sm">
           <CardContent className="p-6 text-center">
-            <p className="text-4xl font-bold text-[#E8590A]">R$ 4.600</p>
+            <p className="text-4xl font-bold text-[#FD5F31]">R$ 4.600</p>
             <p className="mt-2 text-sm font-semibold text-foreground">de economia média por ano em saúde e bem-estar</p>
             <p className="mt-1 text-xs text-muted-foreground">Comparado à contratação individual dos serviços no mercado</p>
           </CardContent>
@@ -2632,7 +1648,7 @@ function AssistenciasPage() {
                     <p className="text-sm font-semibold text-foreground">{item.nome}</p>
                   </div>
                   <p className="line-clamp-2 text-xs leading-5 text-[#374151]">{item.beneficio}</p>
-                  <span className="mt-2 inline-flex rounded-full bg-[#FEF0E7] px-2 py-1 text-[11px] text-[#E8590A]">{item.tag}</span>
+                  <span className="mt-2 inline-flex rounded-full bg-[#FFF3EE] px-2 py-1 text-[11px] text-[#FD5F31]">{item.tag}</span>
                 </CardContent>
               </Card>
             ))}
@@ -2643,7 +1659,7 @@ function AssistenciasPage() {
               type="button"
               onClick={() => categoriasRef.current?.scrollBy({ left: -220, behavior: "smooth" })}
               disabled={!canCategoriasLeft}
-              className="pointer-events-auto -ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#E8590A] shadow disabled:opacity-40"
+              className="pointer-events-auto -ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#FD5F31] shadow disabled:opacity-40"
               aria-label="Ver categorias anteriores"
             >
               <CaretLeft size={16} />
@@ -2654,7 +1670,7 @@ function AssistenciasPage() {
               type="button"
               onClick={() => categoriasRef.current?.scrollBy({ left: 220, behavior: "smooth" })}
               disabled={!canCategoriasRight}
-              className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#E8590A] shadow disabled:opacity-40"
+              className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#FD5F31] shadow disabled:opacity-40"
               aria-label="Ver próximas categorias"
             >
               <CaretRight size={16} />
@@ -2667,9 +1683,9 @@ function AssistenciasPage() {
             <h3 className="mb-3 text-sm font-semibold text-foreground">Como vai funcionar</h3>
             <div className="space-y-3">
               {[
-                { icon: <ListChecks size={32} className="text-[#E8590A]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
-                { icon: <CreditCard size={32} className="text-[#E8590A]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do Pode Já, simples e sem burocracia." },
-                { icon: <HandHeart size={32} className="text-[#E8590A]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
+                { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
+                { icon: <CreditCard size={32} className="text-[#FD5F31]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do Pode Já, simples e sem burocracia." },
+                { icon: <HandHeart size={32} className="text-[#FD5F31]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
               ].map((item, idx, arr) => (
                 <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
                   <div className="shrink-0">{item.icon}</div>
@@ -2691,7 +1707,7 @@ function AssistenciasPage() {
         <div className="rounded-2xl bg-white px-4 pb-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
           <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
           {assistencias ? (
-            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#E8590A]">
+            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#FD5F31]">
               Voltar para o início
             </button>
           ) : null}
@@ -2710,7 +1726,7 @@ function EnergiaPage() {
     registrarInteresse("energia");
     toast("Em breve!", {
       duration: 5000,
-      icon: <Bell size={16} className="text-[#E8590A]" />,
+      icon: <Bell size={16} className="text-[#FD5F31]" />,
       description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
     });
   };
@@ -2743,15 +1759,15 @@ function EnergiaPage() {
         >
           {["Sem obras", "Sem fidelidade", "100% gratuito"].map((item) => (
             <div key={item} className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-white px-3 py-1.5 text-[13px] text-foreground">
-              <CheckCircle size={16} className="text-[#E8590A]" weight="fill" />
+              <CheckCircle size={16} className="text-[#FD5F31]" weight="fill" />
               {item}
             </div>
           ))}
         </div>
 
-        <Card className="border-0 bg-[#FEF0E7] shadow-sm">
+        <Card className="border-0 bg-[#FFF3EE] shadow-sm">
           <CardContent className="p-5 text-center">
-            <p className="text-4xl font-bold text-[#E8590A]">R$ 80</p>
+            <p className="text-4xl font-bold text-[#FD5F31]">R$ 80</p>
             <p className="mt-1 text-sm font-semibold text-foreground">de economia média por mês na conta de luz</p>
             <p className="mt-1 text-xs text-muted-foreground">Com base nos clientes já atendidos pelo nosso parceiro</p>
           </CardContent>
@@ -2762,9 +1778,9 @@ function EnergiaPage() {
             <h3 className="mb-3 text-sm font-semibold text-foreground">Como funciona</h3>
             <div className="space-y-3">
               {[
-                { icon: <FileText size={32} className="text-[#E8590A]" />, titulo: "Você envia sua conta de luz", sub: "Basta fotografar ou enviar o PDF da sua fatura." },
-                { icon: <MagnifyingGlass size={32} className="text-[#E8590A]" />, titulo: "Analisamos as melhores opções para o seu perfil", sub: "Nossa equipe identifica as alternativas disponíveis na sua região." },
-                { icon: <CurrencyCircleDollar size={32} className="text-[#E8590A]" />, titulo: "Você começa a economizar sem mudar nada em casa", sub: "Sem obras, sem contratos complicados, sem custo de adesão." },
+                { icon: <FileText size={32} className="text-[#FD5F31]" />, titulo: "Você envia sua conta de luz", sub: "Basta fotografar ou enviar o PDF da sua fatura." },
+                { icon: <MagnifyingGlass size={32} className="text-[#FD5F31]" />, titulo: "Analisamos as melhores opções para o seu perfil", sub: "Nossa equipe identifica as alternativas disponíveis na sua região." },
+                { icon: <CurrencyCircleDollar size={32} className="text-[#FD5F31]" />, titulo: "Você começa a economizar sem mudar nada em casa", sub: "Sem obras, sem contratos complicados, sem custo de adesão." },
               ].map((item, idx, arr) => (
                 <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
                   <div className="shrink-0">{item.icon}</div>
@@ -2786,7 +1802,7 @@ function EnergiaPage() {
         <div className="rounded-2xl bg-white px-4 pb-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
           <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
           {energia ? (
-            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#E8590A]">
+            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#FD5F31]">
               Voltar para o início
             </button>
           ) : null}
@@ -2835,10 +1851,10 @@ function SeubolsoPage() {
   return (
     <SubPageLayout title="seubônus">
       <div className="space-y-4">
-        <Card className="overflow-hidden border-0 bg-[#E8590A] text-white shadow-sm">
+        <Card className="overflow-hidden border-0 bg-[#FD5F31] text-white shadow-sm">
           <CardContent className="relative p-4">
             <Coins size={48} className="absolute right-4 top-3 text-white/20" />
-            <button onClick={() => navigate("/seubolso/como-funciona")} className="absolute bottom-4 right-4 inline-flex items-center gap-1 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#E8590A]">Entenda como funciona <CaretRight size={12} /></button>
+            <button onClick={() => navigate("/seubolso/como-funciona")} className="absolute bottom-4 right-4 inline-flex items-center gap-1 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#FD5F31]">Entenda como funciona <CaretRight size={12} /></button>
             <p className="text-sm text-white/80">Seu saldo</p>
             <p className="mt-1 text-3xl font-bold">{dataVisible ? saldoAnimado.toLocaleString("pt-BR") : "••••"}</p>
             <p className="text-sm text-white/80">moedas</p>
@@ -2848,7 +1864,7 @@ function SeubolsoPage() {
         <Card className="border-border bg-white shadow-sm">
           <CardContent className="space-y-3 p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Fire size={20} /></div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]"><Fire size={20} /></div>
               <div>
                 <p className="text-sm font-semibold text-foreground">{streak} dias seguidos</p>
                 <p className="text-xs text-muted-foreground">Continue abrindo o app todo dia para ganhar mais moedas</p>
@@ -2856,23 +1872,23 @@ function SeubolsoPage() {
             </div>
             <div>
               <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground"><span>{streak}/30 dias</span><span>Bônus de 500</span></div>
-              <Progress value={progressoStreak} className="h-2 bg-secondary [&>div]:bg-[#E8590A]" />
+              <Progress value={progressoStreak} className="h-2 bg-secondary [&>div]:bg-[#FD5F31]" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-[#FEF0E7] shadow-sm">
+        <Card className="border-border bg-[#FFF3EE] shadow-sm">
           <CardContent className="flex items-center justify-between gap-3 p-4">
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#E8590A]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#FD5F31]">
                 <Gift size={18} />
               </div>
               <div className="min-w-0 flex-1 space-y-0.5">
-                <p className="text-sm font-semibold leading-5 text-[#A33D05]">Resgate suas moedas</p>
-                <p className="pb-1 text-xs leading-4 text-[#A33D05]/80">Logo você poderá usar seus pontos para desconto em taxas, assistências e muito mais.</p>
+                <p className="text-sm font-semibold leading-5 text-[#D94E28]">Resgate suas moedas</p>
+                <p className="pb-1 text-xs leading-4 text-[#D94E28]/80">Logo você poderá usar seus pontos para desconto em taxas, assistências e muito mais.</p>
               </div>
             </div>
-            <div className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[10px] font-medium leading-[15px] text-[#A33D05]">Em breve</div>
+            <div className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[10px] font-medium leading-[15px] text-[#D94E28]">Em breve</div>
           </CardContent>
         </Card>
 
@@ -2884,13 +1900,13 @@ function SeubolsoPage() {
             {ganhosConcluidos.map((item) => (
               <div key={item.key} className="flex items-center justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">{item.icon}</div>
                   <div className="flex flex-col gap-1">
                     <p className="text-xs font-semibold text-foreground leading-tight">{item.nome}</p>
-                    <p className="text-xs font-semibold text-[#E8590A] leading-tight">{item.valor}</p>
+                    <p className="text-xs font-semibold text-[#FD5F31] leading-tight">{item.valor}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">{item.unica ? <Badge className="border-0 bg-[#FEF0E7] text-[#E8590A]">Feito</Badge> : <Badge className="border-0 bg-[#DCFCE7] text-[#16A34A]">Feito hoje</Badge>}<CheckCircle size={18} weight="fill" className={item.unica ? "text-[#E8590A]" : "text-[#16A34A]"} /></div>
+                <div className="flex items-center gap-2">{item.unica ? <Badge className="border-0 bg-[#FFF3EE] text-[#FD5F31]">Feito</Badge> : <Badge className="border-0 bg-[#DCFCE7] text-[#16A34A]">Feito hoje</Badge>}<CheckCircle size={18} weight="fill" className={item.unica ? "text-[#FD5F31]" : "text-[#16A34A]"} /></div>
               </div>
             ))}
               </div>
@@ -2901,23 +1917,23 @@ function SeubolsoPage() {
               <div className="space-y-2">
             {pendentes.map((item) => (
               <div key={item.key} className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">{item.icon}</div>
                 <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-semibold leading-tight text-foreground">{item.nome}</p>
                     {item.sub ? <p className="text-[11px] leading-tight text-[#ABA19A]">{item.sub}</p> : null}
                   </div>
-                  <p className="text-xs font-semibold leading-tight text-[#E8590A]">{item.valor}</p>
+                  <p className="text-xs font-semibold leading-tight text-[#FD5F31]">{item.valor}</p>
                 </div>
               </div>
             ))}
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]"><Users size={18} /></div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]"><Users size={18} /></div>
                   <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
                     <p className="text-xs font-semibold leading-tight text-foreground">Indicar um amigo</p>
                     <div className="flex items-center gap-4">
-                      <div className="text-right"><p className="text-[11px] text-[#78716C]">Se cadastrou</p><p className="text-xs font-semibold text-[#E8590A]">+200 moedas</p></div>
-                      <div className="text-right"><p className="text-[11px] text-[#78716C]">Contratou um produto</p><p className="text-xs font-semibold text-[#E8590A]">+300 bônus</p></div>
+                      <div className="text-right"><p className="text-[11px] text-[#78716C]">Se cadastrou</p><p className="text-xs font-semibold text-[#FD5F31]">+200 moedas</p></div>
+                      <div className="text-right"><p className="text-[11px] text-[#78716C]">Contratou um produto</p><p className="text-xs font-semibold text-[#FD5F31]">+300 bônus</p></div>
                     </div>
                   </div>
                 </div>
@@ -2957,7 +1973,7 @@ function SeubolsoComoFuncionaPage() {
         <Card className="overflow-hidden border-0 shadow-sm rounded-2xl">
           <CardContent className="relative min-h-[200px] p-0 text-white">
             <img src="/images/seubolso-hero.jpg-338ee0.png" alt="Pessoa feliz usando celular" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,#A33D05_0%,rgba(232,89,10,0.7)_50%,rgba(232,89,10,0)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,#D94E28_0%,rgba(232,89,10,0.7)_50%,rgba(232,89,10,0)_100%)]" />
             <div className="relative flex min-h-[200px] flex-col justify-end px-5 pb-5 pt-[72px]">
               <p className="pb-1 text-xs font-semibold uppercase tracking-[0.025em] text-white/75">seubônus</p>
               <h2 className="max-w-[280px] pb-2 text-2xl font-bold leading-[30px]">Ganhe moedas com suas ações no app</h2>
@@ -2968,10 +1984,10 @@ function SeubolsoComoFuncionaPage() {
 
         <div className="flex flex-wrap gap-3">
           <div className="flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-foreground">
-            <Coins size={12} className="text-[#E8590A]" />Ganhe usando o app
+            <Coins size={12} className="text-[#FD5F31]" />Ganhe usando o app
           </div>
           <div className="flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-sm text-foreground">
-            <Gift size={12} className="text-[#E8590A]" />Troque por vantagens
+            <Gift size={12} className="text-[#FD5F31]" />Troque por vantagens
           </div>
         </div>
 
@@ -2981,24 +1997,24 @@ function SeubolsoComoFuncionaPage() {
             <div className="flex flex-wrap gap-3">
               {itens.slice(0, 6).map((item) => (
                 <div key={item.nome} className="flex min-w-[240px] flex-1 items-start gap-2 rounded-lg border border-border bg-white p-3 shadow-sm">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7] text-[#E8590A]">{item.icon}</div>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE] text-[#FD5F31]">{item.icon}</div>
                   <div className="min-w-0">
                     <p className="text-xs font-medium leading-4 text-foreground">{item.nome}</p>
-                    <p className="text-xs font-semibold leading-4 text-[#E8590A]">{item.valor}</p>
+                    <p className="text-xs font-semibold leading-4 text-[#FD5F31]">{item.valor}</p>
                   </div>
                 </div>
               ))}
 
               <div className="relative flex w-full items-start gap-2 rounded-lg border border-border bg-white p-3 shadow-sm">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7] text-[#E8590A]"><Users size={20} /></div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE] text-[#FD5F31]"><Users size={20} /></div>
                 <div className="min-w-0 flex-1 pr-[132px]">
                   <p className="text-xs font-medium leading-4 text-foreground">Indicar um amigo</p>
                   <div className="mt-1 flex flex-wrap gap-4">
-                    <p className="text-[11px] leading-4 text-[#78716C]">Se cadastrou <span className="font-semibold text-[#E8590A]">+200 moedas</span></p>
-                    <p className="text-[11px] leading-4 text-[#78716C]">Contratou um produto <span className="font-semibold text-[#E8590A]">+300 bônus</span></p>
+                    <p className="text-[11px] leading-4 text-[#78716C]">Se cadastrou <span className="font-semibold text-[#FD5F31]">+200 moedas</span></p>
+                    <p className="text-[11px] leading-4 text-[#78716C]">Contratou um produto <span className="font-semibold text-[#FD5F31]">+300 bônus</span></p>
                   </div>
                 </div>
-                <Button className="absolute right-3 top-1/2 h-8 -translate-y-1/2 rounded-xl bg-[#E8590A] px-3 text-xs font-semibold text-white hover:bg-[#A33D05]">
+                <Button className="absolute right-3 top-1/2 h-8 -translate-y-1/2 rounded-xl bg-[#FD5F31] px-3 text-xs font-semibold text-white hover:bg-[#D94E28]">
                   Indique e ganhe
                 </Button>
               </div>
@@ -3028,7 +2044,7 @@ function SeubolsoComoFuncionaPage() {
 
       <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-white px-4 py-3 md:left-64">
         <div className="mx-auto w-full max-w-[608px]">
-          <Button className="h-11 w-full rounded-xl bg-[#E8590A] text-white hover:bg-[#A33D05]" onClick={() => navigate("/seubolso")}>
+          <Button className="h-11 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" onClick={() => navigate("/seubolso")}>
             Ver minhas moedas <ArrowRight size={16} className="ml-2" />
           </Button>
         </div>
@@ -3046,7 +2062,7 @@ function SeubolsoHistoricoPage() {
     <SubPageLayout title="seubônus">
       <div className="space-y-4">
         <Card className="border-border bg-white shadow-sm"><CardContent className="p-4"><h3 className="mb-3 text-sm font-semibold text-foreground">Histórico de uso do seubônus</h3><div className="space-y-2.5">{historico.map((tx)=><div key={tx.id} className="flex items-start justify-between gap-3 border-b border-border pb-2 last:border-b-0"><div className="flex items-start gap-2">{tx.tipo==="ganho"?<ArrowCircleUp size={16} className="mt-0.5 text-green-600" />:<ArrowCircleDown size={16} className="mt-0.5 text-red-600" />}<div><p className="text-xs font-medium text-foreground">{tx.descricao}</p><p className="text-[11px] text-muted-foreground">{formatarData(tx.data)}</p></div></div><p className={`text-xs font-semibold ${tx.tipo==="ganho"?"text-green-600":"text-red-600"}`}>{tx.valor>0?`+${tx.valor}`:tx.valor} moedas</p></div>)}</div></CardContent></Card>
-        <Card className="border-0 bg-[#FEF0E7] shadow-sm"><CardContent className="flex items-start gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#E8590A]"><Gift size={18} /></div><div><p className="text-sm font-semibold text-[#A33D05]">Em breve</p><p className="mt-0.5 text-xs text-[#A33D05]/80">Novidades chegando. Você será notificado quando o resgate estiver disponível.</p></div></CardContent></Card>
+        <Card className="border-0 bg-[#FFF3EE] shadow-sm"><CardContent className="flex items-start gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#FD5F31]"><Gift size={18} /></div><div><p className="text-sm font-semibold text-[#D94E28]">Em breve</p><p className="mt-0.5 text-xs text-[#D94E28]/80">Novidades chegando. Você será notificado quando o resgate estiver disponível.</p></div></CardContent></Card>
       </div>
     </SubPageLayout>
   );
@@ -3067,18 +2083,9 @@ function App() {
   // Dado sensível — não persistir em localStorage. Usar sessionStorage apenas durante o onboarding.
   const [nascimento, setNascimento] = useState("");
   const [nascimentoErro, setNascimentoErro] = useState<string | undefined>();
-  const [mfaCode, setMfaCode] = useState("");
-  const [mfaErro, setMfaErro] = useState("");
-  // DESIGN ONLY — ?erro=otp_invalido|otp_expirado|otp_max_tentativas (visível no step 4 do onboarding)
-  // Para simular: avance o onboarding até o step 4 (MFA por SMS) e adicione ?erro=otp_invalido na URL
-  // Lê diretamente de window.location para não conflitar com o searchParams que existe mais abaixo no escopo de App()
-  const erroOtpParam = new URLSearchParams(window.location.search).get("erro") as ErrorCategoria | null; // DESIGN ONLY
-  const OTP_ERRO_CATS = ["otp_invalido", "otp_expirado", "otp_max_tentativas"];
-  const [mostrarModalErroOtp, setMostrarModalErroOtp] = useState(
-    erroOtpParam !== null && OTP_ERRO_CATS.includes(erroOtpParam)
-  );
-  const [mfaCountdown, setMfaCountdown] = useState(30);
   const [necessidades, setNecessidades] = useState<string[]>([]);
+  const [mostrarTermos, setMostrarTermos] = useState(false);
+  const [biometriaSheetOpen, setBiometriaSheetOpen] = useState(false);
   const [storedUser, setStoredUser] = useState<StoredUser | null>(() => getStoredUser());
 
   const [loginCpf, setLoginCpf] = useState("");
@@ -3109,7 +2116,7 @@ function App() {
   const { dataVisible } = usePrivacy();
 
   const firstName = (storedUser?.name || name || "você").split(" ")[0] || "você";
-  const totalSteps = 4;
+  const totalSteps = 3;
 
   const pageVariants = {
     initial: { opacity: 0, y: 16 },
@@ -3130,9 +2137,8 @@ function App() {
     if (step === 1) return name.trim().length > 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10;
     if (step === 2) return isValidCpf(cpf) && isAdultBirthDate(nascimento);
     if (step === 3) return pin.length === 6 && !isWeakNumericPin(pin);
-    if (step === 4) return mfaCode.length === 6;
     return true;
-  }, [step, name, email, phone, cpf, nascimento, pin, mfaCode]);
+  }, [step, name, email, phone, cpf, nascimento, pin]);
 
   const loginLockedSeconds = loginLockUntil ? Math.max(0, Math.ceil((loginLockUntil - Date.now()) / 1000)) : 0;
   const recoveryLockedSeconds = recoveryOtpLockUntil ? Math.max(0, Math.ceil((recoveryOtpLockUntil - Date.now()) / 1000)) : 0;
@@ -3159,6 +2165,7 @@ function App() {
     setCpf("");
     setPin("");
     setNecessidades([]);
+    setBiometriaSheetOpen(false);
     setStoredUser(null);
     setLoginCpf("");
     setLoginSenha("");
@@ -3179,11 +2186,10 @@ function App() {
     }
     // TODO: enviar necessidades ao backend junto com os demais dados do cadastro
     setStoredUser(user);
-    navigate("/painel");
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/saque-facil", "/saque-facil/introducao", "/saque-facil/simulacao", "/saque-facil/dados", "/saque-facil/revisao", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/contratos/saque-facil-001", "/assistencias", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -3223,21 +2229,6 @@ function App() {
     }, 1000);
     return () => window.clearInterval(timer);
   }, [location.pathname, loginStep]);
-
-  // Timer regressivo do MFA do onboarding (step 4) — inicia ao entrar no step
-  useEffect(() => {
-    if (!(location.pathname === "/cadastro" && step === 4)) return;
-    setMfaCountdown(30);
-    setMfaCode("");
-    setMfaErro("");
-    const timer = window.setInterval(() => {
-      setMfaCountdown((prev) => {
-        if (prev <= 1) { window.clearInterval(timer); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [location.pathname, step]);
 
   useEffect(() => {
     if (!loginLockUntil && !recoveryOtpLockUntil) return;
@@ -3301,21 +2292,21 @@ function App() {
 
   const goNext = () => {
     setDirection(1);
+    if (step === 1) {
+      localStorage.setItem("podeja_termos_aceitos", "true");
+      localStorage.setItem("podeja_termos_aceitos_em", new Date().toISOString());
+      // TODO: registrar aceite no backend com timestamp, IP e user_id
+      setStep(2);
+      return;
+    }
     if (step === 2) {
       // TODO: enviar ao backend junto com os demais dados do cadastro
       sessionStorage.setItem("onboarding_nascimento", nascimento);
     }
     if (step === 4) {
-      // TODO: remover após integração SMS
-      if (mfaCode !== "123456") {
-        setMfaErro("Código inválido. Tente novamente.");
-        return;
-      }
-      setMfaErro("");
-    }
-    if (step === 5) {
       if (necessidades.length === 0) return; // validação
       completeOnboarding();
+      setBiometriaSheetOpen(true); // abre sheet em vez de navegar direto
       return;
     }
     setStep((prev) => prev + 1);
@@ -3401,7 +2392,77 @@ function App() {
     />
   );
 
+  // DESIGN ONLY — preferência de biometria salva no onboarding (mock, sem WebAuthn/FaceID/TouchID real)
+  const biometriaAtiva = localStorage.getItem("podeja_biometria_ativa") === "true";
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  // Oferece biometria assim que o cliente chega na tela de login, se o dispositivo simulado suporta e o usuário já ativou
+  const [biometriaLoginOpen, setBiometriaLoginOpen] = useState(false);
+  useEffect(() => {
+    if (location.pathname === "/acesso" && loginStep === 1 && biometriaAtiva) {
+      setBiometriaLoginOpen(true);
+    }
+  }, [location.pathname, loginStep, biometriaAtiva]);
+
+  const autenticarComBiometria = () => {
+    // TODO: acionar WebAuthn / FaceID / TouchID real
+    // Mock: simula autenticação bem-sucedida após 1s
+    setTimeout(() => {
+      const user = getStoredUser() ?? { name: "Usuário", email: "" };
+      localStorage.setItem("podeja_user", JSON.stringify(user));
+      navigate("/painel");
+    }, 1000);
+  };
+
+  const biometriaLoginBody = (
+    <>
+      <div className="flex flex-col items-center gap-3 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]">
+          <Fingerprint size={32} className="text-[#FD5F31]" />
+        </div>
+        {isDesktop ? (
+          <DialogTitle>Entrar com biometria</DialogTitle>
+        ) : (
+          <DrawerTitle>Entrar com biometria</DrawerTitle>
+        )}
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Use sua digital ou reconhecimento facial para entrar no Pode Já sem digitar sua senha.
+        </p>
+      </div>
+      <div className="space-y-2 pt-5">
+        <button
+          type="button"
+          onClick={() => {
+            setBiometriaLoginOpen(false);
+            autenticarComBiometria();
+          }}
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white"
+        >
+          Usar biometria
+        </button>
+        <button
+          type="button"
+          onClick={() => setBiometriaLoginOpen(false)}
+          className="flex h-11 w-full items-center justify-center text-sm text-muted-foreground underline"
+        >
+          Entrar com CPF e senha
+        </button>
+      </div>
+    </>
+  );
+
+  const BiometriaLoginOverlay = isDesktop ? (
+    <Dialog open={biometriaLoginOpen} onOpenChange={setBiometriaLoginOpen}>
+      <DialogContent className="max-w-sm">{biometriaLoginBody}</DialogContent>
+    </Dialog>
+  ) : (
+    <Drawer open={biometriaLoginOpen} onOpenChange={setBiometriaLoginOpen}>
+      <DrawerContent>{biometriaLoginBody}</DrawerContent>
+    </Drawer>
+  );
+
   const LoginScreen = (
+    <>
     <AuthHeroLayout
       rightContent={
         <>
@@ -3428,7 +2489,7 @@ function App() {
               </div>
 
               {loginError ? <p className="text-xs text-red-600">{loginError}</p> : null}
-              {loginLockedSeconds > 0 ? <p className="text-xs text-[#A33D05]">Conta temporariamente bloqueada. Tente novamente em {loginLockedSeconds}s.</p> : null}
+              {loginLockedSeconds > 0 ? <p className="text-xs text-[#D94E28]">Conta temporariamente bloqueada. Tente novamente em {loginLockedSeconds}s.</p> : null}
 
               <div className="text-right">
                 <button
@@ -3574,6 +2635,64 @@ function App() {
         </>
       }
     />
+    {BiometriaLoginOverlay}
+    </>
+  );
+
+  {/* ── Oferta de biometria — exibida após concluir o step 5 (necessidades) do onboarding ──
+      Biometria é mock: preferência salva em localStorage, sem integração real com FaceID/TouchID/WebAuthn
+      Regra do app: Dialog (shadcn) no desktop, Drawer (shadcn/vaul) no mobile */}
+  const biometriaOfferBody = (
+    <>
+      <div className="flex flex-col items-center gap-3 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]">
+          <Fingerprint size={32} className="text-[#FD5F31]" />
+        </div>
+        {isDesktop ? (
+          <DialogTitle>Entre mais rápido com biometria</DialogTitle>
+        ) : (
+          <DrawerTitle>Entre mais rápido com biometria</DrawerTitle>
+        )}
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Use sua digital ou reconhecimento facial para acessar o Pode Já sem digitar senha.
+        </p>
+      </div>
+      <div className="space-y-2 pt-5">
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.setItem("podeja_biometria_ativa", "true");
+            // TODO: integrar com WebAuthn / FaceID / TouchID real
+            setBiometriaSheetOpen(false);
+            navigate("/painel");
+          }}
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white"
+        >
+          Ativar biometria
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.setItem("podeja_biometria_ativa", "false");
+            setBiometriaSheetOpen(false);
+            navigate("/painel");
+          }}
+          className="flex h-11 w-full items-center justify-center text-sm text-muted-foreground underline"
+        >
+          Agora não
+        </button>
+      </div>
+    </>
+  );
+
+  const BiometriaOfferOverlay = isDesktop ? (
+    <Dialog open={biometriaSheetOpen} onOpenChange={setBiometriaSheetOpen}>
+      <DialogContent className="max-w-sm">{biometriaOfferBody}</DialogContent>
+    </Dialog>
+  ) : (
+    <Drawer open={biometriaSheetOpen} onOpenChange={setBiometriaSheetOpen}>
+      <DrawerContent>{biometriaOfferBody}</DrawerContent>
+    </Drawer>
   );
 
   const renderOnboarding = (
@@ -3655,81 +2774,11 @@ function App() {
                 </>
               )}
 
-              {/* ── Step 4 — MFA por SMS ── */}
+              {/* ── Step 4 — Necessidades ── */}
               {step === 4 && (
-                <>
-                  <StepHeader step={4} total={totalSteps} title="Confirme seu telefone" subtitle={`Enviamos um código por SMS para ${(() => { const d = phone.replace(/\D/g, ""); return d.length >= 6 ? `+55 (${d.slice(0,2)}) •••••-${d.slice(-4)}` : phone; })()}`} />
-                  <Card className="border-border shadow-sm">
-                    <CardContent className="space-y-5 pt-5">
-                      <div className="flex justify-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-light text-primary">
-                          <ChatCircle size={24} />
-                        </div>
-                      </div>
-
-                      <div className="flex justify-center">
-                        {/* Reutiliza InputOTP — mesmo componente do login */}
-                        <InputOTP maxLength={6} value={mfaCode} onChange={(v) => { setMfaCode(v); if (mfaErro) setMfaErro(""); }}>
-                          <InputOTPGroup>
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                          </InputOTPGroup>
-                        </InputOTP>
-                      </div>
-
-                      {/* Help text inline abaixo do OTP */}
-                      {erroOtpParam && OTP_ERRO_CATS.includes(erroOtpParam)
-                        ? <p className="text-center text-xs text-red-600">{ERROS[erroOtpParam].subtitulo}</p>
-                        : mfaErro && <p className="text-center text-xs text-red-600">{mfaErro}</p>
-                      }
-
-                      <SecurityStrip />
-
-                      <div className="text-center text-sm">
-                        {/* TODO: conectar ao serviço de SMS real */}
-                        <button
-                          type="button"
-                          disabled={mfaCountdown > 0}
-                          onClick={() => { setMfaCountdown(30); setMfaCode(""); setMfaErro(""); }}
-                          className="text-primary disabled:text-muted-foreground"
-                        >
-                          {mfaCountdown > 0 ? `Reenviar em ${mfaCountdown}s` : "Reenviar código"}
-                        </button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* ── Modal/drawer de erro OTP ── */}
-                  {erroOtpParam && OTP_ERRO_CATS.includes(erroOtpParam) && mostrarModalErroOtp && (
-                    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50">
-                      <div className="w-full max-w-md rounded-t-3xl md:rounded-3xl bg-background p-6 space-y-5">
-                        <div className="flex items-center justify-between">
-                          <p className="text-base font-semibold">Problema com o código</p>
-                          <button type="button" onClick={() => setMostrarModalErroOtp(false)}>
-                            <X size={20} className="text-muted-foreground" />
-                          </button>
-                        </div>
-                        <ErrorScreen
-                          categoria={erroOtpParam}
-                          compact
-                          onTentarNovamente={() => { setMostrarModalErroOtp(false); setMfaCode(""); setMfaErro(""); }}
-                          labelBotao="Solicitar novo código"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* ── Step 5 — Necessidades ── */}
-              {step === 5 && (
                 <div className="flex flex-col gap-6 px-4 py-6">
                   <div className="space-y-1">
-                    <p className="text-2xl font-bold text-foreground">Me conta o que você precisa</p>
+                    <p className="text-2xl font-bold text-foreground">O que é importante pra você nesse momento?</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       Escolha tudo que faz sentido para você. Você pode mudar isso depois.
                     </p>
@@ -3744,13 +2793,13 @@ function App() {
                           onClick={() => toggleNecessidade(item.id)}
                           className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition-all ${
                             selecionado
-                              ? "border-[#E8590A] bg-[#FEF0E7]"
-                              : "border-border bg-white hover:border-[#E8590A]/40"
+                              ? "border-[#FD5F31] bg-[#FFF3EE]"
+                              : "border-border bg-white hover:border-[#FD5F31]/40"
                           }`}
                         >
                           <div
                             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                              selecionado ? "bg-[#E8590A] text-white" : "bg-muted text-muted-foreground"
+                              selecionado ? "bg-[#FD5F31] text-white" : "bg-muted text-muted-foreground"
                             }`}
                           >
                             <item.icon size={22} />
@@ -3760,7 +2809,7 @@ function App() {
                             <p className="text-xs text-muted-foreground mt-0.5">{item.subtitulo}</p>
                           </div>
                           {selecionado && (
-                            <CheckCircle size={20} className="ml-auto shrink-0 text-[#E8590A]" weight="fill" />
+                            <CheckCircle size={20} className="ml-auto shrink-0 text-[#FD5F31]" weight="fill" />
                           )}
                         </button>
                       );
@@ -3772,15 +2821,32 @@ function App() {
           </AnimatePresence>
         </div>
 
-        {step <= 5 && (
-          <div className="grid grid-cols-2 gap-3 pt-6">
+        {step === 1 && (
+          <p className="pt-6 text-center text-xs leading-relaxed text-muted-foreground px-4">
+            Ao continuar, você aceita os{" "}
+            <button type="button" onClick={() => setMostrarTermos(true)} className="font-semibold text-foreground underline">
+              Termos de Uso
+            </button>
+            {" "}e a{" "}
+            <button type="button" onClick={() => setMostrarTermos(true)} className="font-semibold text-foreground underline">
+              Política de Privacidade
+            </button>
+          </p>
+        )}
+
+        {step <= 4 && (
+          <div className="grid grid-cols-2 gap-3 pt-3">
             <Button variant="outline" onClick={goBack} className="h-12 rounded-xl border-border text-foreground">Voltar</Button>
             <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
-              <Button onClick={goNext} disabled={step === 5 ? necessidades.length === 0 : !canGoNext} className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40">{step === 4 ? "Validar" : "Continuar"}</Button>
+              <Button onClick={goNext} disabled={step === 4 ? necessidades.length === 0 : !canGoNext} className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40">Continuar</Button>
             </motion.div>
           </div>
         )}
       </div>
+
+      {BiometriaOfferOverlay}
+
+      <TermosModal aberto={mostrarTermos} onFechar={() => setMostrarTermos(false)} />
     </main>
   );
 
@@ -3931,7 +2997,7 @@ function App() {
           </div>
 
           {recoveryOtpError ? <p className="text-xs text-red-600">{recoveryOtpError}</p> : null}
-          {recoveryLockedSeconds > 0 ? <p className="text-xs text-[#A33D05]">Muitas tentativas. Aguarde {recoveryLockedSeconds}s para tentar novamente.</p> : null}
+          {recoveryLockedSeconds > 0 ? <p className="text-xs text-[#D94E28]">Muitas tentativas. Aguarde {recoveryLockedSeconds}s para tentar novamente.</p> : null}
 
           <div className="text-sm text-muted-foreground">
             {recoveryCountdown > 0 ? (
@@ -4024,7 +3090,7 @@ function App() {
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#F5F4F2]">
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#F0F0F0]">
                 <div className={`h-full rounded-full transition-all ${passwordStrength.tone}`} style={{ width: `${passwordStrength.value}%` }} />
               </div>
               <span className="text-xs font-medium text-muted-foreground">{passwordStrength.label}</span>
@@ -4133,10 +3199,16 @@ function App() {
   const fgtsCta = "Antecipar agora";
   const fgtsPath = "/fgts";
 
-  // DESIGN ONLY — ?paravocê=0 → oculto | ?paravocê=1 → card CLT | ?paravocê=2 → CLT + Saque Fácil
-  // fallback ?paravoc= para evitar problema de encoding na URL | default "1"
-  // TODO: controlar por API
-  const paravocemParam = searchParams.get("paravocê") ?? searchParams.get("paravoc") ?? "1";
+  // Título "Para você agora" só aparece quando pelo menos 1 dos cards abaixo está ativo
+  // FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o false && para reativar.
+  const temCardParaVoceAgora =
+    mostrarCltConsultaLiberada ||
+    (false && fgtsStatus === "autorizado") ||
+    (false && fgtsStatus === "contrato") ||
+    cpOfertaPronta ||
+    cpVideoDisponivel ||
+    cpStatus === "assinatura_pendente" ||
+    mostrarContratoNovo;
 
   const cltHighlight =
     cltStatus === "consultando"
@@ -4149,7 +3221,7 @@ function App() {
 
   const cltCta =
     cltStatus === "none"
-      ? "Consultar crédito CLT"
+      ? "Consultar agora"
       : cltStatus === "consultando"
         ? "Ver status"
         : cltStatus === "oferta"
@@ -4182,7 +3254,7 @@ function App() {
       </aside>
 
       <main className="mx-auto min-h-screen w-full bg-background md:mx-0 md:flex-1 md:overflow-y-auto">
-        <header className="relative z-10 rounded-b-[32px] bg-primary px-5 pb-6 pt-8 text-white md:mx-auto md:max-w-[860px] md:px-6 md:pt-6">
+        <header className="relative z-10 rounded-b-[32px] bg-gradient-to-b from-[#FD5F31] to-[#FA9832] px-5 pb-6 pt-8 text-white md:mx-auto md:max-w-[860px] md:px-6 md:pt-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm text-white/75">Olá, {firstName}</p>
@@ -4193,15 +3265,12 @@ function App() {
               <PrivacyToggle variant="light" />
               <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 transition-colors hover:bg-white/25">
                 <Bell size={20} className="text-white" />
-                {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold text-[#E8590A]">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
+                {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold text-[#FD5F31]">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
               </button>
             </div>
           </div>
-          {/* DESIGN ONLY — paravocê param controla o "Para você agora"
-              "0" = oculto (exceto se fgts=autorizado|contrato) | "1" = card CLT | "2" = CLT + Saque Fácil
-              fgts=autorizado|contrato → sempre exibe card FGTS (independente de paravoc)
-              TODO: controlar por API */}
-          {paravocemParam === "0" && fgtsStatus === "none" && !cpOfertaPronta && !cpVideoDisponivel && cpStatus !== "assinatura_pendente" && !mostrarContratoNovo && !mostrarCltConsultaLiberada ? null : (paravocemParam === "1" || paravocemParam === "2" || fgtsStatus !== "none" || cpOfertaPronta || cpVideoDisponivel || cpStatus === "assinatura_pendente" || mostrarContratoNovo || mostrarCltConsultaLiberada) ? (
+          {/* Título só aparece quando há pelo menos 1 card ativo — caso contrário, mostra o carrossel de recomendações */}
+          {temCardParaVoceAgora ? (
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
               <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
@@ -4220,42 +3289,22 @@ function App() {
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-foreground leading-snug">
-                      Suas ofertas de crédito CLT estão prontas
+                      Suas ofertas de Crédito Consignado CLT estão prontas
                     </p>
                     <button
                       type="button"
                       onClick={() => navigate("/consignado-clt/ofertas")}
-                      className="flex items-center gap-1 text-xs font-semibold text-[#E8590A]"
+                      className="flex items-center gap-1 text-xs font-semibold text-[#FD5F31]"
                     >
                       Ver minhas ofertas <CaretRight size={12} />
                     </button>
                   </div>
                 )}
 
-                {/* Card Saque Fácil — exibido apenas quando paravoc=2 */}
-                {paravocemParam === "2" && (
-                  <button
-                    type="button"
-                    onClick={() => navigate("/saque-facil")}
-                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
-                  >
-                    <div className="flex h-full flex-col justify-between p-4">
-                      <div>
-                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
-                          <CreditCard size={20} />
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">Dinheiro rápido no seu cartão.</p>
-                      </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
-                        Saque Fácil <CaretRight size={12} />
-                      </div>
-                    </div>
-                  </button>
-                )}
-
                 {/* DESIGN ONLY — card FGTS no "Para você agora" quando fgts=autorizado ou fgts=contrato
-                    TODO: controlar por estado real da API BMP */}
-                {fgtsStatus === "autorizado" && (
+                    TODO: controlar por estado real da API BMP
+                    FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o false && para reativar. */}
+                {false && fgtsStatus === "autorizado" && (
                   <button
                     type="button"
                     onClick={() => navigate("/fgts/simular")}
@@ -4263,20 +3312,21 @@ function App() {
                   >
                     <div className="flex h-full flex-col justify-between p-4">
                       <div>
-                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">
                           <Coins size={20} />
                         </div>
                         {/* TODO: receber saldo da API BMP */}
                         <p className="text-sm font-semibold text-foreground">Seu saldo FGTS está disponível!</p>
                         <p className="mt-1 text-xs text-muted-foreground">Você tem R$ 5.841,09 para antecipar. Simule agora e receba em minutos.</p>
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
                         Simular agora <CaretRight size={12} />
                       </div>
                     </div>
                   </button>
                 )}
-                {fgtsStatus === "contrato" && (
+                {/* FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o false && para reativar. */}
+                {false && fgtsStatus === "contrato" && (
                   <button
                     type="button"
                     onClick={() => navigate("/contratos/fgts-001")}
@@ -4284,14 +3334,14 @@ function App() {
                   >
                     <div className="flex h-full flex-col justify-between p-4">
                       <div>
-                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">
                           <CalendarCheck size={20} />
                         </div>
                         {/* TODO: receber data e valor da API BMP */}
                         <p className="text-sm font-semibold text-foreground">Próxima parcela FGTS em setembro</p>
                         <p className="mt-1 text-xs text-muted-foreground">Seu saldo de R$ 4.703,82 será descontado automaticamente.</p>
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
                         Ver contrato <CaretRight size={12} />
                       </div>
                     </div>
@@ -4318,7 +3368,7 @@ function App() {
                         <p className="text-sm font-semibold text-foreground">Sua oferta está pronta!</p>
                         <p className="mt-1 text-xs text-muted-foreground">Sua análise de crédito foi concluída. Veja sua oferta agora.</p>
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
                         Ver minha oferta <CaretRight size={12} />
                       </div>
                     </div>
@@ -4345,7 +3395,7 @@ function App() {
                         <p className="text-sm font-semibold text-foreground">Chamada agendada!</p>
                         <p className="mt-1 text-xs text-muted-foreground">O link da verificação por vídeo com a Zema está disponível.</p>
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
                         Acessar chamada <CaretRight size={12} />
                       </div>
                     </div>
@@ -4379,7 +3429,7 @@ function App() {
                           e.stopPropagation();
                           toast("Reenvio solicitado.");
                         }}
-                        className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]"
+                        className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]"
                       >
                         Reenviar SMS <CaretRight size={12} />
                       </button>
@@ -4407,7 +3457,7 @@ function App() {
                         </div>
                         <p className="text-sm font-semibold text-foreground">Seu contrato do Crédito Pessoal está ativo!</p>
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#E8590A]">
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
                         Ver contrato <CaretRight size={12} />
                       </div>
                     </div>
@@ -4424,15 +3474,17 @@ function App() {
         <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
           <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
             <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+              {/* FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o "|| false" do .filter abaixo para reativar. */}
               {([
                 "clt",
-                "saque-facil",
                 "fgts",
                 "credito-pessoal",
                 "assistencias",
                 "energia",
                 "seguro",
-              ] as const).map((interest) => {
+              ] as const)
+                .filter((interest) => interest !== "fgts" || false)
+                .map((interest) => {
                 // DESIGN ONLY — estado do card Crédito Pessoal varia por ?cp=
                 const cpHighlight =
                   cpStatus === "andamento" || cpStatus === "assinatura_pendente"
@@ -4511,7 +3563,7 @@ function App() {
                         <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
                           <div>
                             <div className="mb-3 flex items-center gap-2">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF0E7] text-[#E8590A]">{currentService.icon}</div>
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">{currentService.icon}</div>
                               <p className="line-clamp-2 text-[16px] font-semibold leading-tight text-foreground">{currentService.title}</p>
                             </div>
                             {currentService.highlight ? (
@@ -4519,7 +3571,7 @@ function App() {
                                 interest === "clt" && cltStatus === "consultando" ? "text-[16px]" : ""
                               } ${
                                 // DESIGN ONLY — ?cp=ativo|contrato_novo → highlight verde
-                                interest === "credito-pessoal" && (cpStatus === "ativo" || cpStatus === "contrato_novo") ? "text-[#16A34A]" : "text-[#E8590A]"
+                                interest === "credito-pessoal" && (cpStatus === "ativo" || cpStatus === "contrato_novo") ? "text-[#16A34A]" : "text-[#FD5F31]"
                               }`}>{currentService.highlight}</p>
                             ) : null}
                             {!(interest === "clt" && (cltStatus === "consultando" || cltStatus === "contrato")) && (
@@ -4529,11 +3581,10 @@ function App() {
                           <button onClick={() => {
                             if (interest === "clt") navigate(cltPath);
                             else if (interest === "fgts") navigate(fgtsPath);
-                            else if (interest === "saque-facil") navigate("/saque-facil");
                             else if (interest === "credito-pessoal") navigate(cpPath);
                             else if (interest === "assistencias") navigate("/assistencias");
                             else if (interest === "energia") navigate("/energia");
-                          }} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#E8590A]">
+                          }} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#FD5F31]">
                             {currentService.cta} <CaretRight size={14} className="ml-1" />
                           </button>
                         </div>
@@ -4594,17 +3645,70 @@ function App() {
       </aside>
 
       <main className="mx-auto min-h-screen w-full bg-background md:mx-0 md:flex-1 md:overflow-y-auto">
-        <header className="sticky top-0 z-10 bg-background px-4 py-4 text-center md:px-0">
-          <h2 className="text-base font-semibold text-foreground">Minha conta</h2>
+        <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-white px-4 py-4 md:px-8">
+          <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0]">
+            <ArrowLeft size={20} className="text-foreground" />
+          </button>
+          <h1 className="flex-1 text-base font-semibold text-foreground">Minha conta</h1>
+          <PrivacyToggle size={18} variant="dark" />
+          <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0]">
+            <Bell size={18} className="text-muted-foreground" />
+            {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FD5F31] text-[9px] font-bold text-white">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
+          </button>
         </header>
 
         <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
-          <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
-            <div className="px-0 pb-6 pt-4">
-              <p className="text-lg font-bold uppercase text-foreground">{(storedUser?.name || name || "USUÁRIO").toUpperCase()}</p>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">CPF</span>
-                <SensitiveData value="123.456.789-00" type="cpf" />
+          <div className="space-y-4 md:mx-auto md:max-w-[860px]">
+            {/* Card de perfil */}
+            <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+              <div className="flex items-center gap-4">
+
+                {/* Avatar com iniciais */}
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-b from-[#FD5F31] to-[#FA9832]">
+                  <span className="text-xl font-bold text-white">
+                    {storedUser?.name?.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase() ?? "?"}
+                  </span>
+                </div>
+
+                {/* Nome + badge */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-bold text-foreground truncate">
+                    {storedUser?.name ?? "Usuário"}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {/* Badge de verificação — condicional */}
+                    {localStorage.getItem("podeja_telefone_validado") === "true" ? (
+                      <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                        <CheckCircle size={10} weight="fill" />
+                        Conta verificada
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                        <Clock size={10} />
+                        Verificação pendente
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* CPF + link "Ver dados" */}
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-muted px-3 py-2">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">CPF</p>
+                  <SensitiveData
+                    value={storedUser?.cpf ?? "123.456.789-00"}
+                    type="cpf"
+                    // TODO: receber CPF do storedUser quando disponível — hoje hardcoded
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/minha-conta/meus-dados")}
+                  className="flex items-center gap-1 text-xs font-semibold text-[#FD5F31]"
+                >
+                  Ver dados <CaretRight size={12} />
+                </button>
               </div>
             </div>
 
@@ -4627,20 +3731,11 @@ function App() {
                   ],
                 },
                 {
-                  title: "Configurações",
-                  icon: <Gear size={18} />,
-                  items: [
-                    { label: "Avaliar o aplicativo", external: true, href: "https://play.google.com" },
-                  ],
-                },
-                {
                   title: "Políticas",
                   icon: <Info size={18} />,
                   items: [
-                    // TODO: atualizar para domínio definitivo quando registrado
-                    { label: "Política de Privacidade", external: true, href: "https://podeja.com.br/politica-de-privacidade" },
-                    // TODO: atualizar para domínio definitivo quando registrado
-                    { label: "Termos de Uso", external: true, href: "https://podeja.com.br/termos-de-uso" },
+                    { label: "Termos de Uso", action: () => setMostrarTermos(true) },
+                    { label: "Política de Privacidade", action: () => setMostrarTermos(true) },
                   ],
                 },
               ].map((group) => (
@@ -4651,10 +3746,10 @@ function App() {
                       <p className="text-sm font-medium text-foreground">{group.title}</p>
                     </div>
                     {group.items.map((item) => (
-                      <button key={item.label} onClick={() => ("external" in item && item.external ? window.open(item.href, "_blank") : item.action?.())} className="w-full border-b border-border px-4 py-3.5 text-left text-sm text-foreground last:border-0">
+                      <button key={item.label} onClick={() => item.action()} className="w-full border-b border-border px-4 py-3.5 text-left text-sm text-foreground last:border-0">
                         <div className="flex items-center justify-between">
                           {item.label}
-                          {"external" in item && item.external ? <ArrowSquareOut size={16} className="text-muted-foreground" /> : <CaretRight size={16} className="text-muted-foreground" />}
+                          <CaretRight size={16} className="text-muted-foreground" />
                         </div>
                       </button>
                     ))}
@@ -4670,6 +3765,8 @@ function App() {
 
         {renderBottomNav()}
       </main>
+
+      <TermosModal aberto={mostrarTermos} onFechar={() => setMostrarTermos(false)} />
     </div>
   );
 
@@ -4681,10 +3778,10 @@ function App() {
             <Route
               path="/"
               element={
-                <main className="relative mx-auto flex min-h-screen w-full cursor-pointer flex-col justify-end overflow-hidden md:items-center md:justify-center md:bg-primary" onClick={() => navigate("/boas-vindas")}>
+                <main className="relative mx-auto flex min-h-screen w-full cursor-pointer flex-col justify-end overflow-hidden md:items-center md:justify-center md:bg-gradient-to-b md:from-[#FD5F31] md:to-[#FA9832]" onClick={() => navigate("/boas-vindas")}>
                   <img src={HERO_IMAGE} alt="Pessoa com carteira assinada" className="absolute inset-0 h-full w-full object-cover object-center md:hidden" />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary/75 to-transparent md:hidden" />
-                  <motion.div initial={shouldReduce ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: shouldReduce ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] }} className="relative z-10 flex flex-col items-center space-y-4 px-6 pb-14 md:pb-0 md:text-center"><Logo variant="white" size="lg" /><h1 className="text-2xl font-bold leading-tight text-white">Tudo que é seu, finalmente ao seu alcance.</h1><div className="flex items-center gap-3 pt-1"><div className="h-px flex-1 bg-white/20" /><p className="text-xs text-white/50">Toque para começar</p><div className="h-px flex-1 bg-white/20" /></div></motion.div>
+                  <motion.div initial={shouldReduce ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: shouldReduce ? 0 : 0.5, ease: [0.4, 0, 0.2, 1] }} className="relative z-10 flex flex-col items-center space-y-4 px-6 pb-14 text-center md:pb-0"><Logo variant="white" size="lg" /><h1 className="text-2xl font-bold leading-tight text-white">Tudo que é seu, finalmente ao seu alcance.</h1><div className="flex items-center gap-3 pt-1"><div className="h-px flex-1 bg-white/20" /><p className="text-xs text-white/50">Toque para começar</p><div className="h-px flex-1 bg-white/20" /></div></motion.div>
                   <div className="absolute bottom-0 left-0 right-0 h-16 md:hidden"><svg viewBox="0 0 430 64" preserveAspectRatio="none" className="h-full w-full" xmlns="http://www.w3.org/2000/svg"><path d="M0,32 C100,64 200,0 300,48 C370,64 400,32 430,40 L430,64 L0,64 Z" fill="rgba(168,61,5,0.4)" /></svg></div>
                 </main>
               }
@@ -4706,7 +3803,6 @@ function App() {
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/fgts-001" element={getStoredUser() ? <ContratoFGTSPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/contratos/saque-facil-001" element={getStoredUser() ? <ContratoSaqueFacilPage /> : <Navigate to="/boas-vindas" replace />} />
             {/* TODO(dev): seubolso está em andamento e escondido da navegação pública. */}
             <Route path="/seubolso" element={getStoredUser() ? <SeubolsoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seubolso/como-funciona" element={getStoredUser() ? <SeubolsoComoFuncionaPage /> : <Navigate to="/boas-vindas" replace />} />
@@ -4729,11 +3825,6 @@ function App() {
             <Route path="/credito-pessoal/reprovada" element={getStoredUser() ? <CreditoPessoalReprovada /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/pendente" element={getStoredUser() ? <CreditoPessoalPendente /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/contrato/:id" element={getStoredUser() ? <CreditoPessoalContratoPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/saque-facil" element={<Navigate to="/saque-facil/introducao" replace />} />
-            <Route path="/saque-facil/introducao" element={getStoredUser() ? <SaqueFacilIntroPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/saque-facil/simulacao" element={getStoredUser() ? <SaqueFacilSimulacaoPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/saque-facil/dados" element={getStoredUser() ? <CreditCardProvider><SaqueFacilDadosPage /></CreditCardProvider> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/saque-facil/revisao" element={getStoredUser() ? <SaqueFacilRevisaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/provedores" element={getStoredUser() ? <ConsignadoCLTProvedoresPage /> : <Navigate to="/boas-vindas" replace />} />

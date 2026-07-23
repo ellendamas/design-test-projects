@@ -85,8 +85,8 @@ export default function UnicoNotice({
           <div className="divide-y divide-border">
             {itens.map(({ icon: Icon, titulo: t, desc }) => (
               <div key={t} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7]">
-                  <Icon size={20} className="text-[#E8590A]" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE]">
+                  <Icon size={20} className="text-[#FD5F31]" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">{t}</p>
@@ -110,7 +110,7 @@ export default function UnicoNotice({
         <button
           type="button"
           onClick={onContinuar}
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+          className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
         >
           <Fingerprint size={20} />
           {labelBotao}

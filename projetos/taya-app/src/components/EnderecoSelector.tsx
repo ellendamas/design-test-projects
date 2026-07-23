@@ -189,8 +189,8 @@ export default function EnderecoSelector({
     <div className="space-y-3">
       {/* Cabeçalho */}
       <div className="flex flex-col items-center gap-3 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
-          <MapPin size={28} className="text-[#E8590A]" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+          <MapPin size={28} className="text-[#FD5F31]" />
         </div>
         <h2 className="text-lg font-semibold text-foreground">
           Confirme seu endereço de recebimento
@@ -214,8 +214,8 @@ export default function EnderecoSelector({
                   className={cn(
                     "w-full rounded-2xl border p-4 text-left transition-all",
                     isSelected
-                      ? "border-[#E8590A] bg-[#FEF0E7]"
-                      : "border-border bg-white hover:border-[#E8590A]/40",
+                      ? "border-[#FD5F31] bg-[#FFF3EE]"
+                      : "border-border bg-white hover:border-[#FD5F31]/40",
                   )}
                 >
                   <div className="flex items-start gap-3 pr-20">
@@ -224,7 +224,7 @@ export default function EnderecoSelector({
                       className={cn(
                         "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                         isSelected
-                          ? "border-[#E8590A] bg-[#E8590A]"
+                          ? "border-[#FD5F31] bg-[#FD5F31]"
                           : "border-border bg-white",
                       )}
                     >
@@ -232,7 +232,7 @@ export default function EnderecoSelector({
                     </div>
                     <div className="min-w-0 flex-1">
                       {idx === enderecosProp.length - 1 && (
-                        <span className="mb-1 inline-block text-[10px] font-semibold uppercase tracking-wide text-[#E8590A]">
+                        <span className="mb-1 inline-block text-[10px] font-semibold uppercase tracking-wide text-[#FD5F31]">
                           Último utilizado
                         </span>
                       )}
@@ -248,7 +248,7 @@ export default function EnderecoSelector({
                   <button type="button" onClick={() => tentarExcluir(idx)} className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-red-500 md:flex">
                     <Trash size={24} />
                   </button>
-                  <button type="button" onClick={() => abrirEdicao(idx)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-[#E8590A]">
+                  <button type="button" onClick={() => abrirEdicao(idx)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-[#FD5F31]">
                     <PencilSimple size={24} />
                   </button>
                 </div>
@@ -267,7 +267,7 @@ export default function EnderecoSelector({
         <button
           type="button"
           onClick={() => onConfirmar(lista[selectedIdx])}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#d04e08] active:scale-[0.98]"
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#d04e08] active:scale-[0.98]"
         >
           {semProximoPasso ? "Salvar endereço" : "Avançar"}
         </button>
@@ -278,7 +278,7 @@ export default function EnderecoSelector({
         <button
           type="button"
           onClick={abrirNovoEndereco}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium text-foreground transition-colors hover:border-[#E8590A]/40 hover:text-[#E8590A]"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium text-foreground transition-colors hover:border-[#FD5F31]/40 hover:text-[#FD5F31]"
         >
           <Plus size={16} />
           {lista.length === 0 ? "Informar endereço" : "Adicionar outro endereço"}
@@ -447,15 +447,15 @@ function EnderecoFormContent({
       {cepErro && <p className="text-xs text-red-500">{cepErro}</p>}
 
       <Input value={logradouro} onChange={(e) => setLogradouro(e.target.value)}
-        className={cn("h-12 rounded-xl", cepLoading && "animate-pulse bg-[#F5F4F2]")} placeholder="Logradouro" />
+        className={cn("h-12 rounded-xl", cepLoading && "animate-pulse bg-[#F0F0F0]")} placeholder="Logradouro" />
       <Input ref={numeroRef} value={numero} onChange={(e) => setNumero(e.target.value)}
         className="h-12 rounded-xl" placeholder="Número" />
       <Input value={bairro} onChange={(e) => setBairro(e.target.value)}
-        className={cn("h-12 rounded-xl", cepLoading && "animate-pulse bg-[#F5F4F2]")} placeholder="Bairro" />
+        className={cn("h-12 rounded-xl", cepLoading && "animate-pulse bg-[#F0F0F0]")} placeholder="Bairro" />
       <Input value={cidade} readOnly
-        className={cn("h-12 rounded-xl opacity-70", cepLoading && "animate-pulse bg-[#F5F4F2]")} placeholder="Cidade" />
+        className={cn("h-12 rounded-xl opacity-70", cepLoading && "animate-pulse bg-[#F0F0F0]")} placeholder="Cidade" />
       <Input value={estado} readOnly
-        className={cn("h-12 rounded-xl opacity-70", cepLoading && "animate-pulse bg-[#F5F4F2]")} placeholder="Estado" />
+        className={cn("h-12 rounded-xl opacity-70", cepLoading && "animate-pulse bg-[#F0F0F0]")} placeholder="Estado" />
       <Input value={complemento} onChange={(e) => setComplemento(e.target.value)}
         className="h-12 rounded-xl" placeholder="Complemento (opcional)" />
 
@@ -466,7 +466,7 @@ function EnderecoFormContent({
         </button>
         <button type="button" disabled={!podeAdicionarForm} onClick={handleSalvar}
           className={cn("flex h-11 flex-1 items-center justify-center rounded-full text-sm font-semibold text-white transition-colors",
-            podeAdicionarForm ? "bg-[#E8590A] hover:bg-[#d04e08]" : "cursor-not-allowed bg-[#E8590A] opacity-40")}>
+            podeAdicionarForm ? "bg-[#FD5F31] hover:bg-[#d04e08]" : "cursor-not-allowed bg-[#FD5F31] opacity-40")}>
           Salvar alterações
         </button>
       </div>

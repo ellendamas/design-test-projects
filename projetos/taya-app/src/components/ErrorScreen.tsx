@@ -86,8 +86,8 @@ export function ErrorScreen({
 
   const conteudo = (
     <div className={`flex flex-col items-center text-center gap-3 ${compact ? "" : "p-6"}`}>
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF0E7]">
-        <WarningCircle size={28} className="text-[#E8590A]" />
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+        <WarningCircle size={28} className="text-[#FD5F31]" />
       </div>
       <p className="text-base font-semibold text-foreground">{erro.headline}</p>
       <p className="text-sm text-muted-foreground leading-relaxed">{erro.subtitulo}</p>
@@ -95,7 +95,7 @@ export function ErrorScreen({
         <button
           type="button"
           onClick={onTentarNovamente}
-          className="flex h-11 items-center gap-2 rounded-full border border-[#E8590A] px-5 text-sm font-semibold text-[#E8590A] mt-2"
+          className="flex h-11 items-center gap-2 rounded-full border border-[#FD5F31] px-5 text-sm font-semibold text-[#FD5F31] mt-2"
         >
           <ArrowClockwise size={16} />
           {labelBotao}

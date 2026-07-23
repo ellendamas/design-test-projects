@@ -190,9 +190,9 @@ export default function ConsignadoCLTDadosPage() {
                 className={cn(
                   "h-2 rounded-full transition-all",
                   i === passoIndex
-                    ? "w-8 bg-[#E8590A]"
+                    ? "w-8 bg-[#FD5F31]"
                     : i < passoIndex
-                      ? "w-2 bg-[#E8590A]/40"
+                      ? "w-2 bg-[#FD5F31]/40"
                       : "w-2 bg-border",
                 )}
               />

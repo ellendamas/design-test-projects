@@ -7,10 +7,11 @@ type LocationState = Record<string, unknown>;
 // DESIGN ONLY — mock state para acesso direto via URL de design
 const MOCK_STATE: LocationState = {}; // TODO: receber da API
 
+// FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o "|| false" do .filter abaixo para reativar.
 const CROSS_SELL = [
   {
     icon: Briefcase,
-    titulo: "Consignado CLT",
+    titulo: "Crédito Consignado CLT",
     sub: "Para quem tem carteira assinada",
     rota: "/consignado-clt",
   },
@@ -20,7 +21,7 @@ const CROSS_SELL = [
     sub: "Use seu saldo do FGTS",
     rota: "/fgts",
   },
-];
+].filter((item) => item.rota !== "/fgts" || false);
 
 export default function CreditoPessoalReprovada() {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export default function CreditoPessoalReprovada() {
               { icon: Headset, text: "Fale com nosso suporte" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-start gap-3">
-                <Icon size={20} className="mt-0.5 shrink-0 text-[#E8590A]" />
+                <Icon size={20} className="mt-0.5 shrink-0 text-[#FD5F31]" />
                 <p className="text-sm text-foreground">{text}</p>
               </div>
             ))}
@@ -80,14 +81,14 @@ export default function CreditoPessoalReprovada() {
                 key={titulo}
                 type="button"
                 onClick={() => navigate(rota)}
-                className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#E8590A]/40"
+                className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#FD5F31]/40"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FEF0E7]">
-                  <Icon size={18} className="text-[#E8590A]" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF3EE]">
+                  <Icon size={18} className="text-[#FD5F31]" />
                 </div>
                 <p className="text-sm font-semibold text-foreground">{titulo}</p>
                 <p className="text-xs text-muted-foreground">{sub}</p>
-                <p className="text-xs font-medium text-[#E8590A]">Conhecer</p>
+                <p className="text-xs font-medium text-[#FD5F31]">Conhecer</p>
               </button>
             ))}
           </div>
@@ -97,7 +98,7 @@ export default function CreditoPessoalReprovada() {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
+              className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]"
             >
               Voltar ao início
             </button>
@@ -146,14 +147,14 @@ export default function CreditoPessoalReprovada() {
               key={titulo}
               type="button"
               onClick={() => navigate(rota)}
-              className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#E8590A]/40"
+              className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#FD5F31]/40"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FEF0E7]">
-                <Icon size={18} className="text-[#E8590A]" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF3EE]">
+                <Icon size={18} className="text-[#FD5F31]" />
               </div>
               <p className="text-sm font-semibold text-foreground">{titulo}</p>
               <p className="text-xs text-muted-foreground">{sub}</p>
-              <p className="text-xs font-medium text-[#E8590A]">Conhecer</p>
+              <p className="text-xs font-medium text-[#FD5F31]">Conhecer</p>
             </button>
           ))}
         </div>
@@ -163,7 +164,7 @@ export default function CreditoPessoalReprovada() {
           <button
             type="button"
             onClick={() => navigate("/credito-pessoal")}
-            className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
+            className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]"
           >
             Iniciar nova proposta
           </button>

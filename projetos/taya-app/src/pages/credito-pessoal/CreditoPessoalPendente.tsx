@@ -104,7 +104,7 @@ export default function CreditoPessoalPendente() {
               <button
                 type="button"
                 disabled
-                className="flex h-14 w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white opacity-40"
+                className="flex h-14 w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white opacity-40"
               >
                 {configs.labelCta}
                 <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">Em breve</span>
@@ -114,7 +114,7 @@ export default function CreditoPessoalPendente() {
             <button
               type="button"
               onClick={configs.onCta}
-              className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#A33D05]"
+              className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#D94E28]"
             >
               {configs.labelCta}
             </button>

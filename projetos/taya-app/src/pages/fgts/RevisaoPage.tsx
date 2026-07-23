@@ -127,8 +127,8 @@ export default function FGTSRevisaoPage() {
         {/* TODO: usar tempo real da API BMP */}
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
           <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEF0E7]">
-              <CalendarBlank size={16} className="text-[#E8590A]" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF3EE]">
+              <CalendarBlank size={16} className="text-[#FD5F31]" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Previsão de crédito na conta</p>
@@ -140,35 +140,35 @@ export default function FGTSRevisaoPage() {
         </div>
 
         {/* Bloco 3 — Tabela de parcelas */}
-        <div className="rounded-2xl bg-[#FEF0E7] p-4">
-          <p className="mb-3 text-sm font-semibold text-[#A33D05]">Parcelas anuais antecipadas</p>
+        <div className="rounded-2xl bg-[#FFF3EE] p-4">
+          <p className="mb-3 text-sm font-semibold text-[#D94E28]">Parcelas anuais antecipadas</p>
 
-          <div className="overflow-hidden rounded-xl border border-[#E8590A]/20">
-            <div className="flex bg-[#E8590A]/10 px-3 py-2 text-xs font-medium text-[#A33D05]">
+          <div className="overflow-hidden rounded-xl border border-[#FD5F31]/20">
+            <div className="flex bg-[#FD5F31]/10 px-3 py-2 text-xs font-medium text-[#D94E28]">
               <span className="flex-1">Data</span>
               <span>Valor liberado</span>
             </div>
             {parcelas.map((p) => (
               <div
                 key={p.ano}
-                className="flex items-center border-t border-[#E8590A]/10 px-3 py-2.5 text-sm"
+                className="flex items-center border-t border-[#FD5F31]/10 px-3 py-2.5 text-sm"
               >
-                <span className="flex-1 text-[#A33D05]">{p.data}</span>
-                <span className="font-medium text-[#A33D05]">
+                <span className="flex-1 text-[#D94E28]">{p.data}</span>
+                <span className="font-medium text-[#D94E28]">
                   R$ {formatCurrency(p.valorLiberado)}
                 </span>
               </div>
             ))}
           </div>
 
-          <p className="mt-2 text-xs text-[#A33D05]/70">
+          <p className="mt-2 text-xs text-[#D94E28]/70">
             Total de parcelas: {numParcelas}x anuais
           </p>
         </div>
 
         {/* Bloco 4 — Detalhes */}
-        <div className="rounded-2xl bg-[#FEF0E7] p-4">
-          <p className="mb-3 text-sm font-semibold text-[#A33D05]">Detalhes</p>
+        <div className="rounded-2xl bg-[#FFF3EE] p-4">
+          <p className="mb-3 text-sm font-semibold text-[#D94E28]">Detalhes</p>
           <div className="space-y-2">
             {[
               { label: "Taxa de juros", value: `${taxaMensal}% a.m.` },
@@ -177,8 +177,8 @@ export default function FGTSRevisaoPage() {
               { label: "Saldo utilizado", value: `R$ ${formatCurrency(saldoDisponivel)}` },
             ].map((linha) => (
               <div key={linha.label} className="flex items-center justify-between">
-                <span className="text-xs text-[#A33D05]/70">{linha.label}</span>
-                <span className="text-xs font-medium text-[#A33D05]">{linha.value}</span>
+                <span className="text-xs text-[#D94E28]/70">{linha.label}</span>
+                <span className="text-xs font-medium text-[#D94E28]">{linha.value}</span>
               </div>
             ))}
           </div>
@@ -191,14 +191,14 @@ export default function FGTSRevisaoPage() {
           className={cn(
             "flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-all",
             termoAceito
-              ? "border-[#E8590A] bg-[#FEF0E7]"
-              : "border-border bg-white hover:border-[#E8590A]/40",
+              ? "border-[#FD5F31] bg-[#FFF3EE]"
+              : "border-border bg-white hover:border-[#FD5F31]/40",
           )}
         >
           <div
             className={cn(
               "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors",
-              termoAceito ? "border-[#E8590A] bg-[#E8590A]" : "border-border bg-white",
+              termoAceito ? "border-[#FD5F31] bg-[#FD5F31]" : "border-border bg-white",
             )}
           >
             {termoAceito && <Check size={12} className="text-white" weight="bold" />}
@@ -207,7 +207,7 @@ export default function FGTSRevisaoPage() {
             Ao continuar, concordo com os{" "}
             <a
               href="#"
-              className="text-[#E8590A] underline underline-offset-2"
+              className="text-[#FD5F31] underline underline-offset-2"
               onClick={(e) => e.stopPropagation()}
             >
               Termos do Contrato
@@ -238,8 +238,8 @@ export default function FGTSRevisaoPage() {
           className={cn(
             "flex h-14 w-full items-center justify-center rounded-full text-base font-semibold text-white transition-colors",
             termoAceito
-              ? "bg-[#E8590A] hover:bg-[#d04e08] active:scale-[0.98]"
-              : "cursor-not-allowed bg-[#E8590A] opacity-40",
+              ? "bg-[#FD5F31] hover:bg-[#d04e08] active:scale-[0.98]"
+              : "cursor-not-allowed bg-[#FD5F31] opacity-40",
           )}
         >
           Aceitar e continuar

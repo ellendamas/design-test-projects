@@ -26,7 +26,7 @@ function Timeline({ passos }: { passos: { texto: string; detalhe?: string }[] })
         <div key={index} className="flex gap-3">
           {/* Coluna da linha */}
           <div className="flex flex-col items-center">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-xs font-bold text-[#E8590A]">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-xs font-bold text-[#FD5F31]">
               {index + 1}
             </div>
             {index < passos.length - 1 && (
@@ -63,7 +63,7 @@ function SubPassoIntro({ onAbrirApp, onJaAutorizei }: { onAbrirApp: () => void; 
       <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         {/* Logos combinados */}
         <div className="mb-4 flex items-center justify-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E8590A]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FD5F31]">
             <span className="text-sm font-bold text-white">s.</span>
           </div>
           <ArrowRight size={16} className="text-muted-foreground" />
@@ -88,7 +88,7 @@ function SubPassoIntro({ onAbrirApp, onJaAutorizei }: { onAbrirApp: () => void; 
       {/* Card de credibilidade BMP */}
       <div className="rounded-xl bg-muted p-3">
         <div className="flex items-start gap-2">
-          <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#E8590A]" />
+          <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#FD5F31]" />
           <div>
             <p className="text-xs font-medium text-foreground">BMP SOCIEDADE DE CREDITO DIRETO S.A — autorizada pelo Banco Central</p>
             <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
@@ -106,7 +106,7 @@ function SubPassoIntro({ onAbrirApp, onJaAutorizei }: { onAbrirApp: () => void; 
         <div className="space-y-3">
           {passos.map((p) => (
             <div key={p.num} className="flex items-start gap-3">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FEF0E7] text-sm font-bold text-[#E8590A]">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-sm font-bold text-[#FD5F31]">
                 {p.num}
               </div>
               <div className="flex-1">
@@ -123,7 +123,7 @@ function SubPassoIntro({ onAbrirApp, onJaAutorizei }: { onAbrirApp: () => void; 
         <button
           type="button"
           onClick={onAbrirApp}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
         >
           Abrir app do FGTS
         </button>
@@ -205,11 +205,11 @@ function SubPassoGuia({ onConcluiu }: { onConcluiu: () => void }) {
   return (
     <div className="space-y-4">
       {/* Header contextual */}
-      <div className="rounded-xl bg-[#FEF0E7] px-4 py-3">
-        <p className="text-sm font-medium text-[#A33D05]">
+      <div className="rounded-xl bg-[#FFF3EE] px-4 py-3">
+        <p className="text-sm font-medium text-[#D94E28]">
           Siga os passos abaixo no app do FGTS
         </p>
-        <p className="mt-0.5 text-xs text-[#A33D05]/70">
+        <p className="mt-0.5 text-xs text-[#D94E28]/70">
           Deixe os dois apps abertos ao mesmo tempo
         </p>
       </div>
@@ -245,7 +245,7 @@ function SubPassoGuia({ onConcluiu }: { onConcluiu: () => void }) {
         <button
           type="button"
           onClick={onConcluiu}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
         >
           Já fiz os dois passos
         </button>
@@ -288,7 +288,7 @@ function SubPassoRetorno({ onConsultar }: { onConsultar: () => void }) {
         <button
           type="button"
           onClick={onConsultar}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
         >
           Consultar meu saldo
         </button>

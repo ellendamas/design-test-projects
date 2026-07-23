@@ -44,12 +44,12 @@ export default function FGTSConfirmacaoPage() {
     {
       label: "Valor a receber",
       value: `R$ ${formatCurrency(valorTotalReceber)}`,
-      valueClass: "text-lg font-bold text-[#A33D05]",
+      valueClass: "text-lg font-bold text-[#D94E28]",
     },
     {
       label: "Parcelas",
       value: `${numParcelas}x anuais`,
-      valueClass: "text-sm text-[#A33D05]",
+      valueClass: "text-sm text-[#D94E28]",
     },
     {
       label: "Primeira parcela",
@@ -90,13 +90,13 @@ export default function FGTSConfirmacaoPage() {
         </div>
 
         {/* Card resumo */}
-        <div className="w-full rounded-2xl bg-[#FEF0E7] p-4">
+        <div className="w-full rounded-2xl bg-[#FFF3EE] p-4">
           {linhasResumo.map((linha) => (
             <div
               key={linha.label}
-              className="flex items-center justify-between border-b border-[#E8590A]/20 py-1.5 last:border-0"
+              className="flex items-center justify-between border-b border-[#FD5F31]/20 py-1.5 last:border-0"
             >
-              <span className="text-sm text-[#A33D05]/70">{linha.label}</span>
+              <span className="text-sm text-[#D94E28]/70">{linha.label}</span>
               <span className={linha.valueClass}>{linha.value}</span>
             </div>
           ))}
@@ -107,7 +107,7 @@ export default function FGTSConfirmacaoPage() {
           <button
             type="button"
             onClick={() => navigate("/contratos")}
-            className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+            className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
           >
             Ver meu contrato
           </button>

@@ -117,7 +117,7 @@ export default function CreditoPessoalConfirmacao() {
               {
                 label: "Valor liberado",
                 value: `R$ ${formatCents(valorSolicitado)}`,
-                valueClass: "text-lg font-bold text-[#E8590A]",
+                valueClass: "text-lg font-bold text-[#FD5F31]",
               },
               {
                 label: "Parcelas",
@@ -148,9 +148,9 @@ export default function CreditoPessoalConfirmacao() {
 
         {/* ── Card boletos simplificado ── */}
         {/* TODO: conectar ao GET /propostas/{id}/boleto/detalhes */}
-        <div className="w-full rounded-2xl bg-[#FEF0E7] p-4 space-y-3">
+        <div className="w-full rounded-2xl bg-[#FFF3EE] p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Receipt size={18} className="text-[#E8590A]" />
+            <Receipt size={18} className="text-[#FD5F31]" />
             <p className="text-sm font-semibold text-foreground">Seus boletos</p>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -161,7 +161,7 @@ export default function CreditoPessoalConfirmacao() {
             href="#"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#E8590A] text-sm font-semibold text-[#E8590A]"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#FD5F31] text-sm font-semibold text-[#FD5F31]"
             // TODO: substituir "#" pela url_boleto de GET /propostas/{id}/boleto/detalhes
           >
             <FilePdf size={16} />
@@ -176,7 +176,7 @@ export default function CreditoPessoalConfirmacao() {
         <button
           type="button"
           onClick={() => navigate("/painel")}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]"
         >
           Ir para o início
         </button>

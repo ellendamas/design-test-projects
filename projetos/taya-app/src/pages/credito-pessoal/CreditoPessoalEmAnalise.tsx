@@ -37,7 +37,7 @@ export default function CreditoPessoalEmAnalise() {
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className="h-4 w-4 rounded-full bg-[#E8590A]"
+              className="h-4 w-4 rounded-full bg-[#FD5F31]"
               style={{
                 animation: "pulse-dot 1.2s ease-in-out infinite",
                 animationDelay: `${i * 0.2}s`,

@@ -136,8 +136,8 @@ export default function FGTSAssinaturaPage() {
               <div className="divide-y divide-border">
                 {unicoItens.map(({ icon: Icon, titulo, desc }) => (
                   <div key={titulo} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF0E7]">
-                      <Icon size={20} className="text-[#E8590A]" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE]">
+                      <Icon size={20} className="text-[#FD5F31]" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground">{titulo}</p>
@@ -158,7 +158,7 @@ export default function FGTSAssinaturaPage() {
               <button
                 type="button"
                 onClick={() => setSubPasso("biometria")}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
               >
                 <Fingerprint size={20} />
                 Continuar para verificação
@@ -170,8 +170,8 @@ export default function FGTSAssinaturaPage() {
         {/* ── Sub-passo: biometria (mock automático) ── */}
         {subPasso === "biometria" && (
           <div className="flex flex-col items-center gap-6 pt-12 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#FEF0E7]">
-              <Fingerprint size={40} className="animate-pulse text-[#E8590A]" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#FFF3EE]">
+              <Fingerprint size={40} className="animate-pulse text-[#FD5F31]" />
             </div>
             <div className="space-y-1">
               <p className="text-lg font-semibold text-foreground">Verificando identidade...</p>

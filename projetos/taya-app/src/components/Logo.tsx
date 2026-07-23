@@ -24,7 +24,7 @@ export function Logo({ variant = "default", size = "md", className = "" }: LogoP
         const fallback = document.createElement("span");
         fallback.textContent = "Pode Já";
         fallback.className = `text-lg font-bold ${
-          variant === "white" ? "text-white" : "text-[#E8590A]"
+          variant === "white" ? "text-white" : "text-[#FD5F31]"
         }`;
         target.parentElement?.appendChild(fallback);
       }}

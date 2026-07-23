@@ -49,9 +49,9 @@ const CONTAS_MOCK: ContaData[] = [
 ];
 
 const inputClass =
-  "flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8590A]/40";
+  "flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD5F31]/40";
 const selectClass =
-  "flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8590A]/40 appearance-none";
+  "flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD5F31]/40 appearance-none";
 const labelClass = "mb-1 block text-xs font-medium text-muted-foreground";
 
 // ---------------------------------------------------------------------------
@@ -160,9 +160,9 @@ export default function FGTSDadosPage() {
                 className={cn(
                   "h-2 rounded-full transition-all",
                   i === passoIndex
-                    ? "w-8 bg-[#E8590A]"
+                    ? "w-8 bg-[#FD5F31]"
                     : i < passoIndex
-                      ? "w-2 bg-[#E8590A]/40"
+                      ? "w-2 bg-[#FD5F31]/40"
                       : "w-2 bg-border",
                 )}
               />
@@ -267,8 +267,8 @@ export default function FGTSDadosPage() {
                 className={cn(
                   "flex h-14 w-full items-center justify-center rounded-full text-base font-semibold text-white transition-colors",
                   dadosPessoaisValidos
-                    ? "bg-[#E8590A] hover:bg-[#d04e08] active:scale-[0.98]"
-                    : "cursor-not-allowed bg-[#E8590A] opacity-40",
+                    ? "bg-[#FD5F31] hover:bg-[#d04e08] active:scale-[0.98]"
+                    : "cursor-not-allowed bg-[#FD5F31] opacity-40",
                 )}
               >
                 Continuar

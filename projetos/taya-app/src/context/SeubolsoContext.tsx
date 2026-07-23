@@ -19,10 +19,10 @@ type SeubolsoContextType = {
 const extratoInicial: Transacao[] = [
   { id: 1, tipo: "ganho", descricao: "Cadastro completo", valor: 500, data: "2026-04-01" },
   { id: 2, tipo: "ganho", descricao: "Streak 7 dias", valor: 100, data: "2026-04-08" },
-  { id: 3, tipo: "ganho", descricao: "Saque Fácil contratado", valor: 300, data: "2026-04-10" },
+  { id: 3, tipo: "ganho", descricao: "Crédito Pessoal contratado", valor: 300, data: "2026-04-10" },
   { id: 4, tipo: "ganho", descricao: "Login diário", valor: 10, data: "2026-05-14" },
   { id: 5, tipo: "ganho", descricao: "Parcela paga em dia", valor: 50, data: "2026-05-15" },
-  { id: 6, tipo: "gasto", descricao: "Desconto no Saque Fácil", valor: -210, data: "2026-05-01" },
+  { id: 6, tipo: "gasto", descricao: "Desconto no Crédito Pessoal", valor: -210, data: "2026-05-01" },
 ];
 
 const SeubolsoContext = createContext<SeubolsoContextType | null>(null);

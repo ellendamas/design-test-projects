@@ -95,14 +95,14 @@ export default function FGTSSimuladorPage() {
       <div className="space-y-4 pb-32">
 
         {/* Bloco 1 — Saldo disponível em destaque */}
-        <div className="rounded-2xl bg-[#FEF0E7] p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-[#A33D05]/70">
+        <div className="rounded-2xl bg-[#FFF3EE] p-5">
+          <p className="text-xs font-medium uppercase tracking-wide text-[#D94E28]/70">
             Seu saldo disponível para antecipar
           </p>
-          <p className="mt-1 text-4xl font-bold text-[#A33D05]">
+          <p className="mt-1 text-4xl font-bold text-[#D94E28]">
             R$ {formatCurrency(SALDO_DISPONIVEL)}
           </p>
-          <p className="mt-1 text-xs text-[#A33D05]/70">
+          <p className="mt-1 text-xs text-[#D94E28]/70">
             Consultado agora via Caixa Econômica Federal
             {/* TODO: exibir timestamp real da consulta */}
           </p>
@@ -122,7 +122,7 @@ export default function FGTSSimuladorPage() {
                 className={cn(
                   "flex flex-col items-center rounded-xl border px-4 py-3 text-sm transition-colors",
                   numParcelas === n
-                    ? "border-[#E8590A] bg-[#FEF0E7] text-[#E8590A]"
+                    ? "border-[#FD5F31] bg-[#FFF3EE] text-[#FD5F31]"
                     : "border-border bg-white text-foreground",
                 )}
               >
@@ -157,9 +157,9 @@ export default function FGTSSimuladorPage() {
               </div>
             ))}
             {/* Total */}
-            <div className="flex items-center border-t border-[#E8590A]/30 bg-[#FEF0E7] px-3 py-2.5 text-sm">
-              <span className="flex-1 font-semibold text-[#A33D05]">Total a receber</span>
-              <span className="font-bold text-[#E8590A]">
+            <div className="flex items-center border-t border-[#FD5F31]/30 bg-[#FFF3EE] px-3 py-2.5 text-sm">
+              <span className="flex-1 font-semibold text-[#D94E28]">Total a receber</span>
+              <span className="font-bold text-[#FD5F31]">
                 R$ {formatCurrency(valorTotalReceber)}
               </span>
             </div>
@@ -167,35 +167,35 @@ export default function FGTSSimuladorPage() {
         </div>
 
         {/* Bloco 4 — Preview de resultado */}
-        <div className="rounded-2xl bg-[#FEF0E7] p-4">
-          <p className="text-xs text-[#A33D05]/70">Você vai receber hoje</p>
-          <p className="mt-1 text-3xl font-bold text-[#A33D05]">
+        <div className="rounded-2xl bg-[#FFF3EE] p-4">
+          <p className="text-xs text-[#D94E28]/70">Você vai receber hoje</p>
+          <p className="mt-1 text-3xl font-bold text-[#D94E28]">
             R$ {formatCurrency(valorTotalReceber)}
           </p>
 
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-            <span className="text-[#A33D05]/70">Taxa</span>
-            <span className="font-medium text-[#A33D05]">{TAXA_MENSAL}% a.m.</span>
+            <span className="text-[#D94E28]/70">Taxa</span>
+            <span className="font-medium text-[#D94E28]">{TAXA_MENSAL}% a.m.</span>
 
-            <span className="text-[#A33D05]/70">CET</span>
-            <span className="font-medium text-[#A33D05]">{cetMensal}% a.m.</span>
+            <span className="text-[#D94E28]/70">CET</span>
+            <span className="font-medium text-[#D94E28]">{cetMensal}% a.m.</span>
 
-            <span className="text-[#A33D05]/70">IOF</span>
-            <span className="font-medium text-[#A33D05]">R$ {formatCurrency(iof)}</span>
+            <span className="text-[#D94E28]/70">IOF</span>
+            <span className="font-medium text-[#D94E28]">R$ {formatCurrency(iof)}</span>
 
-            <span className="text-[#A33D05]/70">TC</span>
-            <span className="font-medium text-[#A33D05]">R$ 20,00</span>
+            <span className="text-[#D94E28]/70">TC</span>
+            <span className="font-medium text-[#D94E28]">R$ 20,00</span>
 
-            <div className="col-span-2 mt-1 border-t border-[#E8590A]/20 pt-1.5" />
+            <div className="col-span-2 mt-1 border-t border-[#FD5F31]/20 pt-1.5" />
 
-            <span className="font-semibold text-[#A33D05]">Total a descontar</span>
-            <span className="font-bold text-[#A33D05]">R$ {formatCurrency(totalADescontar)}</span>
+            <span className="font-semibold text-[#D94E28]">Total a descontar</span>
+            <span className="font-bold text-[#D94E28]">R$ {formatCurrency(totalADescontar)}</span>
           </div>
 
           {/* Accordion — detalhes por período */}
           <button
             type="button"
-            className="mt-3 flex w-full items-center justify-between rounded-xl border border-[#E8590A]/30 bg-white/60 px-3 py-2 text-sm text-[#A33D05]"
+            className="mt-3 flex w-full items-center justify-between rounded-xl border border-[#FD5F31]/30 bg-white/60 px-3 py-2 text-sm text-[#D94E28]"
             onClick={() => setDetalhesOpen((p) => !p)}
           >
             Ver detalhes por período
@@ -206,14 +206,14 @@ export default function FGTSSimuladorPage() {
           </button>
 
           {detalhesOpen && (
-            <div className="mt-2 rounded-xl bg-white/60 px-3 py-3 text-xs text-[#A33D05]/80">
+            <div className="mt-2 rounded-xl bg-white/60 px-3 py-3 text-xs text-[#D94E28]/80">
               <div className="mb-2 flex font-semibold">
                 <span className="flex-1">Período</span>
                 <span className="mr-16">Parcela</span>
                 <span>Desconto no ano</span>
               </div>
               {parcelasCalculadas.map((p) => (
-                <div key={p.ano} className="flex border-t border-[#E8590A]/10 py-1.5">
+                <div key={p.ano} className="flex border-t border-[#FD5F31]/10 py-1.5">
                   <span className="flex-1">
                     {nomeMes(MES_ANIVERSARIO)}/{p.ano}
                   </span>
@@ -234,7 +234,7 @@ export default function FGTSSimuladorPage() {
         <button
           type="button"
           onClick={handleContinuar}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
         >
           Quero contratar
         </button>

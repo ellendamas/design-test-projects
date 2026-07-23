@@ -80,7 +80,7 @@ export default function CreditoPessoalLanding() {
             alt="Crédito Pessoal"
             className="absolute inset-0 h-full w-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#A33D05] via-[#E8590A]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#D94E28] via-[#FD5F31]/70 to-transparent" />
           <div className="relative z-10 flex min-h-[200px] flex-col justify-end p-5">
             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/75">
               Crédito Pessoal · Zema Financeira
@@ -101,7 +101,7 @@ export default function CreditoPessoalLanding() {
               key={label}
               className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"
             >
-              <CheckCircle size={12} className="text-[#E8590A]" weight="fill" />
+              <CheckCircle size={12} className="text-[#FD5F31]" weight="fill" />
               {label}
             </div>
           ))}
@@ -130,7 +130,7 @@ export default function CreditoPessoalLanding() {
           <CardContent className="divide-y divide-border pt-0">
             {beneficios.map((b) => (
               <div key={b.titulo} className="flex gap-3 py-4 first:pt-5 last:pb-5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEF0E7] text-[#E8590A]">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF3EE] text-[#FD5F31]">
                   <b.icon size={20} />
                 </div>
                 <div>
@@ -177,7 +177,7 @@ export default function CreditoPessoalLanding() {
         {/* ── Nota de segurança / operador ── */}
         <div className="rounded-xl bg-muted p-3">
           <div className="flex items-start gap-2">
-            <Lock size={14} className="mt-0.5 shrink-0 text-[#E8590A]" />
+            <Lock size={14} className="mt-0.5 shrink-0 text-[#FD5F31]" />
             <p className="text-xs text-muted-foreground">
               Operado por{" "}
               <span className="font-semibold text-foreground">Zema Financeira</span>.
@@ -191,7 +191,7 @@ export default function CreditoPessoalLanding() {
           <button
             type="button"
             onClick={() => navigate("/credito-pessoal/dados")}
-            className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#E8590A] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
           >
             Quero simular agora
             <ArrowRight size={18} />

@@ -3,15 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --brand: #E8590A;
-  --brand-light: #FEF0E7;
-  --brand-dark: #A33D05;
+  --brand: #FD5F31;
+  --brand-light: #FFF3EE;
+  --brand-dark: #D94E28;
+  /* Novas variáveis da paleta Pode Já */
+  --brand-gradient-start: #FD5F31;
+  --brand-gradient-end: #FA9832;
+  --gold: #FFCC05;
+  --ocean-dark: #0A4F73;
+  --ocean-light: #67C7F0;
 }
 
 [data-theme="laranja"] {
-  --brand: #E8590A;
-  --brand-light: #FEF0E7;
-  --brand-dark: #A33D05;
+  --brand: #FD5F31;
+  --brand-light: #FFF3EE;
+  --brand-dark: #D94E28;
 }
 
 [data-theme="azul"] {

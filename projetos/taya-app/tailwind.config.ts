@@ -9,12 +9,13 @@ export default {
         sans: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
       },
       colors: {
-        background: "#F5F4F2",
-        foreground: "#1C1917",
+        background: "#F0F0F0",
+        foreground: "#231E19",
         brand: {
           DEFAULT: "var(--brand)",
           light: "var(--brand-light)",
           dark: "var(--brand-dark)",
+          gradient: "linear-gradient(to bottom, var(--brand-gradient-start), var(--brand-gradient-end))",
         },
         primary: {
           DEFAULT: "var(--brand)",
@@ -22,12 +23,17 @@ export default {
           light: "var(--brand-light)",
           dark: "var(--brand-dark)",
         },
+        gold: "#FFCC05",
+        ocean: {
+          dark: "#0A4F73",
+          light: "#67C7F0",
+        },
         secondary: {
-          DEFAULT: "#F0EDE8",
-          foreground: "#1C1917",
+          DEFAULT: "#F0F0F0",
+          foreground: "#231E19",
         },
         muted: {
-          DEFAULT: "#F5F4F2",
+          DEFAULT: "#F0F0F0",
           foreground: "#78716C",
         },
         border: "#E7E5E4",

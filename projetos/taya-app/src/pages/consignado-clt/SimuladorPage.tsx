@@ -112,7 +112,7 @@ export default function ConsignadoCLTSimuladorPage() {
             padFractionalZeros
             value={formatCurrency(valor)}
             onAccept={(v: unknown) => setValor(parseCurrency(String(v)))}
-            className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-[#E8590A]"
+            className="h-16 w-full rounded-xl border border-border px-3 text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-[#FD5F31]"
             placeholder="R$ 0,00"
           />
 
@@ -140,7 +140,7 @@ export default function ConsignadoCLTSimuladorPage() {
                 className={cn(
                   "flex flex-col items-center rounded-xl border px-4 py-3 text-sm transition-colors",
                   prazo === p
-                    ? "border-[#E8590A] bg-[#FEF0E7] text-[#E8590A]"
+                    ? "border-[#FD5F31] bg-[#FFF3EE] text-[#FD5F31]"
                     : "border-border bg-white text-foreground"
                 )}
               >
@@ -163,7 +163,7 @@ export default function ConsignadoCLTSimuladorPage() {
             <div
               className={cn(
                 "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors",
-                seguroAtivo ? "border-[#E8590A] bg-[#E8590A]" : "border-border bg-white",
+                seguroAtivo ? "border-[#FD5F31] bg-[#FD5F31]" : "border-border bg-white",
               )}
             >
               {seguroAtivo && <Check size={12} className="text-white" weight="bold" />}
@@ -175,7 +175,7 @@ export default function ConsignadoCLTSimuladorPage() {
               </p>
             </div>
             <div className="shrink-0 text-right">
-              <p className="text-xs font-medium text-[#E8590A]">
+              <p className="text-xs font-medium text-[#FD5F31]">
                 + R$ {formatCurrency(valorParcela * 0.03)}/mês
               </p>
               <p className="text-[10px] text-muted-foreground">~3% da parcela</p>
@@ -184,20 +184,20 @@ export default function ConsignadoCLTSimuladorPage() {
         </div>
 
         {/* Bloco 4 — Preview de valores */}
-        <div className="rounded-2xl bg-[#FEF0E7] p-4">
+        <div className="rounded-2xl bg-[#FFF3EE] p-4">
           <div className="flex items-center justify-between py-1">
-            <span className="text-sm text-[#A33D05]/70">Valor a receber</span>
-            <span className="text-2xl font-bold text-[#E8590A]">
+            <span className="text-sm text-[#D94E28]/70">Valor a receber</span>
+            <span className="text-2xl font-bold text-[#FD5F31]">
               R$ {formatCurrency(valor > 0 ? valor : 0)}
             </span>
           </div>
           <div className="flex items-center justify-between py-1">
             <span className="text-sm text-muted-foreground">Taxa de juros</span>
-            <span className="text-sm font-medium text-[#A33D05]">{TAXA_MENSAL}% ao mês</span>
+            <span className="text-sm font-medium text-[#D94E28]">{TAXA_MENSAL}% ao mês</span>
           </div>
           <div className="flex items-center justify-between py-1">
-            <span className="text-sm text-[#A33D05]/70">Total a pagar</span>
-            <span className="text-sm font-semibold text-[#A33D05]">
+            <span className="text-sm text-[#D94E28]/70">Total a pagar</span>
+            <span className="text-sm font-semibold text-[#D94E28]">
               R$ {formatCurrency(totalAPagarComSeguro)}
             </span>
           </div>
@@ -205,7 +205,7 @@ export default function ConsignadoCLTSimuladorPage() {
           {/* Accordion — detalhes da operação */}
           <button
             type="button"
-            className="mt-3 flex w-full items-center justify-between rounded-xl border border-[#E8590A]/30 bg-white/60 px-3 py-2 text-sm text-[#A33D05]"
+            className="mt-3 flex w-full items-center justify-between rounded-xl border border-[#FD5F31]/30 bg-white/60 px-3 py-2 text-sm text-[#D94E28]"
             onClick={() => setDetalhesOpen((p) => !p)}
           >
             Ver detalhes da operação
@@ -216,7 +216,7 @@ export default function ConsignadoCLTSimuladorPage() {
           </button>
 
           {detalhesOpen && (
-            <div className="mt-2 space-y-1.5 rounded-xl bg-white/60 px-3 py-3 text-xs text-[#A33D05]/80">
+            <div className="mt-2 space-y-1.5 rounded-xl bg-white/60 px-3 py-3 text-xs text-[#D94E28]/80">
               <div className="flex justify-between">
                 <span>CET estimado</span>
                 <span className="font-medium">{cetMensal}% a.m.</span>
@@ -244,8 +244,8 @@ export default function ConsignadoCLTSimuladorPage() {
           className={cn(
             "flex h-14 w-full items-center justify-center rounded-full text-base font-semibold text-white transition-colors",
             podeAvancar
-              ? "bg-[#E8590A] hover:bg-[#d04e08]"
-              : "cursor-not-allowed bg-[#E8590A] opacity-40"
+              ? "bg-[#FD5F31] hover:bg-[#d04e08]"
+              : "cursor-not-allowed bg-[#FD5F31] opacity-40"
           )}
         >
           Continuar

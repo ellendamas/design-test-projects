@@ -47,7 +47,7 @@ export default function FGTSLoadingPage() {
         {/* Bloco — identidade e status */}
         <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
           <div className="flex flex-col items-center gap-5 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E8590A]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FD5F31]">
               <span className="text-2xl font-bold text-white">s.</span>
             </div>
             <div className="space-y-1">
@@ -65,7 +65,7 @@ export default function FGTSLoadingPage() {
               aria-label="Consultando saldo FGTS"
             >
               <motion.div
-                className="h-full rounded-full bg-[#E8590A]"
+                className="h-full rounded-full bg-[#FD5F31]"
                 style={{ width: "40%" }}
                 animate={{ x: ["-100%", "400%"] }}
                 transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
@@ -88,7 +88,7 @@ export default function FGTSLoadingPage() {
                       isDone
                         ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700"
                         : isActive
-                          ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-100 text-[#E8590A]"
+                          ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-100 text-[#FD5F31]"
                           : "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-muted"
                     }
                     animate={isActive ? { scale: [1, 1.15, 1] } : { scale: 1 }}
@@ -101,7 +101,7 @@ export default function FGTSLoadingPage() {
                     {isDone ? (
                       <Check size={12} weight="bold" />
                     ) : isActive ? (
-                      <div className="h-2 w-2 rounded-full bg-[#E8590A]" />
+                      <div className="h-2 w-2 rounded-full bg-[#FD5F31]" />
                     ) : (
                       <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
                     )}
@@ -117,7 +117,7 @@ export default function FGTSLoadingPage() {
                       {stage.label}
                     </span>
                     {isActive && (
-                      <span className="text-xs font-medium text-[#E8590A]">Em andamento</span>
+                      <span className="text-xs font-medium text-[#FD5F31]">Em andamento</span>
                     )}
                   </div>
                 </div>
@@ -137,7 +137,7 @@ export default function FGTSLoadingPage() {
               <button
                 type="button"
                 onClick={() => navigate("/fgts/loading", { replace: true })}
-                className="flex h-12 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-medium text-[#E8590A] transition-colors hover:bg-orange-50"
+                className="flex h-12 w-full items-center justify-center rounded-full border border-[#FD5F31] text-sm font-medium text-[#FD5F31] transition-colors hover:bg-orange-50"
               >
                 Tentar novamente
               </button>
@@ -153,7 +153,7 @@ export default function FGTSLoadingPage() {
             <button
               type="button"
               onClick={() => navigate("/fgts/saldo-disponivel")} // TODO: trocar por polling real da API BMP
-              className="flex h-12 w-full items-center justify-center rounded-full border border-[#E8590A] text-sm font-medium text-[#E8590A] transition-colors hover:bg-orange-50"
+              className="flex h-12 w-full items-center justify-center rounded-full border border-[#FD5F31] text-sm font-medium text-[#FD5F31] transition-colors hover:bg-orange-50"
             >
               Aguardar e receber notificação
             </button>

@@ -136,7 +136,7 @@ export default function CreditoPessoalConta() {
 
         {/* ── Aviso de titularidade ── */}
         <div className="flex items-start gap-2 rounded-xl bg-muted p-3">
-          <Lock size={14} className="mt-0.5 shrink-0 text-[#E8590A]" />
+          <Lock size={14} className="mt-0.5 shrink-0 text-[#FD5F31]" />
           <p className="text-xs text-muted-foreground">
             A conta deve estar no seu CPF. Não é permitido receber em conta de terceiros.
           </p>
@@ -151,7 +151,7 @@ export default function CreditoPessoalConta() {
             <button
               type="button"
               onClick={() => handleConfirmar(contaSelecionada)}
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-colors bg-[#E8590A] hover:bg-[#A33D05]"
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-colors bg-[#FD5F31] hover:bg-[#D94E28]"
             >
               Confirmar e enviar proposta
               <ArrowRight size={18} />

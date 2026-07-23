@@ -86,14 +86,14 @@ export default function CreditoPessoalConsultando() {
       {timedOut ? (
         /* ── Estado de erro (timeout de conexão) ── */
         <>
-          <WifiX size={48} className="text-[#E8590A]" />
+          <WifiX size={48} className="text-[#FD5F31]" />
           <p className="max-w-xs text-base text-foreground">
             Não conseguimos consultar sua oferta. Verifique sua conexão e tente novamente.
           </p>
           <button
             type="button"
             onClick={() => startTimer()}
-            className="flex h-14 w-full max-w-sm items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white"
+            className="flex h-14 w-full max-w-sm items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white"
           >
             Tentar novamente
           </button>
@@ -105,7 +105,7 @@ export default function CreditoPessoalConsultando() {
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
-                className="h-4 w-4 rounded-full bg-[#E8590A]"
+                className="h-4 w-4 rounded-full bg-[#FD5F31]"
                 style={{
                   animation: "pulse-dot 1.2s ease-in-out infinite",
                   animationDelay: `${i * 0.2}s`,
@@ -129,14 +129,14 @@ export default function CreditoPessoalConsultando() {
           {/* Card de análise demorada — exibido após ~60s ou via ?estado=demorado */}
           {demorado && (
             <div className="w-full max-w-sm rounded-2xl border border-border bg-white p-4 text-center shadow-sm">
-              <Bell size={24} className="mx-auto mb-2 text-[#E8590A]" />
+              <Bell size={24} className="mx-auto mb-2 text-[#FD5F31]" />
               <p className="text-sm font-medium text-foreground">
                 A análise está demorando mais que o esperado.
               </p>
               <button
                 type="button"
                 onClick={handleNotificacao}
-                className="mt-3 flex h-10 w-full items-center justify-center rounded-full border border-[#E8590A] text-xs font-semibold text-[#E8590A] transition-colors hover:bg-[#FEF0E7]"
+                className="mt-3 flex h-10 w-full items-center justify-center rounded-full border border-[#FD5F31] text-xs font-semibold text-[#FD5F31] transition-colors hover:bg-[#FFF3EE]"
               >
                 Receber notificação quando estiver pronto
               </button>

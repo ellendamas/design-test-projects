@@ -31,7 +31,7 @@ export default function CreditoPessoalInelegivel() {
     return (
       <SubPageLayout title="Resultado da consulta">
         <div className="flex flex-col items-center gap-6 pb-6 text-center md:mx-auto md:max-w-[560px]">
-          <WarningCircle size={48} className="text-[#E8590A]" />
+          <WarningCircle size={48} className="text-[#FD5F31]" />
           <div>
             <h2 className="text-xl font-bold">Não encontramos uma oferta para você agora</h2>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -46,7 +46,7 @@ export default function CreditoPessoalInelegivel() {
               { icon: Headset, text: "Fale com nosso suporte" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-start gap-3">
-                <Icon size={20} className="mt-0.5 shrink-0 text-[#E8590A]" />
+                <Icon size={20} className="mt-0.5 shrink-0 text-[#FD5F31]" />
                 <p className="text-sm text-foreground">{text}</p>
               </div>
             ))}
@@ -59,11 +59,12 @@ export default function CreditoPessoalInelegivel() {
           </p>
 
           {/* Cross-sell — apenas no Caso 1 */}
+          {/* FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o "|| false" do .filter abaixo para reativar. */}
           <div className="grid w-full grid-cols-2 gap-3">
             {[
               {
                 icon: Briefcase,
-                titulo: "Consignado CLT",
+                titulo: "Crédito Consignado CLT",
                 sub: "Para quem tem carteira assinada",
                 rota: "/consignado-clt",
               },
@@ -73,19 +74,19 @@ export default function CreditoPessoalInelegivel() {
                 sub: "Use seu saldo do FGTS",
                 rota: "/fgts",
               },
-            ].map(({ icon: Icon, titulo, sub, rota }) => (
+            ].filter((item) => item.rota !== "/fgts" || false).map(({ icon: Icon, titulo, sub, rota }) => (
               <button
                 key={titulo}
                 type="button"
                 onClick={() => navigate(rota)}
-                className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#E8590A]/40"
+                className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#FD5F31]/40"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FEF0E7]">
-                  <Icon size={18} className="text-[#E8590A]" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF3EE]">
+                  <Icon size={18} className="text-[#FD5F31]" />
                 </div>
                 <p className="text-sm font-semibold text-foreground">{titulo}</p>
                 <p className="text-xs text-muted-foreground">{sub}</p>
-                <p className="text-xs font-medium text-[#E8590A]">Conhecer</p>
+                <p className="text-xs font-medium text-[#FD5F31]">Conhecer</p>
               </button>
             ))}
           </div>
@@ -95,7 +96,7 @@ export default function CreditoPessoalInelegivel() {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
+              className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]"
             >
               Voltar ao início
             </button>
@@ -131,7 +132,7 @@ export default function CreditoPessoalInelegivel() {
             <button
               type="button"
               onClick={() => navigate("/minha-conta/meus-dados")}
-              className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
+              className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]"
             >
               Corrigir meus dados
             </button>
@@ -145,7 +146,7 @@ export default function CreditoPessoalInelegivel() {
   return (
     <SubPageLayout title="Resultado da consulta">
       <div className="flex flex-col items-center gap-6 pb-6 text-center md:mx-auto md:max-w-[560px]">
-        <WarningCircle size={48} className="text-[#E8590A]" />
+        <WarningCircle size={48} className="text-[#FD5F31]" />
         <div>
           <h2 className="text-xl font-bold">Não foi possível processar sua solicitação agora</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -155,7 +156,7 @@ export default function CreditoPessoalInelegivel() {
 
         <div className="w-full space-y-3 rounded-2xl border border-border bg-white p-4 shadow-sm text-left">
           <div className="flex items-start gap-3">
-            <Headset size={20} className="mt-0.5 shrink-0 text-[#E8590A]" />
+            <Headset size={20} className="mt-0.5 shrink-0 text-[#FD5F31]" />
             <p className="text-sm text-foreground">Fale com nosso suporte</p>
           </div>
         </div>
@@ -164,7 +165,7 @@ export default function CreditoPessoalInelegivel() {
           <button
             type="button"
             onClick={() => navigate("/credito-pessoal")}
-            className="flex h-14 w-full items-center justify-center rounded-full bg-[#E8590A] text-base font-semibold text-white hover:bg-[#A33D05]"
+            className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]"
           >
             Tentar novamente
           </button>
