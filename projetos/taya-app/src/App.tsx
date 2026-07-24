@@ -2083,6 +2083,9 @@ function App() {
   // Dado sensível — não persistir em localStorage. Usar sessionStorage apenas durante o onboarding.
   const [nascimento, setNascimento] = useState("");
   const [nascimentoErro, setNascimentoErro] = useState<string | undefined>();
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaErro, setMfaErro] = useState<string | null>(null);
+  const [mfaCountdown, setMfaCountdown] = useState(0);
   const [necessidades, setNecessidades] = useState<string[]>([]);
   const [mostrarTermos, setMostrarTermos] = useState(false);
   const [biometriaSheetOpen, setBiometriaSheetOpen] = useState(false);
@@ -2116,7 +2119,11 @@ function App() {
   const { dataVisible } = usePrivacy();
 
   const firstName = (storedUser?.name || name || "você").split(" ")[0] || "você";
-  const totalSteps = 3;
+  const totalSteps = 4;
+  const phoneMascarado = (() => {
+    const d = phone.replace(/\D/g, "");
+    return d.length >= 6 ? `+55 (${d.slice(0, 2)}) •••••-${d.slice(-4)}` : "o número cadastrado";
+  })();
 
   const pageVariants = {
     initial: { opacity: 0, y: 16 },
@@ -2136,7 +2143,7 @@ function App() {
   const canGoNext = useMemo(() => {
     if (step === 1) return name.trim().length > 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10;
     if (step === 2) return isValidCpf(cpf) && isAdultBirthDate(nascimento);
-    if (step === 3) return pin.length === 6 && !isWeakNumericPin(pin);
+    if (step === 4) return pin.length === 6 && !isWeakNumericPin(pin);
     return true;
   }, [step, name, email, phone, cpf, nascimento, pin]);
 
@@ -2230,6 +2237,18 @@ function App() {
     return () => window.clearInterval(timer);
   }, [location.pathname, loginStep]);
 
+  // Countdown de reenvio do MFA SMS do onboarding (step 3) — isolado do otpCountdown do login
+  useEffect(() => {
+    if (mfaCountdown <= 0) return;
+    const timer = window.setInterval(() => {
+      setMfaCountdown((prev) => {
+        if (prev <= 1) { window.clearInterval(timer); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [mfaCountdown]);
+
   useEffect(() => {
     if (!loginLockUntil && !recoveryOtpLockUntil) return;
     const timer = window.setInterval(() => {
@@ -2302,8 +2321,27 @@ function App() {
     if (step === 2) {
       // TODO: enviar ao backend junto com os demais dados do cadastro
       sessionStorage.setItem("onboarding_nascimento", nascimento);
+      setMfaCountdown(30);
+      setStep(3);
+      return;
     }
-    if (step === 4) {
+    if (step === 3) {
+      const CODIGO_VALIDO = "123456"; // TODO: substituir por validação real via API
+      if (mfaCode.length !== 6) {
+        setMfaErro("Digite o código de 6 dígitos.");
+        return;
+      }
+      if (mfaCode !== CODIGO_VALIDO) {
+        setMfaErro("Código inválido. Verifique e tente novamente.");
+        setMfaCode("");
+        return;
+      }
+      localStorage.setItem("podeja_telefone_validado", "true");
+      setMfaErro(null);
+      setStep(4);
+      return;
+    }
+    if (step === 5) {
       if (necessidades.length === 0) return; // validação
       completeOnboarding();
       setBiometriaSheetOpen(true); // abre sheet em vez de navegar direto
@@ -2762,9 +2800,65 @@ function App() {
                 </>
               )}
 
+              {/* ── Step 3 — MFA SMS ── */}
               {step === 3 && (
                 <>
-                  <StepHeader step={3} total={totalSteps} title="Crie sua senha de acesso" subtitle="Vai ser usada para entrar no app." />
+                  <StepHeader
+                    step={3}
+                    total={totalSteps}
+                    title="Confirme seu telefone"
+                    subtitle={`Enviamos um código por SMS para ${phoneMascarado}`}
+                  />
+                  <Card className="border-border shadow-sm">
+                    <CardContent className="space-y-4 pt-5">
+                      {/* InputOTP — reutilizado do padrão do login */}
+                      <div className="flex justify-center">
+                        <InputOTP maxLength={6} value={mfaCode} onChange={(v) => { setMfaCode(v); if (mfaErro) setMfaErro(null); }}>
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      {/* Erro inline */}
+                      {mfaErro && (
+                        <p className="text-center text-sm text-red-500">{mfaErro}</p>
+                      )}
+                      {/* Reenviar código com countdown */}
+                      <div className="text-center">
+                        {mfaCountdown > 0 ? (
+                          <p className="text-sm text-muted-foreground">
+                            Reenviar em <span className="font-semibold">{mfaCountdown}s</span>
+                          </p>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMfaCountdown(30);
+                              setMfaCode("");
+                              setMfaErro(null);
+                              // TODO: acionar reenvio de SMS via API
+                              toast(`Código reenviado para ${phoneMascarado}.`);
+                            }}
+                            className="text-sm font-semibold text-[#FD5F31] underline"
+                          >
+                            Reenviar código
+                          </button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {/* ── Step 4 — Senha (PIN) ── */}
+              {step === 4 && (
+                <>
+                  <StepHeader step={4} total={totalSteps} title="Crie sua senha de acesso" subtitle="Vai ser usada para entrar no app." />
                   <Card className="border-border shadow-sm">
                     <CardContent className="space-y-4 pt-5">
                       <div className="space-y-1.5"><Label className="text-sm font-medium">Senha numérica (6 dígitos)</Label><Input type="password" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••" className="h-12 rounded-xl text-center text-lg tracking-[0.5em]" />{pin.length===6 && isWeakNumericPin(pin) ? <p className="text-xs text-red-600">Evite sequências como 123456 ou números repetidos.</p> : null}</div>
@@ -2774,8 +2868,8 @@ function App() {
                 </>
               )}
 
-              {/* ── Step 4 — Necessidades ── */}
-              {step === 4 && (
+              {/* ── Step 5 — Necessidades ── */}
+              {step === 5 && (
                 <div className="flex flex-col gap-6 px-4 py-6">
                   <div className="space-y-1">
                     <p className="text-2xl font-bold text-foreground">O que é importante pra você nesse momento?</p>
@@ -2834,11 +2928,11 @@ function App() {
           </p>
         )}
 
-        {step <= 4 && (
+        {step <= 5 && (
           <div className="grid grid-cols-2 gap-3 pt-3">
             <Button variant="outline" onClick={goBack} className="h-12 rounded-xl border-border text-foreground">Voltar</Button>
             <motion.div whileTap={shouldReduce ? undefined : { scale: 0.97 }}>
-              <Button onClick={goNext} disabled={step === 4 ? necessidades.length === 0 : !canGoNext} className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40">Continuar</Button>
+              <Button onClick={goNext} disabled={step === 5 ? necessidades.length === 0 : !canGoNext} className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40">Continuar</Button>
             </motion.div>
           </div>
         )}
