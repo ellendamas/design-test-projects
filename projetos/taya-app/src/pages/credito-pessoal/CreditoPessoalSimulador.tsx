@@ -3,6 +3,7 @@ import { IMaskInput } from "react-imask";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, XCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
+import { SeguroPrestamistalCard } from "@/components/SeguroPrestamistalCard";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -112,6 +113,9 @@ export default function CreditoPessoalSimulador() {
 
   const [ofertaSelecionada, setOfertaSelecionada] = useState(ofertas[1]); // 12x por padrão
 
+  // Desmarcado por padrão — não pode ser venda casada (Roteiro Operacional Zema)
+  const [seguroAtivo, setSeguroAtivo] = useState(false);
+
   const usarGrid = ofertas.length > 4;
 
   // Valores calculados reativos ao valorAtual e à oferta selecionada
@@ -119,6 +123,11 @@ export default function CreditoPessoalSimulador() {
   const valorParcelaCalc = calcPMT(valorAtual, ofertaSelecionada.taxaJuros, ofertaSelecionada.parcelas);
   const totalAPagarCalc  = valorParcelaCalc * ofertaSelecionada.parcelas;
   const valorIofCalc     = calcIOF(valorAtual, ofertaSelecionada.parcelas);
+
+  // Seguro Prestamista — 8,5% do valor da operação (não da parcela) — Roteiro Operacional Zema
+  // TODO: substituir pelo campo real da API quando disponível (incluir_seguro no POST /simular)
+  const valorSeguro = seguroAtivo ? Math.round(valorAtual * 0.085) : 0;
+  const totalAPagarComSeguro = totalAPagarCalc + valorSeguro;
 
   return (
     <SubPageLayout title="Simule seu crédito" hideNav>
@@ -213,7 +222,7 @@ export default function CreditoPessoalSimulador() {
             <div className="flex justify-between">
               <p className="text-sm text-muted-foreground">Total a pagar</p>
               <p className="text-sm font-semibold text-foreground">
-                R$ {formatCents(totalAPagarCalc)}
+                R$ {formatCents(totalAPagarComSeguro)}
               </p>
             </div>
             <div className="h-px bg-[#FD5F31]/15" />
@@ -255,6 +264,13 @@ export default function CreditoPessoalSimulador() {
           </div>
         )}
 
+        {/* ── Seguro Prestamista (opcional) ── */}
+        <SeguroPrestamistalCard
+          ativo={seguroAtivo}
+          onToggle={() => setSeguroAtivo((v) => !v)}
+          valorOperacao={valorAtual}
+        />
+
         {/* ── CTA — sticky dentro do container (não full-viewport) ── */}
         <div className="sticky bottom-20 z-40 bg-background pb-4 pt-2 md:bottom-0">
           <button
@@ -270,6 +286,9 @@ export default function CreditoPessoalSimulador() {
                     valorIof:     valorIofCalc,     // calculado localmente — TODO: usar valor da API
                   },
                   valorSolicitado: valorAtual, // centavos
+                  seguroAtivo,
+                  valorSeguro, // centavos
+                  // TODO: passar incluir_seguro para o POST /simular quando integrar API real
                 },
               })
             }

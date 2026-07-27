@@ -100,6 +100,11 @@ export default function CreditoPessoalContratoPage() {
   // DESIGN ONLY — ?zema=novo|existente
   const zemaStatus = (searchParams.get("zema") ?? "novo") as "novo" | "existente"; // DESIGN ONLY
 
+  // DESIGN ONLY — ?seguro=sim|nao — simula contrato com/sem Seguro Prestamista contratado
+  const seguroParam = (searchParams.get("seguro") ?? "nao") as "sim" | "nao"; // DESIGN ONLY
+  // 8,5% do valor da operação — Roteiro Operacional Zema — TODO: receber da API
+  const valorSeguroEfetivo = seguroParam === "sim" ? Math.round(contratoMock.valorDesembolso * 0.085) : 0;
+
   const [mostrarOnboardingZema, setMostrarOnboardingZema] = useState(false);
 
   const parcelasPagas = contratoMock.parcelasPagas;
@@ -248,8 +253,8 @@ export default function CreditoPessoalContratoPage() {
               ...(contratoMock.tac > 0
                 ? [{ label: "TAC", value: `R$ ${formatCents(contratoMock.tac)}` }]
                 : []),
-              ...(contratoMock.valorSeguro > 0
-                ? [{ label: "Seguro", value: `R$ ${formatCents(contratoMock.valorSeguro)}` }]
+              ...(valorSeguroEfetivo > 0
+                ? [{ label: "Seguro Prestamista", value: `R$ ${formatCents(valorSeguroEfetivo)}` }]
                 : []),
               { label: "Total a pagar", value: `R$ ${formatCents(contratoMock.totalAPagar)}` },
             ].map((item) => (

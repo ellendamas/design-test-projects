@@ -38,6 +38,8 @@ type CreditoPessoalState = {
     primeiroVenc: string;     // "DD/MM/AAAA"
   };
   valorSolicitado: number;    // centavos
+  seguroAtivo?: boolean;
+  valorSeguro?: number;       // centavos
 };
 
 // ---------------------------------------------------------------------------
@@ -135,13 +137,24 @@ export default function CreditoPessoalRevisao() {
                 <p className="text-sm">R$ {formatCents(tac)}</p>
               </div>
             )}
+            {st.seguroAtivo && st.valorSeguro && st.valorSeguro > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Seguro Prestamista Bem Seguro</span>
+                <span className="text-xs font-medium text-foreground">{formatCents(st.valorSeguro)}</span>
+              </div>
+            )}
             <div className="h-px bg-border" />
             <div className="flex justify-between">
               <p className="text-sm font-medium text-foreground">Total a pagar</p>
               <p className="text-sm font-semibold text-foreground">
-                R$ {formatCents(valorParcela * parcelas)}
+                R$ {formatCents(valorParcela * parcelas + (st.seguroAtivo ? st.valorSeguro ?? 0 : 0))}
               </p>
             </div>
+            {st.seguroAtivo && (
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Seguro opcional. Você tem direito de arrependimento em até 7 dias após a contratação.
+              </p>
+            )}
           </div>
         )}
 
