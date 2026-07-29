@@ -50,6 +50,12 @@ const PROPOSTAS_MOCK: Proposta[] = [
 const formatCurrency = (centavos: number) =>
   `R$ ${(centavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+const LOGO_PROVEDOR: Record<string, string> = {
+  Bull: "/images/clt-parceiro-bull.png",
+  "C6 Bank": "/images/clt-parceiro-c6.png",
+  V8: "/images/clt-parceiro-v8.png",
+};
+
 // ---------------------------------------------------------------------------
 // Componente
 // ---------------------------------------------------------------------------
@@ -174,8 +180,19 @@ export default function ConsignadoCLTOfertasPage() {
                 <div className="space-y-3 md:flex-1">
                   {/* Header: avatar + nome do provedor */}
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-sm font-semibold text-[#FD5F31]">
+                    {/* Avatar do parceiro — logo real, com fallback para a letra caso a imagem falhe */}
+                    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-sm font-semibold text-[#FD5F31]">
                       {p.provedor.charAt(0)}
+                      {LOGO_PROVEDOR[p.provedor] && (
+                        <img
+                          src={LOGO_PROVEDOR[p.provedor]}
+                          alt={p.provedor}
+                          className="absolute inset-0 h-full w-full rounded-full bg-white object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                      )}
                     </div>
                     <p className="text-sm font-semibold text-foreground">{p.provedor}</p>
                   </div>

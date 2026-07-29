@@ -11,6 +11,7 @@ type Provedor = {
   descricao: string;
   tipo: "automatico" | "externo";
   visivel: boolean;
+  logo?: string;
 };
 
 const PROVEDORES: Provedor[] = [
@@ -20,6 +21,7 @@ const PROVEDORES: Provedor[] = [
     descricao: "Você será redirecionado para concluir o consentimento",
     tipo: "externo", // era "automatico" — corrigido
     visivel: true,
+    logo: "/images/clt-parceiro-bull.png",
   },
   {
     id: "c6",
@@ -27,6 +29,7 @@ const PROVEDORES: Provedor[] = [
     descricao: "Você será redirecionado para verificação de identidade",
     tipo: "externo",
     visivel: true,
+    logo: "/images/clt-parceiro-c6.png",
   },
   {
     id: "v8",
@@ -34,6 +37,7 @@ const PROVEDORES: Provedor[] = [
     descricao: "Você será redirecionado para concluir o consentimento",
     tipo: "externo", // era "automatico" — corrigido
     visivel: true,
+    logo: "/images/clt-parceiro-v8.png",
   },
   {
     id: "parana",
@@ -41,6 +45,7 @@ const PROVEDORES: Provedor[] = [
     descricao: "Você será redirecionado para jornada de consentimento",
     tipo: "externo",
     visivel: false, // TODO: habilitar quando Paraná Banco confirmado para v1
+    // TODO: adicionar logo (clt-parceiro-parana.png) quando disponível
   },
 ];
 
@@ -120,9 +125,19 @@ export default function ConsignadoCLTProvedoresPage() {
 
             const avatarENome = (
               <>
-                {/* Avatar do parceiro — placeholder de logo (letra) */}
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-sm font-semibold text-[#FD5F31]">
+                {/* Avatar do parceiro — logo real, com fallback para a letra caso a imagem falhe */}
+                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF3EE] text-sm font-semibold text-[#FD5F31]">
                   {provedor.nome.charAt(0)}
+                  {provedor.logo && (
+                    <img
+                      src={provedor.logo}
+                      alt={provedor.nome}
+                      className="absolute inset-0 h-full w-full rounded-full bg-white object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  )}
                 </div>
 
                 {/* Conteúdo */}
