@@ -102,6 +102,7 @@ import ConsignadoCLTDadosPage from "@/pages/consignado-clt/DadosPage";
 import ConsignadoCLTAssinaturaPage from "@/pages/consignado-clt/AssinaturaPage";
 import ConsignadoCLTConfirmacaoPage from "@/pages/consignado-clt/ConfirmacaoPage";
 import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
+import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
 import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
 import FGTSLoadingPage from "@/pages/fgts/LoadingPage";
@@ -281,7 +282,7 @@ const serviceCopy: Record<
     description: "Crédito pessoal com análise rápida e sem burocracia.",
     cta: "Simular crédito",
     icon: <Money size={20} />,
-    photo: "",
+    photo: "/images/card-dash-credito-pessoal.png",
   },
   "assistencias": {
     title: "Assistências Pode Já.",
@@ -289,7 +290,7 @@ const serviceCopy: Record<
     description: "Pacotes de assistência com cobertura ampla e preço acessível.",
     cta: "Ver assistências",
     icon: <Heartbeat size={20} />,
-    photo: "",
+    photo: "/images/card-dash-assistencias.png",
   },
   "energia": {
     title: "Economize na conta de luz",
@@ -297,7 +298,7 @@ const serviceCopy: Record<
     description: "Energia limpa e mais barata direto para você.",
     cta: "Quero economizar",
     icon: <Lightning size={20} />,
-    photo: "",
+    photo: "/images/card-dash-energia.png",
   },
 };
 
@@ -454,14 +455,14 @@ function FakeDoorCTA({
 }) {
   if (registrado) {
     return (
-      <Button disabled variant="outline" className="h-12 w-full rounded-xl border-[#FD5F31] bg-[#FFF3EE] text-[#FD5F31] opacity-100">
-        <CheckCircle size={18} className="mr-2" weight="fill" />
+      <Button disabled variant="outline" className="flex h-14 w-full items-center justify-center gap-2 rounded-full border-[#FD5F31] bg-[#FFF3EE] text-base font-semibold text-[#FD5F31] opacity-100">
+        <CheckCircle size={20} weight="fill" />
         Interesse registrado
       </Button>
     );
   }
   return (
-    <Button className="h-12 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" onClick={onRegister}>
+    <Button className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#D94E28]" onClick={onRegister}>
       {label}
     </Button>
   );
@@ -519,7 +520,7 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
         </div>
       </aside>
 
-      <main className="flex-1 bg-background">
+      <main className="flex-1 min-w-0 bg-background">
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-white px-4 py-4 md:px-8">
           <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0]">
             <ArrowLeft size={20} className="text-foreground" />
@@ -1518,7 +1519,6 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
 }
 
 function AssistenciasPage() {
-  const navigate = useNavigate();
   const { interesses, registrarInteresse } = useInteresse();
   const assistencias = interesses.includes("assistencias");
   const categoriasRef = useRef<HTMLDivElement>(null);
@@ -1582,18 +1582,38 @@ function AssistenciasPage() {
 
   return (
     <SubPageLayout title="Assistências">
-      <div className="min-w-0 max-w-full space-y-4 overflow-x-hidden pb-6">
-        <Card className="overflow-hidden rounded-2xl border-0 shadow-sm">
-          <CardContent className="relative h-[220px] p-0">
-            <PlaceholderImagem icon={<Image size={34} />} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 p-4">
-              <Badge className="mb-2 border-0 bg-white/15 text-[11px] text-white">ASSISTÊNCIAS PODE JÁ.</Badge>
-              <h2 className="max-w-[290px] text-[26px] font-bold leading-tight text-white">Cuide de quem você ama sem pesar no bolso</h2>
-              <p className="mt-2 max-w-[290px] text-sm text-white/80">Descontos reais em saúde, odonto, pet e muito mais</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-w-0 max-w-full space-y-4 overflow-x-clip pb-6">
+        <div className="relative min-h-[200px] overflow-hidden rounded-2xl">
+          <img
+            src="/images/banner-intro-assistencias.png"
+            alt="Assistências Pode Já"
+            className="absolute inset-0 h-full w-full object-cover object-right"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+          {/* Overlay mobile — cor primária sólida com opacidade + filtro escuro pra contraste do texto */}
+          <div className="absolute inset-0 bg-[#FD5F31]/75 md:hidden" />
+          <div className="absolute inset-0 bg-black/25 md:hidden" />
+          {/* Overlay desktop — gradiente horizontal, imagem visível à direita */}
+          <div
+            className="absolute inset-0 hidden md:block"
+            style={{
+              background: "linear-gradient(90deg, #D94E28 0%, rgba(253, 95, 49, 0.70) 40%, rgba(253, 95, 49, 0.00) 85%)",
+            }}
+          />
+          <div className="relative z-10 flex min-h-[200px] max-w-full flex-col justify-end p-5 md:max-w-[55%]">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
+              Assistências Pode Já
+            </p>
+            <h1 className="mb-2 text-2xl font-bold leading-snug text-white">
+              Cuide de quem você ama sem pesar no bolso
+            </h1>
+            <p className="text-sm text-white/80">
+              Descontos reais em saúde, odonto, pet e muito mais
+            </p>
+          </div>
+        </div>
 
         <Card className="border-0 bg-[#FFF3EE] shadow-sm">
           <CardContent className="p-6 text-center">
@@ -1704,21 +1724,13 @@ function AssistenciasPage() {
           <FaqAcordeon items={faqItems} />
         </div>
 
-        <div className="rounded-2xl bg-white px-4 pb-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
-          <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
-          {assistencias ? (
-            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#FD5F31]">
-              Voltar para o início
-            </button>
-          ) : null}
-        </div>
+        <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
       </div>
     </SubPageLayout>
   );
 }
 
 function EnergiaPage() {
-  const navigate = useNavigate();
   const { interesses, registrarInteresse } = useInteresse();
   const energia = interesses.includes("energia");
 
@@ -1741,17 +1753,37 @@ function EnergiaPage() {
   return (
     <SubPageLayout title="Energia">
       <div className="min-w-0 max-w-full space-y-4 pb-6">
-        <Card className="overflow-hidden rounded-2xl border-0 shadow-sm">
-          <CardContent className="relative h-[220px] p-0">
-            <PlaceholderImagem icon={<Image size={34} />} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 p-4">
-              <Badge className="mb-2 border-0 bg-white/15 text-[11px] text-white">ECONOMIA DE ENERGIA</Badge>
-              <h2 className="max-w-[290px] text-[26px] font-bold leading-tight text-white">Sua conta de luz pode ser menor. Todo mês.</h2>
-              <p className="mt-2 max-w-[290px] text-sm text-white/80">Sem obras. Sem trocar equipamentos. Sem custo.</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="relative min-h-[200px] overflow-hidden rounded-2xl">
+          <img
+            src="/images/banner-intro-energia.png"
+            alt="Economia de energia"
+            className="absolute inset-0 h-full w-full object-cover object-right"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+          {/* Overlay mobile — cor primária sólida com opacidade + filtro escuro pra contraste do texto */}
+          <div className="absolute inset-0 bg-[#FD5F31]/75 md:hidden" />
+          <div className="absolute inset-0 bg-black/25 md:hidden" />
+          {/* Overlay desktop — gradiente horizontal, imagem visível à direita */}
+          <div
+            className="absolute inset-0 hidden md:block"
+            style={{
+              background: "linear-gradient(90deg, #D94E28 0%, rgba(253, 95, 49, 0.70) 40%, rgba(253, 95, 49, 0.00) 85%)",
+            }}
+          />
+          <div className="relative z-10 flex min-h-[200px] max-w-full flex-col justify-end p-5 md:max-w-[55%]">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
+              Economia de energia
+            </p>
+            <h1 className="mb-2 text-2xl font-bold leading-snug text-white">
+              Sua conta de luz pode ser menor. Todo mês.
+            </h1>
+            <p className="text-sm text-white/80">
+              Sem obras. Sem trocar equipamentos. Sem custo.
+            </p>
+          </div>
+        </div>
 
         <div
           className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden"
@@ -1799,14 +1831,7 @@ function EnergiaPage() {
           <FaqAcordeon items={faqItems} />
         </div>
 
-        <div className="rounded-2xl bg-white px-4 pb-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
-          <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
-          {energia ? (
-            <button onClick={() => navigate("/painel")} className="mt-2 w-full text-center text-sm font-medium text-[#FD5F31]">
-              Voltar para o início
-            </button>
-          ) : null}
-        </div>
+        <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
       </div>
     </SubPageLayout>
   );
@@ -3622,7 +3647,7 @@ function App() {
                         cta: "Conhecer planos",
                         icon: <Heartbeat size={20} />,
                         highlight: "Saúde, odonto, pet e muito mais",
-                        photo: "/images/card-dash-security.png",
+                        photo: "/images/card-dash-assistencias.png",
                       }
                     : interest === "energia"
                     ? {
@@ -3632,7 +3657,7 @@ function App() {
                         cta: "Simular economia",
                         icon: <Lightning size={20} />,
                         highlight: "Reduza até 20% todo mês",
-                        photo: "/images/card-dash-clt.png",
+                        photo: "/images/card-dash-energia.png",
                       }
                     : interest === "credito-pessoal"
                     ? {
@@ -3643,7 +3668,7 @@ function App() {
                         icon: <Money size={20} />,
                         // DESIGN ONLY — ?cp=ativo usa cor verde via override abaixo
                         highlight: cpHighlight,
-                        photo: "/images/card-dash-clt.png",
+                        photo: "/images/card-dash-credito-pessoal.png",
                       }
                     : interest === "clt"
                     ? { ...serviceCopy.clt, highlight: cltHighlight, cta: cltCta }
@@ -3678,6 +3703,7 @@ function App() {
                             else if (interest === "credito-pessoal") navigate(cpPath);
                             else if (interest === "assistencias") navigate("/assistencias");
                             else if (interest === "energia") navigate("/energia");
+                            else if (interest === "seguro") navigate("/seguro-vida");
                           }} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#FD5F31]">
                             {currentService.cta} <CaretRight size={14} className="ml-1" />
                           </button>
@@ -3920,6 +3946,7 @@ function App() {
             <Route path="/credito-pessoal/pendente" element={getStoredUser() ? <CreditoPessoalPendente /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/contrato/:id" element={getStoredUser() ? <CreditoPessoalContratoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/seguro-vida" element={getStoredUser() ? <SeguroVidaLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/provedores" element={getStoredUser() ? <ConsignadoCLTProvedoresPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/redirecionando/:provedor" element={getStoredUser() ? <ConsignadoCLTRedirecionandoPage /> : <Navigate to="/boas-vindas" replace />} />

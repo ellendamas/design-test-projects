@@ -79,12 +79,24 @@ export default function ConsignadoCLTLandingPage() {
         {/* Hero */}
         <div className="relative min-h-[200px] overflow-hidden rounded-2xl">
           <img
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80&fit=crop&crop=center"
+            src="/images/banner-intro-clt.png"
             alt="Consignado CLT"
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className="absolute inset-0 h-full w-full object-cover object-right"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#D94E28] via-[#FD5F31]/70 to-transparent" />
-          <div className="relative z-10 flex min-h-[200px] flex-col justify-end p-5">
+          {/* Overlay mobile — cor primária sólida com opacidade + filtro escuro pra contraste do texto */}
+          <div className="absolute inset-0 bg-[#FD5F31]/75 md:hidden" />
+          <div className="absolute inset-0 bg-black/25 md:hidden" />
+          {/* Overlay desktop — gradiente horizontal, imagem visível à direita */}
+          <div
+            className="absolute inset-0 hidden md:block"
+            style={{
+              background: "linear-gradient(90deg, #D94E28 0%, rgba(253, 95, 49, 0.70) 40%, rgba(253, 95, 49, 0.00) 85%)",
+            }}
+          />
+          <div className="relative z-10 flex min-h-[200px] max-w-full flex-col justify-end p-5 md:max-w-[55%]">
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
               Crédito do trabalhador CLT
             </p>

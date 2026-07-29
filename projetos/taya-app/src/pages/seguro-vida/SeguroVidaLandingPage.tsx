@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
-  ArrowRight,
-  CalendarCheck,
   CaretDown,
   CheckCircle,
-  Lightning,
-  Lock,
-  Spinner,
-  Vault,
+  Coins,
+  Heartbeat,
+  ShieldCheck,
 } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubPageLayout } from "@/App";
+import { useInteresse } from "@/context/InteresseContext";
 
 // ---------------------------------------------------------------------------
 // Dados estáticos
@@ -19,40 +17,32 @@ import { SubPageLayout } from "@/App";
 
 const features = [
   {
-    icon: Vault,
-    title: "Use seu próprio dinheiro",
-    desc: "O FGTS já é seu. A gente só adianta o que é seu por direito.",
+    icon: ShieldCheck,
+    title: "Morte natural ou acidental",
+    desc: "Indenização para sua família em caso de falecimento.",
   },
   {
-    icon: Lightning,
-    title: "Aprovação imediata",
-    desc: "Sem consulta ao Serasa. Sem análise de crédito.",
+    icon: Heartbeat,
+    title: "Invalidez permanente",
+    desc: "Cobertura em caso de invalidez total por acidente.",
   },
   {
-    icon: CalendarCheck,
-    title: "Parcelas automáticas",
-    desc: "Descontadas do seu saldo aniversário, uma vez por ano.",
+    icon: Coins,
+    title: "Assistência funeral",
+    desc: "Suporte completo para sua família no momento mais difícil.",
   },
 ];
 
-const pills = ["Receba em minutos", "Sem análise de crédito", "100% digital"];
+const pills = ["Aprovação simplificada", "Cobertura completa", "Parcelas acessíveis"];
 
 const faq = [
   {
-    q: "O que é o Saque Aniversário?",
-    a: "É uma modalidade do FGTS que permite sacar uma parte do saldo todo ano, no mês do seu aniversário. Você precisa optar por ela no app do FGTS para poder antecipar.",
+    q: "Quem pode contratar?",
+    a: "Pessoas entre 18 e 65 anos, residentes no Brasil.",
   },
   {
-    q: "Preciso optar pelo Saque Aniversário antes?",
-    a: "Sim. Se você ainda não optou, a gente te guia pelo processo — leva menos de 2 minutos no app do FGTS.",
-  },
-  {
-    q: "Quem pode antecipar?",
-    a: "Qualquer trabalhador com FGTS ativo que tenha optado pelo Saque Aniversário. Não há consulta ao Serasa ou análise de crédito.",
-  },
-  {
-    q: "Quanto tempo leva para receber?",
-    a: "Após a aprovação, o valor cai na sua conta em até 15 minutos.",
+    q: "Como acionar o seguro?",
+    a: "Em caso de sinistro, entre em contato pelo nosso canal de atendimento. Nossa equipe vai te orientar em cada etapa.",
   },
 ];
 
@@ -60,25 +50,26 @@ const faq = [
 // Componente
 // ---------------------------------------------------------------------------
 
-export default function FGTSLandingPage() {
-  const navigate = useNavigate();
-  const [isConsulting, setIsConsulting] = useState(false);
+export default function SeguroVidaLandingPage() {
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
+  const { interesses, registrarInteresse } = useInteresse();
+  const jaAvisado = interesses.includes("seguro-vida");
 
-  const handleConsult = () => {
-    setIsConsulting(true);
-    navigate("/fgts/copiloto");
+  const handleAvisar = () => {
+    // TODO: salvar interesse no backend
+    registrarInteresse("seguro-vida");
+    toast("Ótimo! Você será notificado assim que o produto estiver disponível.");
   };
 
   return (
-    <SubPageLayout title="Antecipação FGTS">
+    <SubPageLayout title="Seguro de Vida" hideNav>
       <div className="space-y-6 pb-24">
 
         {/* Hero */}
         <div className="relative min-h-[200px] overflow-hidden rounded-2xl">
           <img
-            src="/images/banner-intro-fgts.png"
-            alt="Antecipação FGTS"
+            src="/images/banner-intro-seguros.png"
+            alt="Seguro de Vida"
             className="absolute inset-0 h-full w-full object-cover object-right"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
@@ -96,13 +87,13 @@ export default function FGTSLandingPage() {
           />
           <div className="relative z-10 flex min-h-[200px] max-w-full flex-col justify-end p-5 md:max-w-[55%]">
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
-              ANTECIPAÇÃO FGTS
+              Seguro de Vida
             </p>
             <h1 className="mb-2 text-2xl font-bold leading-snug text-white">
-              Receba seu saldo do FGTS agora
+              Proteção para você e sua família
             </h1>
             <p className="text-sm text-white/80">
-              Sem burocracia. O dinheiro cai na sua conta em minutos.
+              Com parcelas que cabem no bolso
             </p>
           </div>
         </div>
@@ -139,7 +130,9 @@ export default function FGTSLandingPage() {
 
         {/* FAQ accordion */}
         <div className="space-y-2">
-          <p className="mb-3 text-base font-semibold text-foreground">Perguntas frequentes</p>
+          <p className="mb-3 text-base font-semibold text-foreground">
+            Perguntas frequentes
+          </p>
           {faq.map((item, i) => {
             const open = faqOpen === i;
             return (
@@ -167,42 +160,29 @@ export default function FGTSLandingPage() {
           })}
         </div>
 
-        {/* Caixa informativa BMP */}
-        <div className="rounded-xl bg-muted p-3">
-          <div className="flex items-start gap-2">
-            <Lock size={14} className="mt-0.5 shrink-0 text-[#FD5F31]" />
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              Para antecipar, você precisará autorizar nossa parceira{" "}
-              <span className="font-medium text-foreground">BMP SOCIEDADE DE CREDITO DIRETO S.A</span> a consultar
-              seu saldo no app do FGTS. A gente te guia em cada passo.
-            </p>
-          </div>
-        </div>
-
         {/* CTA fixo no rodapé */}
         <div className="sticky bottom-20 z-40 bg-background pb-6 pt-3 md:bottom-0">
-          <button
-            type="button"
-            disabled={isConsulting}
-            onClick={handleConsult}
-            className={`flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-colors ${
-              isConsulting
-                ? "cursor-not-allowed bg-[#FD5F31] opacity-70"
-                : "bg-[#FD5F31] hover:bg-[#d04e08] active:scale-[0.98]"
-            }`}
-          >
-            {isConsulting ? (
-              <>
-                <Spinner size={20} className="animate-spin" />
-                Abrindo copiloto...
-              </>
-            ) : (
-              <>
-                Quero antecipar meu FGTS
-                <ArrowRight size={16} className="ml-1" />
-              </>
-            )}
-          </button>
+          {jaAvisado ? (
+            <button
+              type="button"
+              disabled
+              className="flex h-14 w-full cursor-not-allowed items-center justify-center gap-2 rounded-full border border-[#FD5F31] bg-[#FFF3EE] text-base font-semibold text-[#FD5F31]"
+            >
+              <CheckCircle size={20} weight="fill" />
+              Interesse registrado
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAvisar}
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+            >
+              Quero ser avisado quando disponível
+            </button>
+          )}
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Em breve disponível no Pode Já.
+          </p>
         </div>
 
       </div>
