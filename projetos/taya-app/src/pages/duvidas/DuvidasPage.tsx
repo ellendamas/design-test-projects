@@ -2,6 +2,8 @@ import { ChatCircle, Headset } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { FAQ, FAQ_CATEGORIAS } from "@/data/faq";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useChat } from "@/context/ChatContext";
 
 // ---------------------------------------------------------------------------
@@ -52,33 +54,41 @@ export default function DuvidasPage() {
           </div>
         ))}
 
-        {/* Box de atendimento — abre o chat global (ChatBubble), que persiste ao navegar */}
-        <div className="space-y-3 rounded-2xl bg-[#FFF3EE] p-5 text-center">
-          <div className="flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FD5F31]">
-              <Headset size={22} className="text-white" />
+        {/* Box de atendimento — mesmo layout do card da dashboard, abre o chat global (ChatBubble) */}
+        <Card className="overflow-hidden rounded-3xl border-border shadow-sm">
+          <CardContent className="p-0">
+            <div className="flex min-h-[140px] items-stretch bg-[#EDE3DC]">
+              <div className="flex flex-1 flex-col justify-center px-5 py-4">
+                <p className="text-sm font-semibold leading-tight text-foreground">Ainda com dúvidas?</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Nosso time atende de segunda a sexta, das 8h às 18h.
+                </p>
+                <div className="mt-4 flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={abrirChat}
+                    className="relative h-9 gap-1.5 rounded-lg border-border bg-[#ECEEF1] text-sm font-medium text-foreground hover:bg-[#E6E8EB]"
+                  >
+                    <ChatCircle size={18} />
+                    Acessar atendimento
+                    {naoLidas > 0 && (
+                      <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#FD5F31] text-[11px] font-bold text-white">
+                        {naoLidas}
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="relative w-44 shrink-0 self-stretch">
+                <img
+                  src="/images/card-dash-contact.png"
+                  alt="Atendente Pode Já."
+                  className="absolute inset-0 h-full w-full object-cover object-top"
+                />
+              </div>
             </div>
-          </div>
-          <div>
-            <p className="text-base font-bold text-foreground">Ainda com dúvidas?</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Nosso time atende de segunda a sexta, das 8h às 18h.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={abrirChat}
-            className="relative flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-sm font-semibold text-white"
-          >
-            <ChatCircle size={18} />
-            Acessar atendimento
-            {naoLidas > 0 && (
-              <span className="absolute right-4 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[11px] font-bold text-[#FD5F31]">
-                {naoLidas}
-              </span>
-            )}
-          </button>
-        </div>
+          </CardContent>
+        </Card>
 
       </div>
     </SubPageLayout>
