@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubPageLayout } from "@/App";
+import { FAQ } from "@/data/faq";
 
 // ---------------------------------------------------------------------------
 // Dados estáticos
@@ -37,24 +38,7 @@ const features = [
 
 const pills = ["100% digital", "Sem aprovação da empresa", "Parcela fixa"];
 
-const faq = [
-  {
-    q: "Quem pode contratar?",
-    a: "Qualquer trabalhador com carteira assinada (CLT) ativa. A contratação é 100% digital, sem precisar ir a nenhuma agência.",
-  },
-  {
-    q: "Como funciona o desconto em folha?",
-    a: "A parcela é descontada direto no seu salário antes de você receber. Isso garante taxas menores, porque o risco de inadimplência é quase zero.",
-  },
-  {
-    q: "Precisa de aprovação da minha empresa?",
-    a: "Não. A consulta é feita diretamente na Carteira de Trabalho Digital. Sua empresa não é notificada nem precisa autorizar nada.",
-  },
-  {
-    q: "Quanto tempo leva para receber?",
-    a: "Após a aprovação, o valor cai na sua conta em até 1 dia útil. Em muitos casos, o crédito aparece no mesmo dia.",
-  },
-];
+const faq = FAQ["consignado-clt"];
 
 // ---------------------------------------------------------------------------
 // Componente

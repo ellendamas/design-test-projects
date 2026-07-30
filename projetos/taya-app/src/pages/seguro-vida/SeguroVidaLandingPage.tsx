@@ -10,6 +10,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { SubPageLayout } from "@/App";
 import { useInteresse } from "@/context/InteresseContext";
+import { FAQ } from "@/data/faq";
 
 // ---------------------------------------------------------------------------
 // Dados estáticos
@@ -35,16 +36,7 @@ const features = [
 
 const pills = ["Aprovação simplificada", "Cobertura completa", "Parcelas acessíveis"];
 
-const faq = [
-  {
-    q: "Quem pode contratar?",
-    a: "Pessoas entre 18 e 65 anos, residentes no Brasil.",
-  },
-  {
-    q: "Como acionar o seguro?",
-    a: "Em caso de sinistro, entre em contato pelo nosso canal de atendimento. Nossa equipe vai te orientar em cada etapa.",
-  },
-];
+const faq = FAQ["seguro-vida"];
 
 // ---------------------------------------------------------------------------
 // Componente

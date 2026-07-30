@@ -73,6 +73,9 @@ import FaqAcordeon from "@/components/FaqAcordeon";
 import { TermosModal } from "@/components/TermosModal";
 import { useInteresse } from "@/context/InteresseContext";
 import { useRecomendacoes } from "@/context/RecomendacoesContext";
+import { FAQ } from "@/data/faq";
+import DuvidasPage from "@/pages/duvidas/DuvidasPage";
+import { ChatBubble } from "@/components/ChatBubble";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1544,12 +1547,7 @@ function AssistenciasPage() {
     { nome: "Sorteio", icon: <Trophy size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&q=80&fit=crop&crop=center" alt="Sorteio" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
   ];
 
-  const faqItems = [
-    { q: "Quem pode contratar?", a: "Todos os clientes cadastrados no Pode Já com CPF validado." },
-    { q: "Preciso contratar todas as categorias?", a: "Não. Você escolhe apenas as assistências que fazem sentido para você e sua família." },
-    { q: "Como funciona o pagamento?", a: "Uma mensalidade acessível debitada diretamente pelo app. Sem fidelidade, sem surpresa." },
-    { q: "Posso incluir minha família?", a: "Sim. Algumas categorias permitem até 8 dependentes sem necessidade de grau de parentesco." },
-  ];
+  const faqItems = FAQ["assistencias"];
 
   const updateCategoriasControls = () => {
     const el = categoriasRef.current;
@@ -1743,12 +1741,7 @@ function EnergiaPage() {
     });
   };
 
-  const faqItems = [
-    { q: "Isso é gratuito?", a: "Sim. Você não paga nada para fazer a análise. A economia começa a aparecer diretamente na sua conta de luz." },
-    { q: "Precisa trocar algo em casa?", a: "Não. Nenhuma obra, nenhum equipamento novo. Tudo acontece na negociação da sua energia, sem impacto no seu dia a dia." },
-    { q: "Funciona para apartamento?", a: "Sim, funciona para residências, apartamentos e comércios de pequeno porte em todo o Brasil." },
-    { q: "Quanto tempo leva para começar a economizar?", a: "Após a análise, o processo costuma levar de 30 a 60 dias para a economia aparecer na sua fatura." },
-  ];
+  const faqItems = FAQ["energia"];
 
   return (
     <SubPageLayout title="Energia">
@@ -3725,11 +3718,8 @@ function App() {
                     <p className="text-sm font-semibold leading-tight text-foreground">Ficou alguma dúvida?</p>
                     <p className="mt-1 text-xs text-muted-foreground">Atendimento seg a sex, 8h às 18h</p>
                     <div className="mt-4 flex gap-3">
-                      <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border bg-[#ECEEF1] text-sm font-medium text-foreground hover:bg-[#E6E8EB]">
-                        <WhatsappLogo size={18} /> WhatsApp
-                      </Button>
-                      <Button variant="outline" className="h-9 gap-1.5 rounded-lg border-border bg-[#ECEEF1] text-sm font-medium text-foreground hover:bg-[#E6E8EB]">
-                        <Headset size={18} /> Ligar
+                      <Button variant="outline" onClick={() => navigate("/duvidas")} className="h-9 gap-1.5 rounded-lg border-border bg-[#ECEEF1] text-sm font-medium text-foreground hover:bg-[#E6E8EB]">
+                        <ChatCircle size={18} /> Acessar atendimento
                       </Button>
                     </div>
                   </div>
@@ -3945,7 +3935,7 @@ function App() {
             <Route path="/credito-pessoal/reprovada" element={getStoredUser() ? <CreditoPessoalReprovada /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/pendente" element={getStoredUser() ? <CreditoPessoalPendente /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/contrato/:id" element={getStoredUser() ? <CreditoPessoalContratoPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/duvidas" element={getStoredUser() ? <ComingSoon title="Dúvidas" /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/duvidas" element={getStoredUser() ? <DuvidasPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seguro-vida" element={getStoredUser() ? <SeguroVidaLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/provedores" element={getStoredUser() ? <ConsignadoCLTProvedoresPage /> : <Navigate to="/boas-vindas" replace />} />
@@ -3976,6 +3966,7 @@ function App() {
       </AnimatePresence>
 
       <Toaster />
+      <ChatBubble />
     </>
   );
 }

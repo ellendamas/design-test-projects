@@ -3,14 +3,17 @@ import { Drawer as VaulDrawer } from "vaul";
 export function Drawer({
   open,
   onOpenChange,
+  dismissible = true,
   children,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** false impede fechar arrastando ou clicando no overlay — só um botão explícito (ex.: X) fecha. */
+  dismissible?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <VaulDrawer.Root open={open} onOpenChange={onOpenChange} shouldScaleBackground>
+    <VaulDrawer.Root open={open} onOpenChange={onOpenChange} shouldScaleBackground dismissible={dismissible}>
       {children}
     </VaulDrawer.Root>
   );

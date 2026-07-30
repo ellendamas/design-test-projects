@@ -8,6 +8,7 @@ import { NotificacoesProvider } from "./context/NotificacoesContext";
 import { SeubolsoProvider } from "./context/SeubolsoContext";
 import { InteresseProvider } from "./context/InteresseContext";
 import { RecomendacoesProvider } from "./context/RecomendacoesContext";
+import { ChatProvider } from "./context/ChatContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -16,9 +17,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <RecomendacoesProvider>
           <PrivacyProvider>
             <NotificacoesProvider>
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
+              <ChatProvider>
+                <BrowserRouter>
+                  <App />
+                </BrowserRouter>
+              </ChatProvider>
             </NotificacoesProvider>
           </PrivacyProvider>
         </RecomendacoesProvider>

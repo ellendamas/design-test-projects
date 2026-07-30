@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubPageLayout } from "@/App";
+import { FAQ } from "@/data/faq";
 
 // ---------------------------------------------------------------------------
 // Dados estáticos
@@ -37,24 +38,7 @@ const features = [
 
 const pills = ["Receba em minutos", "Sem análise de crédito", "100% digital"];
 
-const faq = [
-  {
-    q: "O que é o Saque Aniversário?",
-    a: "É uma modalidade do FGTS que permite sacar uma parte do saldo todo ano, no mês do seu aniversário. Você precisa optar por ela no app do FGTS para poder antecipar.",
-  },
-  {
-    q: "Preciso optar pelo Saque Aniversário antes?",
-    a: "Sim. Se você ainda não optou, a gente te guia pelo processo — leva menos de 2 minutos no app do FGTS.",
-  },
-  {
-    q: "Quem pode antecipar?",
-    a: "Qualquer trabalhador com FGTS ativo que tenha optado pelo Saque Aniversário. Não há consulta ao Serasa ou análise de crédito.",
-  },
-  {
-    q: "Quanto tempo leva para receber?",
-    a: "Após a aprovação, o valor cai na sua conta em até 15 minutos.",
-  },
-];
+const faq = FAQ["fgts"];
 
 // ---------------------------------------------------------------------------
 // Componente

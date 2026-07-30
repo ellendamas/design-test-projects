@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubPageLayout } from "@/App";
+import { FAQ } from "@/data/faq";
 
 // ---------------------------------------------------------------------------
 // Dados estáticos
@@ -42,24 +43,7 @@ const beneficios = [
 
 const pills = ["100% digital", "Sem consulta de margem", "Resposta imediata"];
 
-const faq = [
-  {
-    q: "Quem pode contratar?",
-    a: "Qualquer pessoa física com CPF regular, maior de 18 anos e com renda comprovável. Não é necessário ter vínculo empregatício CLT nem FGTS.",
-  },
-  {
-    q: "Precisa de garantia?",
-    a: "Não. O Crédito Pessoal da Zema Financeira é um crédito sem garantia real — não é preciso colocar bens como garantia para contratar.",
-  },
-  {
-    q: "Em quanto tempo o dinheiro cai?",
-    a: "Após a aprovação e assinatura do contrato, o valor é transferido em até 1 dia útil. Na maioria dos casos, o crédito aparece no mesmo dia.",
-  },
-  {
-    q: "Afeta meu score de crédito?",
-    a: "A consulta inicial é feita de forma simplificada. Em caso de aprovação e contratação, o contrato é registrado nas bureaus de crédito conforme exigido pelo Banco Central.",
-  },
-];
+const faq = FAQ["credito-pessoal"];
 
 // ---------------------------------------------------------------------------
 // Componente
