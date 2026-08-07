@@ -109,6 +109,7 @@ import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
 import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
 import FGTSLoadingPage from "@/pages/fgts/LoadingPage";
+import FGTSRedirecionandoPage from "@/pages/fgts/RedirecionandoPage";
 import FGTSSemSaldoPage from "@/pages/fgts/SemSaldoPage";
 import FGTSSimuladorPage from "@/pages/fgts/SimuladorPage";
 import FGTSRevisaoPage from "@/pages/fgts/RevisaoPage";
@@ -1722,7 +1723,9 @@ function AssistenciasPage() {
           <FaqAcordeon items={faqItems} />
         </div>
 
-        <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
+        <div className="sticky bottom-20 z-40 pb-3 md:bottom-0">
+          <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
+        </div>
       </div>
     </SubPageLayout>
   );
@@ -1824,7 +1827,9 @@ function EnergiaPage() {
           <FaqAcordeon items={faqItems} />
         </div>
 
-        <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
+        <div className="sticky bottom-20 z-40 pb-3 md:bottom-0">
+          <FakeDoorCTA registrado={energia} onRegister={handleInteresse} label="Simular economia" />
+        </div>
       </div>
     </SubPageLayout>
   );
@@ -3312,11 +3317,10 @@ function App() {
   const fgtsPath = "/fgts";
 
   // Título "Para você agora" só aparece quando pelo menos 1 dos cards abaixo está ativo
-  // FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o false && para reativar.
   const temCardParaVoceAgora =
     mostrarCltConsultaLiberada ||
-    (false && fgtsStatus === "autorizado") ||
-    (false && fgtsStatus === "contrato") ||
+    fgtsStatus === "autorizado" ||
+    fgtsStatus === "contrato" ||
     cpOfertaPronta ||
     cpVideoDisponivel ||
     cpStatus === "assinatura_pendente" ||
@@ -3414,9 +3418,8 @@ function App() {
                 )}
 
                 {/* DESIGN ONLY — card FGTS no "Para você agora" quando fgts=autorizado ou fgts=contrato
-                    TODO: controlar por estado real da API BMP
-                    FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o false && para reativar. */}
-                {false && fgtsStatus === "autorizado" && (
+                    TODO: controlar por estado real da API BMP */}
+                {fgtsStatus === "autorizado" && (
                   <button
                     type="button"
                     onClick={() => navigate("/fgts/simular")}
@@ -3437,8 +3440,7 @@ function App() {
                     </div>
                   </button>
                 )}
-                {/* FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o false && para reativar. */}
-                {false && fgtsStatus === "contrato" && (
+                {fgtsStatus === "contrato" && (
                   <button
                     type="button"
                     onClick={() => navigate("/contratos/fgts-001")}
@@ -3586,7 +3588,6 @@ function App() {
         <div className="mt-0 space-y-3 p-4 pb-28 md:px-8 md:pb-8">
           <div className="md:mx-auto md:max-w-[860px] md:space-y-3">
             <motion.div variants={cardsContainerVariants} initial="initial" animate="animate" className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-              {/* FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o "|| false" do .filter abaixo para reativar. */}
               {([
                 "clt",
                 "fgts",
@@ -3595,7 +3596,6 @@ function App() {
                 "energia",
                 "seguro",
               ] as const)
-                .filter((interest) => interest !== "fgts" || false)
                 .map((interest) => {
                 // DESIGN ONLY — estado do card Crédito Pessoal varia por ?cp=
                 const cpHighlight =
@@ -3953,6 +3953,7 @@ function App() {
             <Route path="/fgts" element={getStoredUser() ? <FGTSLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/copiloto" element={getStoredUser() ? <FGTSCopilotoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/loading" element={getStoredUser() ? <FGTSLoadingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/fgts/redirecionando" element={getStoredUser() ? <FGTSRedirecionandoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/sem-saldo" element={getStoredUser() ? <FGTSSemSaldoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/saldo-disponivel" element={getStoredUser() ? <FGTSSaldoDisponivelPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/simular" element={getStoredUser() ? <FGTSSimuladorPage /> : <Navigate to="/boas-vindas" replace />} />

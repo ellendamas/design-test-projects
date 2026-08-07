@@ -153,7 +153,7 @@ export default function SeguroVidaLandingPage() {
         </div>
 
         {/* CTA fixo no rodapé */}
-        <div className="sticky bottom-20 z-40 bg-background pb-6 pt-3 md:bottom-0">
+        <div className="sticky bottom-20 z-40 pb-3 md:bottom-0">
           {jaAvisado ? (
             <button
               type="button"

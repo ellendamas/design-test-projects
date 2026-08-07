@@ -7,7 +7,6 @@ import {
   CheckCircle,
   Lightning,
   Lock,
-  Spinner,
   Vault,
 } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,12 +45,10 @@ const faq = FAQ["fgts"];
 
 export default function FGTSLandingPage() {
   const navigate = useNavigate();
-  const [isConsulting, setIsConsulting] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
 
   const handleConsult = () => {
-    setIsConsulting(true);
-    navigate("/fgts/copiloto");
+    navigate("/fgts/redirecionando");
   };
 
   return (
@@ -87,6 +84,25 @@ export default function FGTSLandingPage() {
             </h1>
             <p className="text-sm text-white/80">
               Sem burocracia. O dinheiro cai na sua conta em minutos.
+            </p>
+          </div>
+        </div>
+
+        {/* ── Bloco de parceria Pode Já × Lótus+ ── */}
+        <div className="rounded-2xl border border-border bg-white p-3">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <img
+              src="/images/logo-lotus-mais.png"
+              alt="Lótus+"
+              className="h-10 object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <p className="text-xs font-medium text-muted-foreground">Parceiro oficial</p>
+            <p className="text-xs text-muted-foreground leading-relaxed w-full">
+              A Lótus+ é especialista em antecipação de FGTS, com mais de 10 anos de mercado e milhares de clientes
+              atendidos em todo o Brasil.
             </p>
           </div>
         </div>
@@ -164,28 +180,14 @@ export default function FGTSLandingPage() {
         </div>
 
         {/* CTA fixo no rodapé */}
-        <div className="sticky bottom-20 z-40 bg-background pb-6 pt-3 md:bottom-0">
+        <div className="sticky bottom-20 z-40 pb-3 md:bottom-0">
           <button
             type="button"
-            disabled={isConsulting}
             onClick={handleConsult}
-            className={`flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-colors ${
-              isConsulting
-                ? "cursor-not-allowed bg-[#FD5F31] opacity-70"
-                : "bg-[#FD5F31] hover:bg-[#d04e08] active:scale-[0.98]"
-            }`}
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
           >
-            {isConsulting ? (
-              <>
-                <Spinner size={20} className="animate-spin" />
-                Abrindo copiloto...
-              </>
-            ) : (
-              <>
-                Quero antecipar meu FGTS
-                <ArrowRight size={16} className="ml-1" />
-              </>
-            )}
+            Quero antecipar meu FGTS
+            <ArrowRight size={16} className="ml-1" />
           </button>
         </div>
 

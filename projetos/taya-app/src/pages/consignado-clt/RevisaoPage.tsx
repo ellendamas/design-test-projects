@@ -179,15 +179,8 @@ export default function ConsignadoCLTRevisaoPage() {
             {termoAceito && <Check size={12} className="text-white" weight="bold" />}
           </div>
           <span className="text-sm leading-relaxed text-foreground">
-            Ao continuar, concordo com os{" "}
-            <a
-              href="#"
-              className="text-[#FD5F31] underline underline-offset-2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Termos do Contrato
-            </a>{" "}
-            e autorizo o desconto das parcelas em folha de pagamento.
+            Ao continuar, concordo com os termos do contrato de consentimento realizado e autorizo o desconto das
+            parcelas em folha de pagamento.
           </span>
         </button>
 
