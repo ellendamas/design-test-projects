@@ -82,7 +82,7 @@ export default function ConsignadoCLTLandingPage() {
           />
           <div className="relative z-10 flex min-h-[200px] max-w-full flex-col justify-end p-5 md:max-w-[55%]">
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
-              Crédito do trabalhador CLT
+              Crédito Consignado CLT
             </p>
             <h1 className="mb-2 text-2xl font-bold leading-snug text-white">
               O crédito com as menores taxas do mercado
