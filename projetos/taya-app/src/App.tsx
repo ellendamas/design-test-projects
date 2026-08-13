@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { IMaskInput } from "react-imask";
 import {
+  ArrowCircleDown,
+  ArrowCircleUp,
   ArrowLeft,
   ArrowRight,
   ArrowsClockwise,

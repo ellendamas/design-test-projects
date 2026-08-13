@@ -10,9 +10,7 @@ const CHAT_ENDPOINT = "https://taya-ai-engine-571144798728.southamerica-east1.ru
 
 const MENSAGEM_INICIAL = "Olá! Sou o assistente do Pode Já. Como posso te ajudar hoje?";
 
-// TODO: nome e foto definitivos do assistente ainda serão definidos pelo
-// marketing — "Bia" e o path da imagem são placeholders.
-export const NOME_ASSISTENTE = "Bia";
+export const NOME_ASSISTENTE = "Jade";
 export const AVATAR_ASSISTENTE = "/images/assistente-avatar.png";
 
 export type Mensagem = { role: "user" | "assistant"; content: string };
