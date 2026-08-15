@@ -3292,16 +3292,16 @@ function App() {
   // TODO: substituir por estado real da API antes do deploy
   const fgtsStatus = (searchParams.get("fgts") ?? "none") as "none" | "autorizado" | "contrato";
 
-  // DESIGN ONLY — ?cp=disponivel|andamento|ativo|assinatura_pendente|contrato_novo — estado do card Crédito Pessoal na home
+  // DESIGN ONLY — ?cp=disponivel|andamento|ativo|assinatura_pendente|contrato_novo|video — estado do card Crédito Pessoal na home
   // TODO: substituir por estado real da API antes do deploy
-  const cpStatus = (searchParams.get("cp") ?? "disponivel") as "disponivel" | "andamento" | "ativo" | "assinatura_pendente" | "contrato_novo"; // DESIGN ONLY
+  const cpStatus = (searchParams.get("cp") ?? "disponivel") as "disponivel" | "andamento" | "ativo" | "assinatura_pendente" | "contrato_novo" | "video"; // DESIGN ONLY
 
   // DESIGN ONLY — flag gravada quando usuário solicita notificação na tela de análise demorada
   // TODO: substituir por estado real da API (polling de elegibilidade concluída)
   const cpOfertaPronta = localStorage.getItem("cp_oferta_pronta") === "true"; // DESIGN ONLY
-  // DESIGN ONLY — flag gravada quando video call do CP-E13 está disponível
+  // DESIGN ONLY — flag gravada quando video call do CP-E13 está disponível, ou atalho direto via ?cp=video (pedido pelos devs para testar sem passar pelo fluxo de pendência)
   // TODO: substituir por estado real da API (webhook/push de disponibilidade do link)
-  const cpVideoDisponivel = localStorage.getItem("cp_video_disponivel") === "true"; // DESIGN ONLY
+  const cpVideoDisponivel = localStorage.getItem("cp_video_disponivel") === "true" || cpStatus === "video"; // DESIGN ONLY
 
   // DESIGN ONLY — ?cp=contrato_novo ativa o card "Contrato ativo" no "Para você agora" por até 2 dias
   // TODO: em produção, gravar timestamp quando status da proposta mudar para DESEMBOLSO_CONCLUIDO
@@ -3325,7 +3325,9 @@ function App() {
     fgtsStatus === "contrato" ||
     cpOfertaPronta ||
     cpVideoDisponivel ||
+    cpStatus === "andamento" ||
     cpStatus === "assinatura_pendente" ||
+    cpStatus === "ativo" ||
     mostrarContratoNovo;
 
   const cltHighlight =
@@ -3518,6 +3520,28 @@ function App() {
                   </button>
                 )}
 
+                {/* Card "Proposta em andamento" — exibido quando ?cp=andamento
+                    DESIGN ONLY — TODO: substituir por estado real da API (proposta enviada, aguardando análise/formalização) */}
+                {cpStatus === "andamento" && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/credito-pessoal/assinatura")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <Clock size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Sua proposta de Crédito Pessoal está em andamento</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Acompanhar <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
                 {/* Card "Proposta aguardando assinatura" — exibido quando ?cp=assinatura_pendente
                     DESIGN ONLY — substitui o card padrão de ?cp=andamento
                     Clicar no corpo do card navega para a tela de assinatura; clicar em "Reenviar SMS" apenas reenvia (sem navegar)
@@ -3564,6 +3588,29 @@ function App() {
                       localStorage.removeItem("podeja_contrato_novo_ts"); // DESIGN ONLY
                       navigate("/credito-pessoal/contrato/mock");
                     }}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
+                          <CheckCircle size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Seu contrato do Crédito Pessoal está ativo!</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Ver contrato <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Contrato ativo" — exibido quando ?cp=ativo (estado permanente, sem janela de 2 dias)
+                    DESIGN ONLY — diferente de mostrarContratoNovo: não expira e não grava/remove timestamp
+                    TODO: substituir por estado real da API (contrato com status ATIVO) */}
+                {cpStatus === "ativo" && !mostrarContratoNovo && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/credito-pessoal/contrato/mock")}
                     className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
                   >
                     <div className="flex h-full flex-col justify-between p-4">
