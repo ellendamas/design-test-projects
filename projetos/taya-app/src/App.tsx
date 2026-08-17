@@ -130,6 +130,7 @@ import CreditoPessoalConta from "./pages/credito-pessoal/CreditoPessoalConta";
 import CreditoPessoalFormalizando from "./pages/credito-pessoal/CreditoPessoalFormalizando";
 import CreditoPessoalEmAnalise from "./pages/credito-pessoal/CreditoPessoalEmAnalise";
 import CreditoPessoalAssinatura from "./pages/credito-pessoal/CreditoPessoalAssinatura";
+import CreditoPessoalRedirecionandoPage from "./pages/credito-pessoal/RedirecionandoPage";
 import CreditoPessoalConfirmacao from "./pages/credito-pessoal/CreditoPessoalConfirmacao";
 import CreditoPessoalReprovada from "./pages/credito-pessoal/CreditoPessoalReprovada";
 import CreditoPessoalPendente from "./pages/credito-pessoal/CreditoPessoalPendente";
@@ -3520,17 +3521,12 @@ function App() {
 
                 {/* Card "Proposta aguardando assinatura" — exibido quando ?cp=assinatura_pendente
                     DESIGN ONLY — substitui o card padrão de ?cp=andamento
-                    Clicar no corpo do card navega para a tela de assinatura; clicar em "Reenviar SMS" apenas reenvia (sem navegar)
-                    TODO: acionar reenvio real do SMS via API quando disponível */}
+                    Assinatura é 100% via Unico (modo SMS descontinuado) — card leva direto para o estado "aguardando" da assinatura */}
                 {cpStatus === "assinatura_pendente" && (
-                  <div
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     onClick={() => navigate("/credito-pessoal/assinatura?status=aguardando")}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") navigate("/credito-pessoal/assinatura?status=aguardando");
-                    }}
-                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] cursor-pointer rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
                   >
                     <div className="flex h-full flex-col justify-between p-4">
                       <div>
@@ -3539,18 +3535,11 @@ function App() {
                         </div>
                         <p className="text-sm font-semibold text-foreground">Você tem uma proposta aguardando assinatura</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toast("Reenvio solicitado.");
-                        }}
-                        className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]"
-                      >
-                        Reenviar SMS <CaretRight size={12} />
-                      </button>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Assinar agora <CaretRight size={12} />
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 )}
 
                 {/* Card "Contrato recém-aprovado" — exibido quando ?cp=contrato_novo, some após 2 dias
@@ -3933,6 +3922,7 @@ function App() {
             <Route path="/credito-pessoal/formalizando" element={getStoredUser() ? <CreditoPessoalFormalizando /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/em-analise" element={getStoredUser() ? <CreditoPessoalEmAnalise /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/assinatura" element={getStoredUser() ? <CreditoPessoalAssinatura /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/credito-pessoal/redirecionando" element={getStoredUser() ? <CreditoPessoalRedirecionandoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/confirmacao" element={getStoredUser() ? <CreditoPessoalConfirmacao /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/reprovada" element={getStoredUser() ? <CreditoPessoalReprovada /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/pendente" element={getStoredUser() ? <CreditoPessoalPendente /> : <Navigate to="/boas-vindas" replace />} />
