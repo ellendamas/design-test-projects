@@ -40,6 +40,7 @@ import {
   Image,
   Info,
   Lightning,
+  List,
   ListChecks,
   Lock,
   LockSimple,
@@ -78,6 +79,8 @@ import { useRecomendacoes } from "@/context/RecomendacoesContext";
 import { FAQ } from "@/data/faq";
 import DuvidasPage from "@/pages/duvidas/DuvidasPage";
 import { ChatBubble } from "@/components/ChatBubble";
+import { MenuSheet } from "@/components/MenuSheet";
+import { useMenuSheet } from "@/context/MenuSheetContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -487,12 +490,22 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
   const navigate = useNavigate();
   const location = useLocation();
   const { naoLidas } = useNotificacoes();
+  const { abrirMenu } = useMenuSheet();
   const user = getStoredUser();
   const firstName = (user?.name || "usuário").split(" ")[0] || "usuário";
 
   const navItems = [
     { path: "/painel", icon: <House size={18} />, label: "Início" },
     { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" },
+    { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" },
+    { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" },
+  ];
+
+  // Sidebar do desktop tem mais espaço: itens que no mobile ficam no menu hambúrguer aparecem direto aqui.
+  const navItemsDesktop = [
+    { path: "/painel", icon: <House size={18} />, label: "Início" },
+    { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" },
+    { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" },
     { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" },
     { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" },
   ];
@@ -507,7 +520,7 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <Logo size="md" className="mb-8 self-start" />
         <nav className="flex flex-col gap-1">
-          {navItems.map((item) => (
+          {navItemsDesktop.map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>
               {item.icon}
               {item.label}
@@ -537,6 +550,9 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
             <Bell size={18} className="text-muted-foreground" />
             {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FD5F31] text-[9px] font-bold text-white">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
           </button>
+          {!hideNav && <button onClick={abrirMenu} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0] md:hidden">
+            <List size={18} className="text-muted-foreground" />
+          </button>}
         </header>
         <div className={`px-4 py-5 md:mx-auto md:max-w-[640px] md:px-0 md:py-8 ${hideNav ? "pb-6" : "pb-28"}`}>{children}</div>
 
@@ -2097,6 +2113,7 @@ function App() {
   const shouldReduce = useReducedMotion();
   const navigate = useNavigate();
   const location = useLocation();
+  const { abrirMenu } = useMenuSheet();
 
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -3361,7 +3378,7 @@ function App() {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <Logo size="md" className="mb-8 self-start" />
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -3384,6 +3401,9 @@ function App() {
               <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 transition-colors hover:bg-white/25">
                 <Bell size={20} className="text-white" />
                 {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold text-[#FD5F31]">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
+              </button>
+              <button onClick={abrirMenu} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 transition-colors hover:bg-white/25 md:hidden">
+                <List size={20} className="text-white" />
               </button>
             </div>
           </div>
@@ -3746,7 +3766,7 @@ function App() {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <Logo size="md" className="mb-8 self-start" />
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/seubolso", icon: <Coins size={18} />, label: "seubônus" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -3766,6 +3786,9 @@ function App() {
           <button onClick={() => navigate("/notificacoes")} className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0]">
             <Bell size={18} className="text-muted-foreground" />
             {naoLidas > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FD5F31] text-[9px] font-bold text-white">{naoLidas > 9 ? "9+" : naoLidas}</span> : null}
+          </button>
+          <button onClick={abrirMenu} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[#F0F0F0] md:hidden">
+            <List size={18} className="text-muted-foreground" />
           </button>
         </header>
 
@@ -3915,7 +3938,6 @@ function App() {
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/fgts-001" element={getStoredUser() ? <ContratoFGTSPage /> : <Navigate to="/boas-vindas" replace />} />
-            {/* TODO(dev): seubolso está em andamento e escondido da navegação pública. */}
             <Route path="/seubolso" element={getStoredUser() ? <SeubolsoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seubolso/como-funciona" element={getStoredUser() ? <SeubolsoComoFuncionaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seubolso/historico" element={getStoredUser() ? <SeubolsoHistoricoPage /> : <Navigate to="/boas-vindas" replace />} />
@@ -3970,6 +3992,7 @@ function App() {
 
       <Toaster />
       <ChatBubble />
+      <MenuSheet />
     </>
   );
 }
