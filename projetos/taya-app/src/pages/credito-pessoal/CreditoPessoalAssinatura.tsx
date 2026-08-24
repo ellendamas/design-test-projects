@@ -114,6 +114,16 @@ export default function CreditoPessoalAssinatura() {
     navigate("/credito-pessoal/redirecionando", { state: st });
   }, [navigate, st]);
 
+  // Ao clicar em "Gerar novo link de assinatura" no estado expirado — Zema confirmou que é possível
+  // gerar um novo link de assinatura para a mesma proposta (sem precisar reiniciar a simulação).
+  // Loading no botão cobre a geração do link em produção (chamada à API antes do redirecionamento).
+  const [gerandoNovoLink, setGerandoNovoLink] = useState(false);
+  const handleGerarNovoLink = useCallback(() => {
+    setGerandoNovoLink(true);
+    // TODO: acionar geração real do novo link de assinatura via API antes de redirecionar
+    navigate("/credito-pessoal/redirecionando", { state: st });
+  }, [navigate, st]);
+
   const handleCancelar = useCallback(() => {
     // TODO: conectar ao DELETE /propostas/{id}
     navigate("/credito-pessoal");
@@ -174,16 +184,14 @@ export default function CreditoPessoalAssinatura() {
                 ? "A assinatura do seu contrato é feita pela Unico, nossa parceira de verificação de identidade. O link gerado tem um prazo de validade e infelizmente ele expirou antes de ser utilizado."
                 : "Você saiu antes de concluir. Toque em Assinar agora para voltar à Unico e finalizar."
             }
-            descricaoAcao={linkExpirado ? "Você pode iniciar uma nova simulação para gerar um novo contrato." : undefined}
+            descricaoAcao={linkExpirado ? "Você pode gerar um novo link de assinatura para continuar de onde parou, sem refazer a simulação." : undefined}
             mostrarBotao={!linkExpirado}
             onAssinar={handleReabrirUnico}
             onCancelar={handleCancelar}
             // Props para o estado expirado
-            labelAcaoExpirado="Iniciar nova simulação"
-            onAcaoExpirado={() => {
-              // TODO: conectar ao DELETE /propostas/{id} antes de redirecionar
-              navigate("/credito-pessoal/simulador", { state: st });
-            }}
+            labelAcaoExpirado="Gerar novo link de assinatura"
+            onAcaoExpirado={handleGerarNovoLink}
+            carregandoAcaoExpirado={gerandoNovoLink}
             onVoltar={() => navigate("/painel")}
           />
         )}

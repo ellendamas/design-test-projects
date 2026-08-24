@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DeviceMobileSpeaker, Fingerprint, HourglassMedium } from "@phosphor-icons/react";
+import { DeviceMobileSpeaker, Fingerprint, HourglassMedium, Spinner } from "@phosphor-icons/react";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,7 @@ type UnicoAguardandoProps = {
   descricaoAcao?: string;          // texto do bloco de ação (exibido junto do botão de nova simulação)
   labelAcaoExpirado?: string;      // default: "Iniciar nova simulação"
   onAcaoExpirado?: () => void;     // cancela a proposta e inicia nova simulação
+  carregandoAcaoExpirado?: boolean; // exibe spinner e desabilita o botão (ex.: aguardando geração do novo link)
   onVoltar?: () => void;           // link secundário "Voltar para o início"
 };
 
@@ -69,6 +70,7 @@ export default function UnicoAguardando({
   descricaoAcao,
   labelAcaoExpirado = "Iniciar nova simulação",
   onAcaoExpirado,
+  carregandoAcaoExpirado = false,
   onVoltar,
 }: UnicoAguardandoProps) {
   const isMobile = useIsMobile();
@@ -194,9 +196,13 @@ export default function UnicoAguardando({
                 {onAcaoExpirado && (
                   <button
                     type="button"
+                    disabled={carregandoAcaoExpirado}
                     onClick={onAcaoExpirado}
-                    className="flex h-12 w-full items-center justify-center rounded-full bg-[#FD5F31] text-sm font-semibold text-white transition-colors hover:bg-[#d04e08]"
+                    className={`flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-sm font-semibold text-white transition-colors ${
+                      carregandoAcaoExpirado ? "cursor-not-allowed opacity-70" : "hover:bg-[#d04e08]"
+                    }`}
                   >
+                    {carregandoAcaoExpirado && <Spinner size={18} className="animate-spin" />}
                     {labelAcaoExpirado}
                   </button>
                 )}
