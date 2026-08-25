@@ -40,8 +40,8 @@ export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string
     subtitulo: "O sistema do banco está indisponível. Tente outro banco.",
   },
   biometria_falhou: {
-    headline: "Não conseguimos confirmar sua identidade",
-    subtitulo: "A biometria não bateu. Vamos tentar de novo?",
+    headline: "Sua assinatura falhou",
+    subtitulo: "Não foi possível concluir sua verificação. Tente novamente",
   },
   documento_invalido: {
     headline: "Documento não foi aceito",
