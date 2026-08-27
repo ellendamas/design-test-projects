@@ -164,7 +164,7 @@ export default function UnicoAguardando({
         </Drawer>
       ) : (
         <Dialog open={cancelarAberto} onOpenChange={setCancelarAberto}>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Cancelar proposta</DialogTitle>
             </DialogHeader>
