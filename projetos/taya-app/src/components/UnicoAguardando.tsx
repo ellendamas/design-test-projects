@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DeviceMobileSpeaker, Fingerprint, HourglassMedium, Spinner } from "@phosphor-icons/react";
+import { DeviceMobileSpeaker, Fingerprint, HourglassMedium } from "@phosphor-icons/react";
 import {
   Dialog,
   DialogContent,
@@ -22,19 +22,12 @@ type UnicoAguardandoProps = {
   titulo?: string;
   descricao?: string;
   labelBotao?: string;
-  mostrarBotao?: boolean;
-  onAssinar?: () => void;          // obrigatório se mostrarBotao=true e mostrarAcoesReenvio=false
-  onCancelar?: () => void;         // quando mostrarBotao=true: abre modal de confirmação
+  onAssinar?: () => void;          // obrigatório se mostrarAcoesReenvio=false
+  onCancelar?: () => void;         // abre modal de confirmação
   // Quando mostrarAcoesReenvio=true, substitui o botão "Assinar agora" por "Reenviar SMS" + "Assinar depois"
   mostrarAcoesReenvio?: boolean;
   onReenviarSms?: () => void;      // obrigatório se mostrarAcoesReenvio=true
   onAssinarDepois?: () => void;
-  // Props para o estado expirado (mostrarBotao=false)
-  descricaoAcao?: string;          // texto do bloco de ação (exibido junto do botão de nova simulação)
-  labelAcaoExpirado?: string;      // default: "Iniciar nova simulação"
-  onAcaoExpirado?: () => void;     // cancela a proposta e inicia nova simulação
-  carregandoAcaoExpirado?: boolean; // exibe spinner e desabilita o botão (ex.: aguardando geração do novo link)
-  onVoltar?: () => void;           // link secundário "Voltar para o início"
 };
 
 // ---------------------------------------------------------------------------
@@ -61,17 +54,11 @@ export default function UnicoAguardando({
   titulo     = "Aguardando sua assinatura",
   descricao  = "Você saiu antes de concluir. Toque em Assinar agora para continuar de onde parou.",
   labelBotao = "Assinar agora",
-  mostrarBotao = true,
   onAssinar,
   onCancelar,
   mostrarAcoesReenvio = false,
   onReenviarSms,
   onAssinarDepois,
-  descricaoAcao,
-  labelAcaoExpirado = "Iniciar nova simulação",
-  onAcaoExpirado,
-  carregandoAcaoExpirado = false,
-  onVoltar,
 }: UnicoAguardandoProps) {
   const isMobile = useIsMobile();
   const [cancelarAberto, setCancelarAberto] = useState(false);
@@ -109,120 +96,60 @@ export default function UnicoAguardando({
 
   return (
     <>
-      {mostrarBotao ? (
-        /* ── Estado ativo ─────────────────────────────────────────────────── */
-        <>
-          <div className="flex flex-col items-center gap-5 pb-32 pt-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]">
-              <HourglassMedium size={32} className="text-[#FD5F31]" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-foreground">{titulo}</h2>
-              <p className="text-sm leading-relaxed text-muted-foreground">{descricao}</p>
-            </div>
-          </div>
+      <div className="flex flex-col items-center gap-5 pb-32 pt-8 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]">
+          <HourglassMedium size={32} className="text-[#FD5F31]" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold text-foreground">{titulo}</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">{descricao}</p>
+        </div>
+      </div>
 
-          {/* Rodapé fixo — botão assinar + link cancelar */}
-          <div className="fixed bottom-20 left-0 right-0 z-40 border-t border-border bg-background px-4 py-4 md:relative md:bottom-0 md:border-t-0 md:px-0 md:pt-2">
-            <div className="flex flex-col gap-3">
-              {mostrarAcoesReenvio ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={onReenviarSms}
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
-                  >
-                    <DeviceMobileSpeaker size={20} />
-                    Reenviar SMS
-                  </button>
-                  {onAssinarDepois && (
-                    <button
-                      type="button"
-                      onClick={onAssinarDepois}
-                      className="flex h-11 w-full items-center justify-center rounded-full border border-border text-sm font-semibold text-foreground"
-                    >
-                      Assinar depois
-                    </button>
-                  )}
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={onAssinar}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
-                >
-                  <Fingerprint size={20} />
-                  {labelBotao}
-                </button>
-              )}
-              {onCancelar && (
-                <button
-                  type="button"
-                  onClick={() => setCancelarAberto(true)}
-                  className="py-1 text-center text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                >
-                  Cancelar proposta
-                </button>
-              )}
-            </div>
-          </div>
-        </>
-      ) : (
-        /* ── Estado expirado ──────────────────────────────────────────────── */
-        <>
-          <div className="flex flex-col gap-4 pt-4 pb-6">
-
-            {/* Ícone + título centralizados */}
-            <div className="flex flex-col items-center gap-4 py-2 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3EE]">
-                <HourglassMedium size={32} className="text-[#FD5F31]" />
-              </div>
-              <h2 className="text-xl font-bold text-foreground">{titulo}</h2>
-            </div>
-
-            {/* Card branco — explicação */}
-            {descricao && (
-              <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-                <p className="text-sm leading-relaxed text-muted-foreground">{descricao}</p>
-              </div>
-            )}
-
-            {/* Card de ação — texto + botão juntos */}
-            {(descricaoAcao || onAcaoExpirado) && (
-              <div className="rounded-2xl border border-[#FD5F31]/20 bg-[#FFF3EE] p-4 space-y-3">
-                {descricaoAcao && (
-                  <p className="text-sm leading-relaxed text-[#D94E28]">{descricaoAcao}</p>
-                )}
-                {onAcaoExpirado && (
-                  <button
-                    type="button"
-                    disabled={carregandoAcaoExpirado}
-                    onClick={onAcaoExpirado}
-                    className={`flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-sm font-semibold text-white transition-colors ${
-                      carregandoAcaoExpirado ? "cursor-not-allowed opacity-70" : "hover:bg-[#d04e08]"
-                    }`}
-                  >
-                    {carregandoAcaoExpirado && <Spinner size={18} className="animate-spin" />}
-                    {labelAcaoExpirado}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Link secundário — voltar para o início */}
-            {onVoltar && (
+      {/* Rodapé fixo — botão assinar + link cancelar */}
+      <div className="fixed bottom-20 left-0 right-0 z-40 border-t border-border bg-background px-4 py-4 md:relative md:bottom-0 md:border-t-0 md:px-0 md:pt-2">
+        <div className="flex flex-col gap-3">
+          {mostrarAcoesReenvio ? (
+            <>
               <button
                 type="button"
-                onClick={onVoltar}
-                className="py-1 text-center text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                onClick={onReenviarSms}
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
               >
-                Voltar para o início
+                <DeviceMobileSpeaker size={20} />
+                Reenviar SMS
               </button>
-            )}
-
-          </div>
-        </>
-      )}
+              {onAssinarDepois && (
+                <button
+                  type="button"
+                  onClick={onAssinarDepois}
+                  className="flex h-11 w-full items-center justify-center rounded-full border border-border text-sm font-semibold text-foreground"
+                >
+                  Assinar depois
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={onAssinar}
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08]"
+            >
+              <Fingerprint size={20} />
+              {labelBotao}
+            </button>
+          )}
+          {onCancelar && (
+            <button
+              type="button"
+              onClick={() => setCancelarAberto(true)}
+              className="py-1 text-center text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              Cancelar proposta
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Modal de confirmação de cancelamento */}
       {isMobile ? (

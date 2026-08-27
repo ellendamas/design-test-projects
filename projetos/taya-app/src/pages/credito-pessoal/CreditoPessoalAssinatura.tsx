@@ -59,8 +59,12 @@ export default function CreditoPessoalAssinatura() {
   const [searchParams] = useSearchParams();
   const statusParam = searchParams.get("status") ?? "aviso"; // DESIGN ONLY
   // Assinatura 100% via Unico — modo SMS foi descontinuado (Zema liberou acesso ao link da Unico).
+  // Expiração do link é tratada de forma transparente: se o link estiver expirado ao ser aberto,
+  // um novo é solicitado automaticamente ao parceiro Zema (nos bastidores) — o cliente nunca vê uma
+  // tela de "expirado", só a tela normal de aguardando assinatura. Visibilidade da expiração fica só
+  // no backoffice (fora do escopo deste app).
   // DESIGN ONLY — parâmetros de simulação disponíveis:
-  //   ?status=aviso (default) | ?status=aguardando | ?status=expirado | ?status=assinado | ?status=reprovado
+  //   ?status=aviso (default) | ?status=aguardando | ?status=assinado | ?status=reprovado
   //   ?erro=biometria_falhou  → tela de erro fullscreen, biometria falhou na Unico
   //   ?erro=documento_invalido → tela de erro fullscreen, documento rejeitado
   //   ?erro=sessao_expirada   → tela de erro fullscreen, sessão de assinatura expirada
@@ -72,9 +76,9 @@ export default function CreditoPessoalAssinatura() {
   // DESIGN ONLY — fallback mock quando state é null (acesso direto via URL)
   const st = (location.state as LocationState | null) ?? MOCK_STATE; // DESIGN ONLY
 
-  // DESIGN ONLY — ?status=aguardando|expirado pula direto para o estado correspondente
+  // DESIGN ONLY — ?status=aguardando pula direto para o estado correspondente
   const initialEtapa = (): "aviso" | "aguardando" => {
-    if (statusParam === "aguardando" || statusParam === "expirado") return "aguardando"; // DESIGN ONLY
+    if (statusParam === "aguardando") return "aguardando"; // DESIGN ONLY
     return "aviso";
   };
 
@@ -114,23 +118,10 @@ export default function CreditoPessoalAssinatura() {
     navigate("/credito-pessoal/redirecionando", { state: st });
   }, [navigate, st]);
 
-  // Ao clicar em "Gerar novo link de assinatura" no estado expirado — Zema confirmou que é possível
-  // gerar um novo link de assinatura para a mesma proposta (sem precisar reiniciar a simulação).
-  // Loading no botão cobre a geração do link em produção (chamada à API antes do redirecionamento).
-  const [gerandoNovoLink, setGerandoNovoLink] = useState(false);
-  const handleGerarNovoLink = useCallback(() => {
-    setGerandoNovoLink(true);
-    // TODO: acionar geração real do novo link de assinatura via API antes de redirecionar
-    navigate("/credito-pessoal/redirecionando", { state: st });
-  }, [navigate, st]);
-
   const handleCancelar = useCallback(() => {
     // TODO: conectar ao DELETE /propostas/{id}
     navigate("/credito-pessoal");
   }, [navigate]);
-
-  // DESIGN ONLY — ?status=expirado → link não disponível
-  const linkExpirado = statusParam === "expirado"; // DESIGN ONLY
 
   return (
     <SubPageLayout title="Assinatura" hideNav>
@@ -178,21 +169,9 @@ export default function CreditoPessoalAssinatura() {
         ══════════════════════════════════════════ */}
         {!ASSINATURA_ERROS.has(erroParam ?? "") && etapa === "aguardando" && (
           <UnicoAguardando
-            titulo={linkExpirado ? "Sua assinatura expirou" : "Aguardando sua assinatura"}
-            descricao={
-              linkExpirado
-                ? "A assinatura do seu contrato é feita pela Unico, nossa parceira de verificação de identidade. O link gerado tem um prazo de validade e infelizmente ele expirou antes de ser utilizado."
-                : "Você saiu antes de concluir. Toque em Assinar agora para voltar à Unico e finalizar."
-            }
-            descricaoAcao={linkExpirado ? "Você pode gerar um novo link de assinatura para continuar de onde parou, sem refazer a simulação." : undefined}
-            mostrarBotao={!linkExpirado}
+            descricao="Você saiu antes de concluir. Toque em Assinar agora para voltar à Unico e finalizar."
             onAssinar={handleReabrirUnico}
             onCancelar={handleCancelar}
-            // Props para o estado expirado
-            labelAcaoExpirado="Gerar novo link de assinatura"
-            onAcaoExpirado={handleGerarNovoLink}
-            carregandoAcaoExpirado={gerandoNovoLink}
-            onVoltar={() => navigate("/painel")}
           />
         )}
 

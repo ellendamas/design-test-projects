@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 // Mesmo padrão visual de fgts/RedirecionandoPage.tsx e consignado-clt/RedirecionandoPage.tsx
 // (redirecionamento a parceiro/verificação externa).
 // TODO: substituir pela URL real de assinatura da Unico/Zema quando disponível
+// TODO(dev): se o link estiver expirado ao ser aberto aqui, solicitar automaticamente um novo
+// à Zema antes de abrir — o cliente não deve ver nenhuma tela de "link expirado"; visibilidade
+// da expiração fica só no backoffice.
 const UNICO_ASSINATURA_URL = "https://unico.zemafinanceira.com/assinatura";
 
 export default function CreditoPessoalRedirecionandoPage() {
