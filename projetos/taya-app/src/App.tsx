@@ -134,6 +134,7 @@ import CreditoPessoalConfirmacao from "./pages/credito-pessoal/CreditoPessoalCon
 import CreditoPessoalReprovada from "./pages/credito-pessoal/CreditoPessoalReprovada";
 import CreditoPessoalPendente from "./pages/credito-pessoal/CreditoPessoalPendente";
 import CreditoPessoalContratoPage from "./pages/credito-pessoal/CreditoPessoalContratoPage";
+import VerificarContato from "./pages/minha-conta/VerificarContato";
 import EnderecoSelector, { type EnderecoData } from "@/components/EnderecoSelector";
 import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
 import { Logo } from "@/components/Logo";
@@ -577,8 +578,9 @@ function MeusDadosPage() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   // TODO: substituir por dados reais do StoredUser / API
-  const [email, setEmail] = useState("cliente@exemplo.com");
-  const [celular, setCelular] = useState("(11) 99999-8888");
+  // DESIGN ONLY — lê do localStorage para persistir a troca de contato entre esta tela e a de verificação
+  const [email, setEmail] = useState(() => localStorage.getItem("podeja_email") ?? "cliente@exemplo.com");
+  const [celular, setCelular] = useState(() => localStorage.getItem("podeja_celular") ?? "(11) 99999-8888");
   const [dataNasc, setDataNasc] = useState("12/08/1989");
   const [sexo, setSexo] = useState("M");
   const [estadoCivil, setEstadoCivil] = useState("Solteiro(a)");
@@ -620,10 +622,29 @@ function MeusDadosPage() {
   const salvarEdicao = () => {
     if (campoEditando === "email") {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valorTemp)) { setEditError("E-mail inválido"); return; }
+      const mudou = valorTemp !== email;
       setEmail(valorTemp);
+      localStorage.setItem("podeja_email", valorTemp);
+      if (mudou) {
+        // Contato alterado precisa ser verificado de novo por token — mesma regra do celular
+        localStorage.setItem("podeja_email_validado", "false");
+        fecharEdicao();
+        toast("E-mail atualizado. Vamos confirmar seu novo e-mail.");
+        navigate("/minha-conta/verificar-email");
+        return;
+      }
     } else if (campoEditando === "celular") {
       if (valorTemp.replace(/\D/g, "").length < 10) { setEditError("Celular inválido"); return; }
+      const mudou = valorTemp !== celular;
       setCelular(valorTemp);
+      localStorage.setItem("podeja_celular", valorTemp);
+      if (mudou) {
+        localStorage.setItem("podeja_telefone_validado", "false");
+        fecharEdicao();
+        toast("Celular atualizado. Vamos confirmar seu novo celular.");
+        navigate("/minha-conta/verificar-celular");
+        return;
+      }
     } else if (campoEditando === "dataNasc") {
       if (!isAdultBirthDate(valorTemp)) { setEditError("Data inválida ou idade mínima de 18 anos"); return; }
       setDataNasc(valorTemp);
@@ -753,15 +774,17 @@ function MeusDadosPage() {
             </div>
             <div className="divide-y divide-border px-4">
               {[
-                { label: "E-mail", value: email, campo: "email" as CampoEditavel, storageKey: "podeja_email_validado" },
-                { label: "Celular", value: celular, campo: "celular" as CampoEditavel, storageKey: "podeja_telefone_validado" },
-              ].map(({ label, value, campo, storageKey }) => (
+                { label: "E-mail", value: email, campo: "email" as CampoEditavel, storageKey: "podeja_email_validado", verificarPath: "/minha-conta/verificar-email" },
+                { label: "Celular", value: celular, campo: "celular" as CampoEditavel, storageKey: "podeja_telefone_validado", verificarPath: "/minha-conta/verificar-celular" },
+              ].map(({ label, value, campo, storageKey, verificarPath }) => {
+                const verificado = localStorage.getItem(storageKey) === "true";
+                return (
                 <div key={label} className="flex items-center justify-between py-3">
                   <div className="min-w-0 flex-1">
                     {/* Label com badge de verificação */}
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">{label}</span>
-                      {localStorage.getItem(storageKey) === "true" ? (
+                      {verificado ? (
                         <span className="flex items-center gap-0.5 text-[10px] font-semibold text-green-600">
                           <CheckCircle size={10} weight="fill" /> Verificado
                         </span>
@@ -773,9 +796,15 @@ function MeusDadosPage() {
                     </div>
                     <p className="mt-0.5 truncate text-sm font-medium text-foreground">{value}</p>
                   </div>
-                  <button type="button" onClick={() => abrirEdicao(campo)} className="ml-3 shrink-0 text-sm font-medium text-[#FD5F31] hover:underline">Alterar</button>
+                  <div className="ml-3 flex shrink-0 items-center gap-3">
+                    {!verificado && (
+                      <button type="button" onClick={() => navigate(verificarPath)} className="text-sm font-medium text-[#FD5F31] hover:underline">Verificar</button>
+                    )}
+                    <button type="button" onClick={() => abrirEdicao(campo)} className="text-sm font-medium text-muted-foreground hover:underline">Alterar</button>
+                  </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -2224,9 +2253,24 @@ function App() {
     const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
-    if (!user) navigate("/boas-vindas", { replace: true });
-    else setStoredUser(user);
-  }, [location.pathname, navigate]);
+    if (!user) {
+      // DESIGN ONLY — guarda o destino (com query string) pra voltar exatamente pra lá depois do
+      // login. Sem isso, parâmetros de simulação (?verificacao=, ?cp=, etc.) se perdem sempre que o
+      // link é aberto deslogado — o que quebra o teste de devs/QA que abrem o link direto, sem logar antes.
+      sessionStorage.setItem("podeja_destino_pos_login", location.pathname + location.search);
+      navigate("/boas-vindas", { replace: true });
+    } else setStoredUser(user);
+  }, [location.pathname, location.search, navigate]);
+
+  // DESIGN ONLY — recupera (e limpa) o destino salvo acima; usar em todo navigate() de sucesso de login
+  const destinoPosLogin = () => {
+    const salvo = sessionStorage.getItem("podeja_destino_pos_login");
+    if (salvo) {
+      sessionStorage.removeItem("podeja_destino_pos_login");
+      return salvo;
+    }
+    return "/painel";
+  };
 
   useEffect(() => {
     if (!(location.pathname === "/acesso" && loginStep === 3)) return;
@@ -2473,7 +2517,7 @@ function App() {
     setTimeout(() => {
       const user = getStoredUser() ?? { name: "Usuário", email: "" };
       localStorage.setItem("podeja_user", JSON.stringify(user));
-      navigate("/painel");
+      navigate(destinoPosLogin());
     }, 1000);
   };
 
@@ -2681,7 +2725,7 @@ function App() {
                     const user = getStoredUser() ?? { name: "Usuário", email: "" };
                     if (typeof window !== "undefined") window.localStorage.setItem("podeja_user", JSON.stringify(user));
                     setStoredUser(user);
-                    navigate("/painel");
+                    navigate(destinoPosLogin());
                   }}
                 >
                   Confirmar
@@ -2727,7 +2771,7 @@ function App() {
             localStorage.setItem("podeja_biometria_ativa", "true");
             // TODO: integrar com WebAuthn / FaceID / TouchID real
             setBiometriaSheetOpen(false);
-            navigate("/painel");
+            navigate(destinoPosLogin());
           }}
           className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white"
         >
@@ -2738,7 +2782,7 @@ function App() {
           onClick={() => {
             localStorage.setItem("podeja_biometria_ativa", "false");
             setBiometriaSheetOpen(false);
-            navigate("/painel");
+            navigate(destinoPosLogin());
           }}
           className="flex h-11 w-full items-center justify-center text-sm text-muted-foreground underline"
         >
@@ -3318,6 +3362,22 @@ function App() {
   const fgtsCta = "Antecipar agora";
   const fgtsPath = "/fgts";
 
+  // DESIGN ONLY — ?verificacao=email|telefone força mostrar isoladamente o card de verificação
+  // correspondente no "Para você agora", escondendo todos os outros cards. Por padrão (sem o
+  // parâmetro) todos os cards elegíveis aparecem juntos, normalmente. Pensado para QA/devs
+  // testarem um card específico sem precisar montar o estado dos outros via localStorage.
+  const verificacaoParam = searchParams.get("verificacao") as "email" | "telefone" | null; // DESIGN ONLY
+  const isolarVerificacao = verificacaoParam === "email" || verificacaoParam === "telefone"; // DESIGN ONLY
+
+  // DESIGN ONLY — e-mail/celular ainda não verificados (necessário para liberar e-mail e celular
+  // como opções de MFA no login). Trocar o contato zera a verificação — ver salvarEdicao/handleEnviarNovoValor.
+  const emailNaoVerificado = verificacaoParam
+    ? verificacaoParam === "email"
+    : localStorage.getItem("podeja_email_validado") !== "true"; // DESIGN ONLY
+  const celularNaoVerificado = verificacaoParam
+    ? verificacaoParam === "telefone"
+    : localStorage.getItem("podeja_telefone_validado") !== "true"; // DESIGN ONLY
+
   // Título "Para você agora" só aparece quando pelo menos 1 dos cards abaixo está ativo
   const temCardParaVoceAgora =
     mostrarCltConsultaLiberada ||
@@ -3326,7 +3386,9 @@ function App() {
     cpOfertaPronta ||
     cpVideoDisponivel ||
     cpStatus === "assinatura_pendente" ||
-    mostrarContratoNovo;
+    mostrarContratoNovo ||
+    emailNaoVerificado ||
+    celularNaoVerificado;
 
   const cltHighlight =
     cltStatus === "consultando"
@@ -3393,6 +3455,10 @@ function App() {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
               <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
 
+              {/* DESIGN ONLY — com ?verificacao=email|telefone, escondemos os demais cards para isolar
+                  o card de verificação sendo testado (ver isolarVerificacao acima). */}
+              {!isolarVerificacao && (
+                <>
                 {/* Card "Consulta CLT concluída" — exibido quando ?clt=consulta_liberada (ou enquanto persistir no localStorage)
                     DESIGN ONLY — some quando o usuário entra em /consignado-clt/revisao
                     TODO: remover localStorage quando API disponibilizar status real */}
@@ -3575,6 +3641,53 @@ function App() {
                       </div>
                       <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
                         Ver contrato <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                </>
+              )}
+
+                {/* Card "Verificar e-mail" — exibido enquanto o e-mail não foi verificado
+                    DESIGN ONLY — necessário para liberar e-mail como opção de autenticação (MFA) no login */}
+                {emailNaoVerificado && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/minha-conta/verificar-email")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <EnvelopeSimple size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Verifique seu e-mail para liberar mais opções de segurança no login</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Verificar agora <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Verificar celular" — exibido enquanto o celular não foi verificado
+                    DESIGN ONLY — necessário para liberar celular como opção de autenticação (MFA) no login */}
+                {celularNaoVerificado && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/minha-conta/verificar-celular")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <DeviceMobile size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Verifique seu celular para liberar mais opções de segurança no login</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Verificar agora <CaretRight size={12} />
                       </div>
                     </div>
                   </button>
@@ -3788,8 +3901,8 @@ function App() {
                     {storedUser?.name ?? "Usuário"}
                   </p>
                   <div className="flex items-center gap-1.5 mt-1">
-                    {/* Badge de verificação — condicional */}
-                    {localStorage.getItem("podeja_telefone_validado") === "true" ? (
+                    {/* Badge de verificação — condicional (celular e e-mail precisam estar verificados) */}
+                    {localStorage.getItem("podeja_telefone_validado") === "true" && localStorage.getItem("podeja_email_validado") === "true" ? (
                       <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
                         <CheckCircle size={10} weight="fill" />
                         Conta verificada
@@ -3911,6 +4024,8 @@ function App() {
             <Route path="/minha-conta/editar-endereco" element={getStoredUser() ? <EditarEnderecoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/dados-bancarios" element={getStoredUser() ? <DadosBancariosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/alterar-senha" element={getStoredUser() ? <AlterarSenhaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/verificar-email" element={getStoredUser() ? <VerificarContato tipo="email" /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/verificar-celular" element={getStoredUser() ? <VerificarContato tipo="celular" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos" element={getStoredUser() ? <ContratosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
