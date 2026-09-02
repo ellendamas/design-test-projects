@@ -98,6 +98,7 @@ import { trackStep } from "@/utils/analytics";
 import ConsignadoCLTLandingPage from "@/pages/consignado-clt/LandingPage";
 import ConsignadoCLTProvedoresPage from "@/pages/consignado-clt/ProvedoresPage";
 import ConsignadoCLTRedirecionandoPage from "@/pages/consignado-clt/RedirecionandoPage";
+import ConsignadoCLTRedirecionandoUnicoPage from "@/pages/consignado-clt/RedirecionandoUnicoPage";
 import ConsignadoCLTLoadingPage from "@/pages/consignado-clt/LoadingPage";
 import ConsignadoCLTOfertasPage from "@/pages/consignado-clt/OfertasPage";
 import ConsignadoCLTAguardandoPage from "@/pages/consignado-clt/AguardandoPage";
@@ -3941,6 +3942,7 @@ function App() {
             <Route path="/seguro-vida" element={getStoredUser() ? <SeguroVidaLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/provedores" element={getStoredUser() ? <ConsignadoCLTProvedoresPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/redirecionando/unico" element={getStoredUser() ? <ConsignadoCLTRedirecionandoUnicoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/redirecionando/:provedor" element={getStoredUser() ? <ConsignadoCLTRedirecionandoPage /> : <Navigate to="/boas-vindas" replace />} />
             {/* Rota mantida mas fora do fluxo padrão — consulta simultânea legada, superada pelo fluxo provedor a provedor */}
             <Route path="/consignado-clt/loading" element={getStoredUser() ? <ConsignadoCLTLoadingPage /> : <Navigate to="/boas-vindas" replace />} />

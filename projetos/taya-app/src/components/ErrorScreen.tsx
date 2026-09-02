@@ -12,7 +12,8 @@ export type ErrorCategoria =
   | "sessao_expirada"
   | "fraude_ou_sensivel"
   | "operacional"
-  | "desconhecido";
+  | "desconhecido"
+  | "simulacao_invalida";
 
 export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string }> = {
   otp_invalido: {
@@ -62,6 +63,10 @@ export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string
   desconhecido: {
     headline: "Algo deu errado",
     subtitulo: "Tente novamente em alguns instantes.",
+  },
+  simulacao_invalida: {
+    headline: "Sua simulação não é mais válida",
+    subtitulo: "Por favor, volte e simule novamente.",
   },
 };
 
