@@ -24,6 +24,7 @@ import {
   CreditCard,
   CurrencyCircleDollar,
   DeviceMobile,
+  Envelope,
   EnvelopeSimple,
   Eye,
   EyeSlash,
@@ -136,6 +137,7 @@ import CreditoPessoalConfirmacao from "./pages/credito-pessoal/CreditoPessoalCon
 import CreditoPessoalReprovada from "./pages/credito-pessoal/CreditoPessoalReprovada";
 import CreditoPessoalPendente from "./pages/credito-pessoal/CreditoPessoalPendente";
 import CreditoPessoalContratoPage from "./pages/credito-pessoal/CreditoPessoalContratoPage";
+import VerificarContato from "./pages/minha-conta/VerificarContato";
 import EnderecoSelector, { type EnderecoData } from "@/components/EnderecoSelector";
 import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
 import { Logo } from "@/components/Logo";
@@ -521,7 +523,11 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">{firstName[0]?.toUpperCase() ?? "S"}</div>
             <div>
               <p className="text-xs font-semibold text-foreground">{firstName}</p>
-              <p className="text-xs text-muted-foreground">Conta verificada</p>
+              <p className="text-xs text-muted-foreground">
+                {localStorage.getItem("podeja_email_validado") === "true" && localStorage.getItem("podeja_telefone_validado") === "true"
+                  ? "Conta verificada"
+                  : "Verificação pendente"}
+              </p>
             </div>
           </div>
           <button onClick={logout} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"><SignOut size={16} />Sair</button>
@@ -579,8 +585,9 @@ function MeusDadosPage() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   // TODO: substituir por dados reais do StoredUser / API
-  const [email, setEmail] = useState("cliente@exemplo.com");
-  const [celular, setCelular] = useState("(11) 99999-8888");
+  // DESIGN ONLY — lê do localStorage para persistir a troca de contato entre esta tela e a de verificação
+  const [email, setEmail] = useState(() => localStorage.getItem("podeja_email") ?? "cliente@exemplo.com");
+  const [celular, setCelular] = useState(() => localStorage.getItem("podeja_celular") ?? "(11) 99999-8888");
   const [dataNasc, setDataNasc] = useState("12/08/1989");
   const [sexo, setSexo] = useState("M");
   const [estadoCivil, setEstadoCivil] = useState("Solteiro(a)");
@@ -622,10 +629,22 @@ function MeusDadosPage() {
   const salvarEdicao = () => {
     if (campoEditando === "email") {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valorTemp)) { setEditError("E-mail inválido"); return; }
-      setEmail(valorTemp);
+      const mudou = valorTemp !== email;
+      if (mudou) {
+        // Não salva ainda — a troca só é efetivada depois que o usuário confirmar
+        // via código enviado ao e-mail ATUAL (contato antigo), na VerificarContato.
+        fecharEdicao();
+        navigate("/minha-conta/verificar-email", { state: { novoValor: valorTemp } });
+        return;
+      }
     } else if (campoEditando === "celular") {
       if (valorTemp.replace(/\D/g, "").length < 10) { setEditError("Celular inválido"); return; }
-      setCelular(valorTemp);
+      const mudou = valorTemp !== celular;
+      if (mudou) {
+        fecharEdicao();
+        navigate("/minha-conta/verificar-celular", { state: { novoValor: valorTemp } });
+        return;
+      }
     } else if (campoEditando === "dataNasc") {
       if (!isAdultBirthDate(valorTemp)) { setEditError("Data inválida ou idade mínima de 18 anos"); return; }
       setDataNasc(valorTemp);
@@ -755,29 +774,37 @@ function MeusDadosPage() {
             </div>
             <div className="divide-y divide-border px-4">
               {[
-                { label: "E-mail", value: email, campo: "email" as CampoEditavel, storageKey: "podeja_email_validado" },
-                { label: "Celular", value: celular, campo: "celular" as CampoEditavel, storageKey: "podeja_telefone_validado" },
-              ].map(({ label, value, campo, storageKey }) => (
-                <div key={label} className="flex items-center justify-between py-3">
-                  <div className="min-w-0 flex-1">
-                    {/* Label com badge de verificação */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{label}</span>
-                      {localStorage.getItem(storageKey) === "true" ? (
-                        <span className="flex items-center gap-0.5 text-[10px] font-semibold text-green-600">
-                          <CheckCircle size={10} weight="fill" /> Verificado
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-600">
-                          <Clock size={10} /> Pendente
-                        </span>
-                      )}
+                { label: "E-mail", value: email, campo: "email" as CampoEditavel, storageKey: "podeja_email_validado", verificarPath: "/minha-conta/verificar-email" },
+                { label: "Celular", value: celular, campo: "celular" as CampoEditavel, storageKey: "podeja_telefone_validado", verificarPath: "/minha-conta/verificar-celular" },
+              ].map(({ label, value, campo, storageKey, verificarPath }) => {
+                const verificado = localStorage.getItem(storageKey) === "true";
+                return (
+                  <div key={label} className="flex items-center justify-between py-3">
+                    <div className="min-w-0 flex-1">
+                      {/* Label com badge de verificação */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{label}</span>
+                        {verificado ? (
+                          <span className="flex items-center gap-0.5 text-[10px] font-semibold text-green-600">
+                            <CheckCircle size={10} weight="fill" /> Verificado
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-600">
+                            <Clock size={10} /> Pendente
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 truncate text-sm font-medium text-foreground">{value}</p>
                     </div>
-                    <p className="mt-0.5 truncate text-sm font-medium text-foreground">{value}</p>
+                    <div className="ml-3 flex shrink-0 items-center gap-3">
+                      {!verificado && (
+                        <button type="button" onClick={() => navigate(verificarPath)} className="text-sm font-medium text-[#FD5F31] hover:underline">Verificar</button>
+                      )}
+                      <button type="button" onClick={() => abrirEdicao(campo)} className="text-sm font-medium text-muted-foreground hover:underline">Alterar</button>
+                    </div>
                   </div>
-                  <button type="button" onClick={() => abrirEdicao(campo)} className="ml-3 shrink-0 text-sm font-medium text-[#FD5F31] hover:underline">Alterar</button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -3320,6 +3347,40 @@ function App() {
   const fgtsCta = "Antecipar agora";
   const fgtsPath = "/fgts";
 
+  // DESIGN ONLY — ?verificacao=email|telefone|email_novo|celular_novo força mostrar isoladamente
+  // o card de verificação correspondente no "Para você agora", escondendo todos os outros cards.
+  // Por padrão (sem o parâmetro) todos os cards elegíveis aparecem juntos, normalmente. Pensado
+  // para QA/devs testarem um card específico sem precisar montar o estado dos outros via localStorage.
+  const verificacaoParam = searchParams.get("verificacao") as "email" | "telefone" | "email_novo" | "celular_novo" | null; // DESIGN ONLY
+  const isolarVerificacao = verificacaoParam !== null; // DESIGN ONLY
+
+  // DESIGN ONLY — flags gravadas ao concluir o Fluxo B (troca de contato) em VerificarContato.tsx —
+  // distinguem "nunca verificado" (cards abaixo) de "trocado, aguardando confirmar o novo" (cards
+  // "Confirme seu novo e-mail/celular"). Removidas quando o novo contato é validado com sucesso.
+  const emailTrocadoPendente = localStorage.getItem("podeja_email_trocado_pendente") === "true"; // DESIGN ONLY
+  const celularTrocadoPendente = localStorage.getItem("podeja_celular_trocado_pendente") === "true"; // DESIGN ONLY
+
+  // DESIGN ONLY — e-mail/celular ainda não verificados (necessário para liberar e-mail e celular
+  // como opções de MFA no login). Não conta como "nunca verificado" se for uma troca pendente —
+  // nesse caso o card "Confirme seu novo..." assume o lugar deste (ver cards abaixo).
+  const emailNaoVerificado = verificacaoParam
+    ? verificacaoParam === "email"
+    : localStorage.getItem("podeja_email_validado") !== "true" && !emailTrocadoPendente; // DESIGN ONLY
+  const celularNaoVerificado = verificacaoParam
+    ? verificacaoParam === "telefone"
+    : localStorage.getItem("podeja_telefone_validado") !== "true" && !celularTrocadoPendente; // DESIGN ONLY
+
+  // DESIGN ONLY — condição dos novos cards pós-troca
+  const mostrarEmailNovo = verificacaoParam ? verificacaoParam === "email_novo" : emailTrocadoPendente;
+  const mostrarCelularNovo = verificacaoParam ? verificacaoParam === "celular_novo" : celularTrocadoPendente;
+
+  // Conta só é considerada verificada com e-mail E celular validados — mesma regra
+  // usada na badge de Minha Conta. Ignora o `verificacaoParam` DESIGN ONLY acima
+  // (que força isolar um card específico), refletindo o status real salvo.
+  const contaVerificada =
+    localStorage.getItem("podeja_email_validado") === "true" &&
+    localStorage.getItem("podeja_telefone_validado") === "true";
+
   // Título "Para você agora" só aparece quando pelo menos 1 dos cards abaixo está ativo
   const temCardParaVoceAgora =
     mostrarCltConsultaLiberada ||
@@ -3330,7 +3391,11 @@ function App() {
     cpStatus === "andamento" ||
     cpStatus === "assinatura_pendente" ||
     cpStatus === "ativo" ||
-    mostrarContratoNovo;
+    mostrarContratoNovo ||
+    emailNaoVerificado ||
+    celularNaoVerificado ||
+    mostrarEmailNovo ||
+    mostrarCelularNovo;
 
   const cltHighlight =
     cltStatus === "consultando"
@@ -3370,7 +3435,7 @@ function App() {
           ))}
         </nav>
         <div className="mt-auto space-y-2">
-          <div className="flex items-center gap-2 px-3 py-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">{firstName[0]?.toUpperCase() ?? "S"}</div><div><p className="text-xs font-semibold text-foreground">{firstName}</p><p className="text-xs text-muted-foreground">Conta verificada</p></div></div>
+          <div className="flex items-center gap-2 px-3 py-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">{firstName[0]?.toUpperCase() ?? "S"}</div><div><p className="text-xs font-semibold text-foreground">{firstName}</p><p className="text-xs text-muted-foreground">{contaVerificada ? "Conta verificada" : "Verificação pendente"}</p></div></div>
           <button onClick={resetApp} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"><SignOut size={16} />Sair</button>
         </div>
       </aside>
@@ -3381,7 +3446,17 @@ function App() {
             <div>
               <p className="text-sm text-white/75">Olá, {firstName}</p>
               <h2 className="text-xl font-bold">Seu crédito na Pode Já.</h2>
-              <p className="mt-0.5 flex items-center gap-1 text-xs text-white/60"><SealCheck size={12} /> Conta verificada</p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-white/60">
+                {contaVerificada ? (
+                  <>
+                    <SealCheck size={12} /> Conta verificada
+                  </>
+                ) : (
+                  <>
+                    <Clock size={12} /> Verificação pendente
+                  </>
+                )}
+              </p>
             </div>
             <div className="flex items-center gap-1">
               <PrivacyToggle variant="light" />
@@ -3396,6 +3471,203 @@ function App() {
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
               <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+
+              {/* Ordem de prioridade do Sistema A: Segurança → Produto → Conta.
+                  Dentro de Segurança: pós-troca (Fluxo B) vem antes de inicial (Fluxo A),
+                  celular antes de e-mail em cada par. */}
+
+                {/* Card "Confirme seu novo celular" — pós-troca (Fluxo B), maior prioridade do grupo Segurança.
+                    DESIGN ONLY — flag "podeja_celular_trocado_pendente", setada em VerificarContato.tsx */}
+                {mostrarCelularNovo && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/minha-conta/verificar-celular")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <DeviceMobile size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Confirme seu novo celular para continuar recebendo comunicações e usar o login por SMS</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Confirmar <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Confirme seu novo e-mail" — pós-troca (Fluxo B). Diferente do card "Verificar e-mail"
+                    abaixo (verificação inicial) — este é sobre um contato que acabou de ser trocado.
+                    DESIGN ONLY — flag "podeja_email_trocado_pendente", setada em VerificarContato.tsx */}
+                {mostrarEmailNovo && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/minha-conta/verificar-email")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <Envelope size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Confirme seu novo e-mail para continuar recebendo comunicações do Pode Já</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Confirmar <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Verificar celular" — exibido enquanto o celular não foi verificado (verificação inicial, Fluxo A)
+                    DESIGN ONLY — necessário para liberar celular como opção de autenticação (MFA) no login */}
+                {celularNaoVerificado && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/minha-conta/verificar-celular")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <DeviceMobile size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Verifique seu celular para liberar mais opções de segurança no login</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Verificar agora <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Verificar e-mail" — exibido enquanto o e-mail não foi verificado (verificação inicial, Fluxo A)
+                    DESIGN ONLY — necessário para liberar e-mail como opção de autenticação (MFA) no login */}
+                {emailNaoVerificado && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/minha-conta/verificar-email")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <EnvelopeSimple size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Verifique seu e-mail para liberar mais opções de segurança no login</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Verificar agora <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+              {/* DESIGN ONLY — com ?verificacao=email|telefone|email_novo|celular_novo, escondemos os
+                  cards de Produto/Conta abaixo para isolar o card de verificação sendo testado
+                  (ver isolarVerificacao acima). */}
+              {!isolarVerificacao && (
+                <>
+                {/* Card "Proposta aguardando assinatura" — exibido quando ?cp=assinatura_pendente
+                    DESIGN ONLY — substitui o card padrão de ?cp=andamento
+                    Assinatura é 100% via Unico (modo SMS descontinuado) — card leva direto para o estado "aguardando" da assinatura */}
+                {cpStatus === "assinatura_pendente" && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/credito-pessoal/assinatura?status=aguardando")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <Signature size={20} />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Você tem uma proposta aguardando assinatura</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Assinar agora <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Chamada agendada" — exibido quando link de vídeo do CP-E13 está disponível
+                    DESIGN ONLY — ativado via localStorage "cp_video_disponivel"
+                    TODO: substituir por estado real da API */}
+                {cpVideoDisponivel && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.removeItem("cp_video_disponivel"); // DESIGN ONLY
+                      navigate("/credito-pessoal/pendente?tipo=video");
+                    }}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                          <VideoCamera size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Chamada agendada!</p>
+                        <p className="mt-1 text-xs text-muted-foreground">O link da verificação por vídeo com a Zema está disponível.</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Acessar chamada <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Sua oferta está pronta" — exibido quando análise de elegibilidade concluiu em background
+                    DESIGN ONLY — ativado via localStorage "cp_oferta_pronta"
+                    TODO: substituir por estado real da API */}
+                {cpOfertaPronta && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.removeItem("cp_oferta_pronta"); // DESIGN ONLY
+                      navigate("/credito-pessoal/simulador");
+                    }}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
+                          <CheckCircle size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Sua oferta está pronta!</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Sua análise de crédito foi concluída. Veja sua oferta agora.</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Ver minha oferta <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Proposta em andamento" — exibido quando ?cp=andamento
+                    DESIGN ONLY — TODO: substituir por estado real da API (proposta enviada, aguardando análise/formalização) */}
+                {cpStatus === "andamento" && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/credito-pessoal/assinatura")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <Clock size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Sua proposta de Crédito Pessoal está em andamento</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Acompanhar <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
 
                 {/* Card "Consulta CLT concluída" — exibido quando ?clt=consulta_liberada (ou enquanto persistir no localStorage)
                     DESIGN ONLY — some quando o usuário entra em /consignado-clt/revisao
@@ -3468,105 +3740,6 @@ function App() {
                   </button>
                 )}
 
-                {/* Card "Sua oferta está pronta" — exibido quando análise de elegibilidade concluiu em background
-                    DESIGN ONLY — ativado via localStorage "cp_oferta_pronta"
-                    TODO: substituir por estado real da API */}
-                {cpOfertaPronta && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.removeItem("cp_oferta_pronta"); // DESIGN ONLY
-                      navigate("/credito-pessoal/simulador");
-                    }}
-                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
-                  >
-                    <div className="flex h-full flex-col justify-between p-4">
-                      <div>
-                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
-                          <CheckCircle size={20} weight="fill" />
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">Sua oferta está pronta!</p>
-                        <p className="mt-1 text-xs text-muted-foreground">Sua análise de crédito foi concluída. Veja sua oferta agora.</p>
-                      </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
-                        Ver minha oferta <CaretRight size={12} />
-                      </div>
-                    </div>
-                  </button>
-                )}
-
-                {/* Card "Chamada agendada" — exibido quando link de vídeo do CP-E13 está disponível
-                    DESIGN ONLY — ativado via localStorage "cp_video_disponivel"
-                    TODO: substituir por estado real da API */}
-                {cpVideoDisponivel && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.removeItem("cp_video_disponivel"); // DESIGN ONLY
-                      navigate("/credito-pessoal/pendente?tipo=video");
-                    }}
-                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
-                  >
-                    <div className="flex h-full flex-col justify-between p-4">
-                      <div>
-                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                          <VideoCamera size={20} weight="fill" />
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">Chamada agendada!</p>
-                        <p className="mt-1 text-xs text-muted-foreground">O link da verificação por vídeo com a Zema está disponível.</p>
-                      </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
-                        Acessar chamada <CaretRight size={12} />
-                      </div>
-                    </div>
-                  </button>
-                )}
-
-                {/* Card "Proposta em andamento" — exibido quando ?cp=andamento
-                    DESIGN ONLY — TODO: substituir por estado real da API (proposta enviada, aguardando análise/formalização) */}
-                {cpStatus === "andamento" && (
-                  <button
-                    type="button"
-                    onClick={() => navigate("/credito-pessoal/assinatura")}
-                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
-                  >
-                    <div className="flex h-full flex-col justify-between p-4">
-                      <div>
-                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-                          <Clock size={20} weight="fill" />
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">Sua proposta de Crédito Pessoal está em andamento</p>
-                      </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
-                        Acompanhar <CaretRight size={12} />
-                      </div>
-                    </div>
-                  </button>
-                )}
-
-                {/* Card "Proposta aguardando assinatura" — exibido quando ?cp=assinatura_pendente
-                    DESIGN ONLY — substitui o card padrão de ?cp=andamento
-                    Assinatura é 100% via Unico (modo SMS descontinuado) — card leva direto para o estado "aguardando" da assinatura */}
-                {cpStatus === "assinatura_pendente" && (
-                  <button
-                    type="button"
-                    onClick={() => navigate("/credito-pessoal/assinatura?status=aguardando")}
-                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
-                  >
-                    <div className="flex h-full flex-col justify-between p-4">
-                      <div>
-                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-                          <Signature size={20} />
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">Você tem uma proposta aguardando assinatura</p>
-                      </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
-                        Assinar agora <CaretRight size={12} />
-                      </div>
-                    </div>
-                  </button>
-                )}
-
                 {/* Card "Contrato recém-aprovado" — exibido quando ?cp=contrato_novo, some após 2 dias
                     DESIGN ONLY — timestamp gravado em "podeja_contrato_novo_ts"
                     TODO: em produção, gravar timestamp quando status da proposta mudar para DESEMBOLSO_CONCLUIDO
@@ -3616,6 +3789,9 @@ function App() {
                     </div>
                   </button>
                 )}
+
+                </>
+              )}
 
               </div>
             </div>
@@ -3788,7 +3964,7 @@ function App() {
           ))}
         </nav>
         <div className="mt-auto space-y-2">
-          <div className="flex items-center gap-2 px-3 py-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">{firstName[0]?.toUpperCase() ?? "S"}</div><div><p className="text-xs font-semibold text-foreground">{firstName}</p><p className="text-xs text-muted-foreground">Conta verificada</p></div></div>
+          <div className="flex items-center gap-2 px-3 py-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">{firstName[0]?.toUpperCase() ?? "S"}</div><div><p className="text-xs font-semibold text-foreground">{firstName}</p><p className="text-xs text-muted-foreground">{contaVerificada ? "Conta verificada" : "Verificação pendente"}</p></div></div>
           <button onClick={resetApp} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"><SignOut size={16} />Sair</button>
         </div>
       </aside>
@@ -3948,6 +4124,8 @@ function App() {
             <Route path="/minha-conta/editar-endereco" element={getStoredUser() ? <EditarEnderecoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/dados-bancarios" element={getStoredUser() ? <DadosBancariosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/alterar-senha" element={getStoredUser() ? <AlterarSenhaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/verificar-email" element={getStoredUser() ? <VerificarContato tipo="email" /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/verificar-celular" element={getStoredUser() ? <VerificarContato tipo="celular" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos" element={getStoredUser() ? <ContratosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
