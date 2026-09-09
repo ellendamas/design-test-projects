@@ -66,45 +66,37 @@ export const contratos = [
     cet: 65.06,
     iof: 363.73,
     totalParcelas: 36,
-    parcelasRestantes: 18,
     diaPagamento: 28,
     vencimentoPrimeira: "28/07/2026",
     vencimentoUltima: "28/06/2029",
     valorParcela: 627.13,
     valorTotalParcelas: 22576.77,
-    saldoDevedor: 11288.5,
     proximoDesconto: "28/05/2026",
     nomeCliente: "DADO SENSÍVEL — Nome completo do emitente",
     cpfCliente: "DADO SENSÍVEL — CPF do emitente",
     dataNascimento: "08/05/1970",
-    dataAdmissao: "27/05/2017",
-    cidade: "Figueirópolis / TO",
     banco: "DADO SENSÍVEL — Banco para depósito",
     conta: "DADO SENSÍVEL — Número da conta",
     agencia: "DADO SENSÍVEL — Agência",
     chavePix: "DADO SENSÍVEL — Chave Pix cadastrada",
-    fidcNome: "DADO SENSÍVEL — Nome do FIDC endossatário",
-    fidcCnpj: "DADO SENSÍVEL — CNPJ do FIDC",
-    precoAquisicao: 10964.43,
-    dataAquisicao: "01/05/2026",
-    numeroCCB: "4444272",
     modalidade: "Empréstimo Consignado — Lei nº 10.820/2003",
     dataEmissao: "29/04/2026",
+    // GAP confirmado no spike FP-597 — sandbox CaaS taya-clt não expõe: numeroCCB,
+    // parcelasPagas/saldoDevedor, bloco FIDC endossatário, dataAdmissao e cidade do tomador.
   },
   {
-    // TODO: receber da API Zema
     id: "credito-pessoal-001",
     tipo: "credito-pessoal",
     produto: "Crédito Pessoal",
     status: "ativo",
-    numeroCCB: "0011113541",        // campo 3.0 — TODO: receber da API
     dataEmissao: "10/06/2026",      // TODO: receber da API
     modalidade: "EP – Empréstimo Pessoal",
     valorLiquido: 1700.00,          // campo 3.2 — TODO: receber da API
     totalParcelas: 6,               // TODO: receber da API
-    parcelasPagas: 1,               // TODO: receber da API
     valorParcela: 458.83,           // campo 3.6 — TODO: receber da API
     proximoDesconto: "10/07/2026",  // campo 3.4 — TODO: receber da API
+    // GAP confirmado no spike FP-597 — sandbox CaaS taya-clean não expõe: numeroCCB,
+    // parcelasPagas/saldoDevedor.
     taxaJurosMes: 13.0,             // campo 3.8 — TODO: receber da API
     taxaJurosAno: 333.45,           // campo 3.9 — TODO: receber da API
     valorIof: 24.20,                // campo 3.18.3 — TODO: receber da API
