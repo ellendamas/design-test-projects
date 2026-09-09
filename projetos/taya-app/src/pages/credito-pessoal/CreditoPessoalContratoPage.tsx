@@ -35,21 +35,20 @@ function SensitiveData({ value, type = "text" }: { value: string; type?: "cpf" |
 // Mock — TODO: receber da API
 // ---------------------------------------------------------------------------
 
+// GAP confirmado no spike FP-597 — sandbox CaaS taya-clean não expõe: numeroCCB,
+// parcelasPagas/saldoDevedor, cetMensal (só CET anual via /simulacoes).
 const contratoMock = {
   id: "mock-001",
-  numeroCCB: "0011113541",          // campo 3.0 — TODO: receber da API
   dataEmissao: "10/06/2026",        // TODO: receber da API
   valorMutuo: 183420,               // centavos — campo 3.1 — TODO: receber da API
   valorDesembolso: 170000,          // centavos — campo 3.2 (valor solicitado) — TODO: receber da API
   parcelas: 6,                      // TODO: receber da API
-  parcelasPagas: 1,                 // TODO: receber da API
   valorParcela: 45883,              // centavos — campo 3.6 — TODO: receber da API
   totalAPagar: 275298,              // centavos — campo 3.6 total — TODO: receber da API
   primeiroVenc: "10/07/2026",       // campo 3.4 — TODO: receber da API
   ultimoVenc: "10/12/2026",         // campo 3.5 — TODO: receber da API
   taxaJuros: 0.13,                  // decimal — campo 3.8 — TODO: receber da API
   taxaJurosAnual: 3.3345,           // decimal — campo 3.9 — TODO: receber da API
-  cetMensal: 0.1551,                // decimal — campo 3.10 — TODO: receber da API
   cetAnual: 4.7782,                 // decimal — campo 3.11 — TODO: receber da API
   valorIof: 2420,                   // centavos — campo 3.18.3 — TODO: receber da API
   tac: 11000,                       // centavos — campo 3.18.1 — TODO: receber da API
@@ -107,14 +106,6 @@ export default function CreditoPessoalContratoPage() {
 
   const [mostrarOnboardingZema, setMostrarOnboardingZema] = useState(false);
 
-  const parcelasPagas = contratoMock.parcelasPagas;
-  const totalParcelas = contratoMock.parcelas;
-  const progresso = (parcelasPagas / totalParcelas) * 100;
-  // TODO: receber da API
-  const saldoDevedor = contratoMock.valorParcela * (totalParcelas - parcelasPagas);
-  // Dia de pagamento derivado do campo 3.4 (primeiroVenc)
-  const diaPagamento = contratoMock.primeiroVenc.split("/")[0];
-
   const statusConfig = {
     ativo:      { cor: "bg-green-500",  texto: "Ativo",                 corTexto: "text-green-700"  },
     aguardando: { cor: "bg-yellow-400", texto: "Aguardando assinatura", corTexto: "text-yellow-700" },
@@ -161,10 +152,6 @@ export default function CreditoPessoalContratoPage() {
         {/* TODO: campos reais da CCB — aguardando modelo do Pedro */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-4">
           <div>
-            <p className="text-xs text-muted-foreground">Número da CCB</p>
-            <p className="text-sm font-semibold text-foreground">{contratoMock.numeroCCB}</p>
-          </div>
-          <div>
             <p className="text-xs text-muted-foreground">Data de emissão</p>
             <p className="text-sm font-semibold text-foreground">{contratoMock.dataEmissao}</p>
           </div>
@@ -183,42 +170,6 @@ export default function CreditoPessoalContratoPage() {
           <div>
             <p className="text-xs text-muted-foreground">Data último vencimento</p>
             <p className="text-sm font-semibold text-foreground">{contratoMock.ultimoVenc}</p>
-          </div>
-        </div>
-
-        {/* ── Seção 4 — Card de parcelas ── */}
-        <div className="rounded-2xl bg-[#D94E28] p-4 text-white">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-bold">Parcelas</h3>
-            <span className="text-xs opacity-80">{totalParcelas - parcelasPagas} de {totalParcelas} restantes</span>
-          </div>
-
-          {/* Barra de progresso */}
-          <div className="mb-4 h-2 rounded-full bg-white/20">
-            <div
-              className="h-2 rounded-full bg-white transition-all"
-              style={{ width: `${progresso}%` }}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs opacity-70">Valor da parcela</p>
-              <p className="text-sm font-bold">R$ {formatCents(contratoMock.valorParcela)}</p>
-            </div>
-            <div>
-              <p className="text-xs opacity-70">Próximo vencimento</p>
-              <p className="text-sm font-bold">{contratoMock.primeiroVenc}</p>
-            </div>
-            <div>
-              <p className="text-xs opacity-70">Saldo devedor</p>
-              {/* TODO: receber da API */}
-              <p className="text-sm font-bold">R$ {formatCents(saldoDevedor)}</p>
-            </div>
-            <div>
-              <p className="text-xs opacity-70">Dia de pagamento</p>
-              <p className="text-sm font-bold">Todo dia {diaPagamento}</p>
-            </div>
           </div>
         </div>
 
@@ -244,10 +195,9 @@ export default function CreditoPessoalContratoPage() {
                 value: `${fmtPct(contratoMock.taxaJuros)}% a.m. / ${fmtPct(contratoMock.taxaJurosAnual)}% a.a.`,
               },
               {
-                // CET vem da CCB (campos 3.10 e 3.11)
-                // TODO: quando API disponibilizar CET na simulação (P2), usar valor da API em vez do mock
+                // Sandbox só expõe CET anual (POST /simulacoes) — CET mensal é GAP confirmado no spike FP-597
                 label: "CET",
-                value: `${fmtPct(contratoMock.cetMensal)}% a.m. / ${fmtPct(contratoMock.cetAnual)}% a.a.`,
+                value: `${fmtPct(contratoMock.cetAnual)}% a.a.`,
               },
               { label: "IOF", value: `R$ ${formatCents(contratoMock.valorIof)}` },
               ...(contratoMock.tac > 0
