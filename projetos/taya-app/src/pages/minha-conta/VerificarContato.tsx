@@ -146,14 +146,14 @@ export default function VerificarContato({ tipo }: { tipo: Tipo }) {
     setTimeout(() => navigate(-1), 1500);
   };
 
-  // Abre o chat da Jade e já manda uma mensagem de contexto (invisível pro
-  // usuário, não vira bolha) pra encaminhar direto pro suporte humano, sem o
-  // usuário precisar reexplicar a situação.
+  // Abre o chat da Jade e já manda, em nome do usuário, uma mensagem de
+  // contexto (invisível pro usuário, não vira bolha) pra encaminhar direto
+  // pro suporte humano, sem ele precisar reexplicar a situação.
   const handleIniciarChatSuporte = () => {
     setAvisoSuporteAberto(false);
     abrirChat();
     enviarMensagemContexto(
-      `[SISTEMA] Usuário solicitou ajuda para validar ${tipo === "email" ? "e-mail" : "celular"}. Encaminhar para suporte humano.`
+      `Não estou conseguindo validar meu ${tipo === "email" ? "e-mail" : "celular"}. Pode me ajudar?`
     );
   };
 
