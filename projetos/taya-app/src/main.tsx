@@ -9,6 +9,7 @@ import { SeubolsoProvider } from "./context/SeubolsoContext";
 import { InteresseProvider } from "./context/InteresseContext";
 import { RecomendacoesProvider } from "./context/RecomendacoesContext";
 import { ChatProvider } from "./context/ChatContext";
+import { MenuSheetProvider } from "./context/MenuSheetContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -18,9 +19,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <PrivacyProvider>
             <NotificacoesProvider>
               <ChatProvider>
-                <BrowserRouter>
-                  <App />
-                </BrowserRouter>
+                <MenuSheetProvider>
+                  <BrowserRouter>
+                    <App />
+                  </BrowserRouter>
+                </MenuSheetProvider>
               </ChatProvider>
             </NotificacoesProvider>
           </PrivacyProvider>

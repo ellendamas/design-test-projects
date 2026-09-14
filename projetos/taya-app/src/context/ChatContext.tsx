@@ -28,6 +28,7 @@ type ChatContextType = {
   minimizarChat: () => void;
   encerrarConversa: () => void;
   enviarMensagem: () => Promise<void>;
+  enviarMensagemContexto: (conteudo: string) => Promise<void>;
   onNovaRespostaNaoVisivel: (callback: (texto: string) => void) => void;
 };
 
@@ -75,6 +76,43 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setNaoLidas(0);
   }, []);
 
+  // Faz o POST + parse do stream e devolve o texto acumulado da resposta.
+  // Extraído de enviarMensagem para ser reaproveitado por enviarMensagemContexto,
+  // sem alterar o comportamento de nenhuma das duas.
+  const postMensagem = useCallback(async (conteudo: string) => {
+    const res = await fetch(CHAT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: conteudo, sessionId: sessionIdRef.current }),
+    });
+    if (!res.ok || !res.body) throw new Error("Falha na resposta do agente");
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let textoAcumulado = "";
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const blocos = buffer.split("\n\n");
+      buffer = blocos.pop() ?? "";
+      for (const bloco of blocos) {
+        const linha = bloco.replace(/^data: /, "").trim();
+        if (!linha || linha === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(linha);
+          if (typeof parsed.text === "string") textoAcumulado += parsed.text;
+        } catch {
+          // ignora chunks que não são JSON válido
+        }
+      }
+    }
+
+    return textoAcumulado;
+  }, []);
+
   const enviarMensagem = useCallback(async () => {
     const conteudo = inputMensagem.trim();
     if (!conteudo || carregando) return;
@@ -92,43 +130,40 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     };
 
     try {
-      const res = await fetch(CHAT_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: nova.content, sessionId: sessionIdRef.current }),
-      });
-      if (!res.ok || !res.body) throw new Error("Falha na resposta do agente");
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let textoAcumulado = "";
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const blocos = buffer.split("\n\n");
-        buffer = blocos.pop() ?? "";
-        for (const bloco of blocos) {
-          const linha = bloco.replace(/^data: /, "").trim();
-          if (!linha || linha === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(linha);
-            if (typeof parsed.text === "string") textoAcumulado += parsed.text;
-          } catch {
-            // ignora chunks que não são JSON válido
-          }
-        }
-      }
-
-      notificarResposta(textoAcumulado || "Desculpe, não consegui processar sua mensagem.");
+      const texto = await postMensagem(conteudo);
+      notificarResposta(texto || "Desculpe, não consegui processar sua mensagem.");
     } catch {
       notificarResposta("Desculpe, ocorreu um erro. Por favor, tente novamente.");
     } finally {
       setCarregando(false);
     }
-  }, [inputMensagem, carregando]);
+  }, [inputMensagem, carregando, postMensagem]);
+
+  // Envia uma mensagem de contexto ao backend SEM exibir uma bolha do usuário no
+  // histórico — usado por fluxos que precisam dar contexto pra Jade sem o usuário
+  // ter digitado nada (ex.: escape hatch de suporte na verificação de contato).
+  // A resposta da Jade aparece normalmente, como se ela tivesse puxado assunto.
+  const enviarMensagemContexto = useCallback(async (conteudo: string) => {
+    if (!conteudo.trim() || carregando) return;
+    setCarregando(true);
+
+    const notificarResposta = (texto: string) => {
+      setMensagens((prev) => [...prev, { role: "assistant", content: texto }]);
+      if (!visivelRef.current) {
+        setNaoLidas((prev) => prev + 1);
+        notificarCallbackRef.current?.(texto);
+      }
+    };
+
+    try {
+      const texto = await postMensagem(conteudo);
+      notificarResposta(texto || "Desculpe, não consegui processar sua mensagem.");
+    } catch {
+      notificarResposta("Desculpe, ocorreu um erro. Por favor, tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
+  }, [carregando, postMensagem]);
 
   // Histórico da conversa: por ora em memória (state), perde ao recarregar a
   // página. TODO: confirmar com devs se deve persistir em sessionStorage
@@ -158,6 +193,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         minimizarChat,
         encerrarConversa,
         enviarMensagem,
+        enviarMensagemContexto,
         onNovaRespostaNaoVisivel,
       }}
     >

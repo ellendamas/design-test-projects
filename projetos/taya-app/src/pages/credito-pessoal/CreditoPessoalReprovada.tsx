@@ -39,6 +39,14 @@ export default function CreditoPessoalReprovada() {
 
   // ── Caso 1 — Reprovado na simulação (bloqueio 7 dias) ───────────────────
   if (etapa === "simulacao") {
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() + 7);
+    const dataLimiteFormatada = dataLimite.toLocaleDateString("pt-BR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
     return (
       <SubPageLayout title="Resultado">
         <div className="flex flex-col items-center gap-6 pb-6 text-center md:mx-auto md:max-w-[560px]">
@@ -50,14 +58,14 @@ export default function CreditoPessoalReprovada() {
               Não foi possível aprovar sua proposta agora
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Você poderá tentar novamente em 7 dias.
+              Você poderá tentar novamente a partir de {dataLimiteFormatada}.
             </p>
           </div>
 
           {/* Card de orientações */}
           <div className="w-full space-y-3 rounded-2xl border border-border bg-white p-4 text-left shadow-sm">
             {[
-              { icon: Clock, text: "Você poderá tentar novamente em 7 dias" },
+              { icon: Clock, text: `Você poderá tentar novamente a partir de ${dataLimiteFormatada}` },
               { icon: IdentificationCard, text: "Verifique pendências no seu CPF" },
               { icon: Headset, text: "Fale com nosso suporte" },
             ].map(({ icon: Icon, text }) => (
