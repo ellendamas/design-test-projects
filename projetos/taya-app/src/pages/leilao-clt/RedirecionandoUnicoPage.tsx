@@ -2,22 +2,25 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
+import { getStoredUser } from "@/App";
 
-// Mesmo padrão visual de consignado-clt/RedirecionandoUnicoPage.tsx, adaptado para a
-// jornada pública (sem SubPageLayout — tela plena, sem contexto de conta).
+// Mesmo padrão visual de consignado-clt/RedirecionandoUnicoPage.tsx — tela plena, sem
+// SubPageLayout/PublicLayout, já que não há distinção visual entre as duas jornadas aqui.
 // TODO: substituir pela URL real de verificação/assinatura da Unico quando disponível
 const UNICO_VERIFICACAO_URL = "https://unico.io/verificacao";
 
-// Rota: /leilao/redirecionando/unico
+// Rota: /leilao/redirecionando/unico — compartilhada, mas o destino pós-verificação aponta
+// para a tela de assinatura da jornada correta (com conta ou pública/guest, apartadas entre si).
 export default function LeilaoRedirecionandoUnicoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mostrarBotao, setMostrarBotao] = useState(false);
+  const destino = getStoredUser() ? "/leilao/assinatura?status=aguardando" : "/leilao/oferta/assinatura?status=aguardando";
 
   useEffect(() => {
     const abrirTimer = window.setTimeout(() => {
       window.open(UNICO_VERIFICACAO_URL, "_blank");
-      navigate("/leilao/assinatura?status=aguardando", {
+      navigate(destino, {
         replace: true,
         state: location.state,
       });
@@ -44,7 +47,7 @@ export default function LeilaoRedirecionandoUnicoPage() {
           type="button"
           onClick={() => {
             window.open(UNICO_VERIFICACAO_URL, "_blank");
-            navigate("/leilao/assinatura?status=aguardando", {
+            navigate(destino, {
               replace: true,
               state: location.state,
             });

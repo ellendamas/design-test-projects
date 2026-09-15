@@ -125,15 +125,22 @@ import LeilaoOfertaPage from "@/pages/leilao-clt/LeilaoOfertaPage";
 import LeilaoDadosPendentesPage from "@/pages/leilao-clt/LeilaoDadosPendentesPage";
 import LeilaoOfertaPublicaPage from "@/pages/leilao-clt/OfertaPublicaPage";
 import LeilaoDadosPage from "@/pages/leilao-clt/DadosPage";
+import LeilaoConfirmarDadosPage from "@/pages/leilao-clt/ConfirmarDadosPage";
 import LeilaoMfaPage from "@/pages/leilao-clt/MfaPage";
 import LeilaoAssinaturaPage from "@/pages/leilao-clt/AssinaturaPage";
+import LeilaoAssinaturaPublicaPage from "@/pages/leilao-clt/AssinaturaPublicaPage";
 import LeilaoRedirecionandoUnicoPage from "@/pages/leilao-clt/RedirecionandoUnicoPage";
 import LeilaoSucessoPage from "@/pages/leilao-clt/SucessoPage";
+import LeilaoSucessoPublicaPage from "@/pages/leilao-clt/SucessoPublicaPage";
 import LeilaoCriarContaPage from "@/pages/leilao-clt/CriarContaPage";
 import LeilaoExpiradaPage from "@/pages/leilao-clt/ExpiradaPage";
+import LeilaoExpiradaPublicaPage from "@/pages/leilao-clt/ExpiradaPublicaPage";
 import LeilaoCanceladaPage from "@/pages/leilao-clt/CanceladaPage";
+import LeilaoCanceladaPublicaPage from "@/pages/leilao-clt/CanceladaPublicaPage";
 import LeilaoFalhaAverbacaoPage from "@/pages/leilao-clt/FalhaAverbacaoPage";
+import LeilaoFalhaAverbacaoPublicaPage from "@/pages/leilao-clt/FalhaAverbacaoPublicaPage";
 import LeilaoFalhaDesembolsoPage from "@/pages/leilao-clt/FalhaDesembolsoPage";
+import LeilaoFalhaDesembolsoPublicaPage from "@/pages/leilao-clt/FalhaDesembolsoPublicaPage";
 import CreditoPessoalLanding from "@/pages/credito-pessoal/CreditoPessoalLanding";
 import CreditoPessoalDados from "@/pages/credito-pessoal/CreditoPessoalDados";
 import CreditoPessoalConsultando from "@/pages/credito-pessoal/CreditoPessoalConsultando";
@@ -4235,21 +4242,31 @@ function App() {
             <Route path="/fgts/dados" element={getStoredUser() ? <FGTSDadosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/assinar" element={getStoredUser() ? <FGTSAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/confirmacao" element={getStoredUser() ? <FGTSConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
-            {/* Jornada Leilão CLT — /leilao (com conta) e /leilao/criar-conta exigem login;
-                as demais são públicas (guest, sem SubPageLayout) por design. */}
+            {/* Jornada Leilão CLT — com conta (exige login) e pública/guest são fluxos
+                apartados: cada etapa da jornada guest (a partir de /leilao/oferta) tem sua
+                própria tela e rota, sem compartilhar componente com a jornada logada. */}
             <Route path="/leilao" element={getStoredUser() ? <LeilaoOfertaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/leilao/dados-pendentes" element={getStoredUser() ? <LeilaoDadosPendentesPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/leilao/criar-conta" element={getStoredUser() ? <LeilaoCriarContaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/assinatura" element={getStoredUser() ? <LeilaoAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/sucesso" element={getStoredUser() ? <LeilaoSucessoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/expirada" element={getStoredUser() ? <LeilaoExpiradaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/cancelada" element={getStoredUser() ? <LeilaoCanceladaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/falha-averbacao" element={getStoredUser() ? <LeilaoFalhaAverbacaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/falha-desembolso" element={getStoredUser() ? <LeilaoFalhaDesembolsoPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* /leilao/criar-conta é o mini-onboarding de QUEM AINDA NÃO TEM conta — se já
+                houver usuário logado, não faz sentido "criar conta" de novo. */}
+            <Route path="/leilao/criar-conta" element={!getStoredUser() ? <LeilaoCriarContaPage /> : <Navigate to="/painel" replace />} />
             <Route path="/leilao/oferta" element={<LeilaoOfertaPublicaPage />} />
             <Route path="/leilao/dados" element={<LeilaoDadosPage />} />
+            <Route path="/leilao/confirmar-dados" element={<LeilaoConfirmarDadosPage />} />
             <Route path="/leilao/mfa" element={<LeilaoMfaPage />} />
-            <Route path="/leilao/assinatura" element={<LeilaoAssinaturaPage />} />
+            <Route path="/leilao/oferta/assinatura" element={<LeilaoAssinaturaPublicaPage />} />
+            <Route path="/leilao/oferta/sucesso" element={<LeilaoSucessoPublicaPage />} />
+            <Route path="/leilao/oferta/expirada" element={<LeilaoExpiradaPublicaPage />} />
+            <Route path="/leilao/oferta/cancelada" element={<LeilaoCanceladaPublicaPage />} />
+            <Route path="/leilao/oferta/falha-averbacao" element={<LeilaoFalhaAverbacaoPublicaPage />} />
+            <Route path="/leilao/oferta/falha-desembolso" element={<LeilaoFalhaDesembolsoPublicaPage />} />
             <Route path="/leilao/redirecionando/unico" element={<LeilaoRedirecionandoUnicoPage />} />
-            <Route path="/leilao/sucesso" element={<LeilaoSucessoPage />} />
-            <Route path="/leilao/expirada" element={<LeilaoExpiradaPage />} />
-            <Route path="/leilao/cancelada" element={<LeilaoCanceladaPage />} />
-            <Route path="/leilao/falha-averbacao" element={<LeilaoFalhaAverbacaoPage />} />
-            <Route path="/leilao/falha-desembolso" element={<LeilaoFalhaDesembolsoPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </motion.div>

@@ -1,20 +1,18 @@
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { SubPageLayout, getStoredUser } from "@/App";
-import { PublicLayout } from "@/components/PublicLayout";
+import { SubPageLayout } from "@/App";
 import UnicoNotice from "@/components/UnicoNotice";
 import UnicoAguardando from "@/components/UnicoAguardando";
 import { ErrorScreen, type ErrorCategoria } from "@/components/ErrorScreen";
-import { OfertaResumoCard } from "./OfertaResumoCard";
 
-// Rota: /leilao/assinatura — compartilhada entre a jornada com conta (SubPageLayout) e a
-// pública/guest (PublicLayout). ?status=aguardando mostra o estado de retorno; ?erro= mostra erro.
+// Rota: /leilao/assinatura — jornada com conta. ?status=aguardando mostra o estado de
+// retorno; ?erro= mostra erro. A jornada pública/guest tem sua própria tela apartada
+// (AssinaturaPublicaPage.tsx, rota /leilao/oferta/assinatura).
 export default function LeilaoAssinaturaPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const etapa: "aviso" | "aguardando" = searchParams.get("status") === "aguardando" ? "aguardando" : "aviso";
   const erroParam = searchParams.get("erro") as ErrorCategoria | null; // DESIGN ONLY
-  const comConta = !!getStoredUser();
 
   // Ao clicar em "Continuar para verificação" (aviso) ou "Reabrir verificação" (aguardando) —
   // abre a tela de redirecionamento para a Unico (mesmo padrão de /consignado-clt/assinar)
@@ -24,19 +22,20 @@ export default function LeilaoAssinaturaPage() {
 
   const handleCancelar = () => navigate("/leilao/cancelada");
 
-  const conteudo = erroParam ? (
-    <ErrorScreen categoria={erroParam} labelBotao="Voltar à oferta" onTentarNovamente={() => navigate("/leilao")} />
-  ) : (
-    <div className="space-y-4">
-      {!comConta && <OfertaResumoCard />}
+  if (erroParam) {
+    return (
+      <SubPageLayout title="Verificação de identidade" hideNav>
+        <ErrorScreen categoria={erroParam} labelBotao="Voltar à oferta" onTentarNovamente={() => navigate("/leilao")} />
+      </SubPageLayout>
+    );
+  }
+
+  return (
+    <SubPageLayout title="Verificação de identidade" hideNav>
       {etapa === "aviso" ? (
         <UnicoNotice
           titulo="Falta só confirmar sua identidade!"
-          descricao={
-            comConta
-              ? "Sua oferta de Crédito Consignado CLT já está aprovada. Você será redirecionado para a Unico para verificar sua identidade."
-              : "Sua oferta de Crédito Consignado CLT foi aprovada. Você será direcionado para verificar sua identidade na plataforma segura da Unico."
-          }
+          descricao="Sua oferta de Crédito Consignado CLT já está aprovada. Você será redirecionado para a Unico para verificar sua identidade."
           labelBotao="Continuar para verificação"
           onContinuar={handleIniciarVerificacao}
         />
@@ -49,16 +48,6 @@ export default function LeilaoAssinaturaPage() {
           onCancelar={handleCancelar}
         />
       )}
-    </div>
+    </SubPageLayout>
   );
-
-  if (comConta) {
-    return (
-      <SubPageLayout title="Verificação de identidade" hideNav>
-        {conteudo}
-      </SubPageLayout>
-    );
-  }
-
-  return <PublicLayout>{conteudo}</PublicLayout>;
 }

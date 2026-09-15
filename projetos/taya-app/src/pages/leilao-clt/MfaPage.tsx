@@ -38,7 +38,7 @@ export default function LeilaoMfaPage() {
       return;
     }
     localStorage.setItem("podeja_telefone_validado", "true");
-    navigate("/leilao/assinatura", { state });
+    navigate("/leilao/oferta/assinatura", { state });
   };
 
   return (

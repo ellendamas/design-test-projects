@@ -1,23 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { SubPageLayout, getStoredUser } from "@/App";
-import { PublicLayout } from "@/components/PublicLayout";
+import { SubPageLayout } from "@/App";
 import { ErrorScreen } from "@/components/ErrorScreen";
 
-// Rota: /leilao/cancelada — compartilhada entre com conta e guest
+// Rota: /leilao/cancelada — jornada com conta. A jornada pública/guest tem sua própria tela
+// apartada (CanceladaPublicaPage.tsx, rota /leilao/oferta/cancelada).
 export default function LeilaoCanceladaPage() {
   const navigate = useNavigate();
-  const comConta = !!getStoredUser();
-
-  const conteudo = (
-    <ErrorScreen
-      categoria="leilao_cancelada"
-      labelBotao={comConta ? "Voltar ao início" : "Fechar"}
-      onTentarNovamente={() => navigate(comConta ? "/painel" : "/")}
-    />
+  return (
+    <SubPageLayout title="Crédito Consignado CLT" hideNav>
+      <ErrorScreen categoria="leilao_cancelada" labelBotao="Voltar ao início" onTentarNovamente={() => navigate("/painel")} />
+    </SubPageLayout>
   );
-
-  if (comConta) {
-    return <SubPageLayout title="Crédito Consignado CLT" hideNav>{conteudo}</SubPageLayout>;
-  }
-  return <PublicLayout>{conteudo}</PublicLayout>;
 }

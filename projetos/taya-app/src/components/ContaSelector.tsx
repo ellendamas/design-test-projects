@@ -82,6 +82,8 @@ interface ContaSelectorProps {
   permitirExcluir?: boolean;
   /** true mostra um campo opcional de chave Pix no formulário, além dos dados bancários */
   mostrarPix?: boolean;
+  /** Quantidade máxima de contas cadastráveis — esconde o botão "Adicionar outra" ao atingir o limite */
+  maxItens?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -113,6 +115,7 @@ export default function ContaSelector({
   semProximoPasso = false,
   permitirExcluir = true,
   mostrarPix = false,
+  maxItens = 10,
 }: ContaSelectorProps) {
   // Lista local — começa com os props, cresce quando o usuário adiciona/edita
   const [lista, setLista] = useState<ContaData[]>(contasProp);
@@ -215,7 +218,7 @@ export default function ContaSelector({
     if (semProximoPasso) onConfirmar(dados);
   };
 
-  const podeMostrarAdicionar = lista.length < 10;
+  const podeMostrarAdicionar = lista.length < maxItens;
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const formProps = {

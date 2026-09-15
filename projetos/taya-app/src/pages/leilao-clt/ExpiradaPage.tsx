@@ -1,25 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { ClockCountdown } from "@phosphor-icons/react";
-import { SubPageLayout, getStoredUser } from "@/App";
-import { PublicLayout } from "@/components/PublicLayout";
+import { SubPageLayout } from "@/App";
 import { ErrorScreen } from "@/components/ErrorScreen";
 
-// Rota: /leilao/expirada — compartilhada entre com conta e guest
+// Rota: /leilao/expirada — jornada com conta. A jornada pública/guest tem sua própria tela
+// apartada (ExpiradaPublicaPage.tsx, rota /leilao/oferta/expirada).
 export default function LeilaoExpiradaPage() {
   const navigate = useNavigate();
-  const comConta = !!getStoredUser();
-
-  const conteudo = (
-    <ErrorScreen
-      categoria="leilao_expirada"
-      icone={ClockCountdown}
-      labelBotao={comConta ? "Voltar ao início" : "Fechar"}
-      onTentarNovamente={() => navigate(comConta ? "/painel" : "/")}
-    />
+  return (
+    <SubPageLayout title="Crédito Consignado CLT" hideNav>
+      <ErrorScreen categoria="leilao_expirada" icone={ClockCountdown} labelBotao="Voltar ao início" onTentarNovamente={() => navigate("/painel")} />
+    </SubPageLayout>
   );
-
-  if (comConta) {
-    return <SubPageLayout title="Crédito Consignado CLT" hideNav>{conteudo}</SubPageLayout>;
-  }
-  return <PublicLayout>{conteudo}</PublicLayout>;
 }

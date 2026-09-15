@@ -29,6 +29,8 @@ interface EnderecoSelectorProps {
   semProximoPasso?: boolean;
   /** false esconde a exclusão de endereços (ex: jornadas públicas sem contexto de conta pra gerenciar) */
   permitirExcluir?: boolean;
+  /** Quantidade máxima de endereços cadastráveis — esconde o botão "Adicionar outro" ao atingir o limite */
+  maxItens?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -56,6 +58,7 @@ export default function EnderecoSelector({
   onConfirmar,
   semProximoPasso = false,
   permitirExcluir = true,
+  maxItens = 10,
 }: EnderecoSelectorProps) {
   // Lista local — começa com os props, cresce quando o usuário adiciona/edita
   const [lista, setLista] = useState<EnderecoData[]>(enderecosProp);
@@ -184,7 +187,7 @@ export default function EnderecoSelector({
     if (semProximoPasso) onConfirmar(dados);
   };
 
-  const podeMostrarAdicionar = lista.length < 10;
+  const podeMostrarAdicionar = lista.length < maxItens;
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   return (
