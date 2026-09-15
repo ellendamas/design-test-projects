@@ -17,15 +17,28 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 // mais confiável aqui do que validar dígito verificador de CPF, já que
 // ninguém digita um CPF matematicamente válido só pra testar a tela.
 //
+// A chave aleatória (EVP) é um id longo (UUID, até 36 caracteres) — pode não
+// ter nenhuma letra ainda quando o usuário está começando a digitar/colar,
+// então qualquer sequência com mais de 11 dígitos já não cabe em CPF/celular
+// e é tratada como chave aleatória, sem cortar nem formatar.
+//
 // Formatação manual (em vez de máscara dinâmica do react-imask) porque o
 // dispatch de máscaras dinâmicas do IMask trava a edição (backspace parava
 // de funcionar) quando o valor já preenchia o padrão inteiro.
 // ---------------------------------------------------------------------------
+const PIX_CHARS_PERMITIDOS = /[^\w.@+-]/g;
+
 function formatPixKey(valor: string): string {
   if (valor.includes("@")) return valor;
-  if (/[a-zA-Z]/.test(valor)) return valor.replace(/[^\w.@+-]/g, "");
 
-  const digitos = valor.replace(/\D/g, "").slice(0, 11);
+  const temLetra = /[a-zA-Z]/.test(valor);
+  const digitos = valor.replace(/\D/g, "");
+
+  if (temLetra || digitos.length > 11) {
+    // Chave aleatória (EVP) — sem formatação, só limpa caracteres que vieram
+    // de uma tentativa anterior de mascarar como telefone/CPF (parênteses, espaço)
+    return valor.replace(PIX_CHARS_PERMITIDOS, "");
+  }
 
   if (digitos.length > 10) {
     // 11 dígitos — celular (00) 00000-0000 ou CPF 000.000.000-00
