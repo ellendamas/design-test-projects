@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Bank, CaretDown, Check, PencilSimple, Plus, Trash } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { IMaskInput } from "react-imask";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -9,44 +8,44 @@ import { Dialog, DialogContent, DialogClose, DialogHeader, DialogTitle } from "@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 
 // ---------------------------------------------------------------------------
-// Máscara dinâmica da chave Pix — detecta CPF, telefone, e-mail ou chave
-// aleatória (EVP) no mesmo campo, conforme o usuário digita.
+// Máscara da chave Pix — detecta CPF, telefone, e-mail ou chave aleatória
+// (EVP) no mesmo campo, conforme o usuário digita.
+//
+// CPF e celular têm os dois 11 dígitos, então não dá pra diferenciar só pela
+// quantidade. Usamos a regra prática: todo celular brasileiro tem "9" como
+// primeiro dígito da linha, depois do DDD (padrão nacional desde 2016) — bem
+// mais confiável aqui do que validar dígito verificador de CPF, já que
+// ninguém digita um CPF matematicamente válido só pra testar a tela.
+//
+// Formatação manual (em vez de máscara dinâmica do react-imask) porque o
+// dispatch de máscaras dinâmicas do IMask trava a edição (backspace parava
+// de funcionar) quando o valor já preenchia o padrão inteiro.
 // ---------------------------------------------------------------------------
-function isValidCPF(cpf: string): boolean {
-  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-  let soma = 0;
-  for (let i = 0; i < 9; i++) soma += Number(cpf[i]) * (10 - i);
-  let resto = 11 - (soma % 11);
-  if (resto >= 10) resto = 0;
-  if (resto !== Number(cpf[9])) return false;
-  soma = 0;
-  for (let i = 0; i < 10; i++) soma += Number(cpf[i]) * (11 - i);
-  resto = 11 - (soma % 11);
-  if (resto >= 10) resto = 0;
-  return resto === Number(cpf[10]);
-}
+function formatPixKey(valor: string): string {
+  if (valor.includes("@")) return valor;
+  if (/[a-zA-Z]/.test(valor)) return valor.replace(/[^\w.@+-]/g, "");
 
-const pixMaskOptions = {
-  mask: [
-    { mask: "000.000.000-00" }, // CPF
-    { mask: "(00) 0000-0000" }, // telefone fixo
-    { mask: "(00) 00000-0000" }, // celular
-    { mask: /^[\w.+-]*@?[\w-]*\.?[a-zA-Z]*$/ }, // e-mail — sem formatação
-    { mask: /^[a-zA-Z0-9-]*$/ }, // chave aleatória (EVP) — sem formatação
-  ],
-  dispatch: (appended: string, dynamicMasked: { value: string; compiledMasks: unknown[] }) => {
-    const raw = (dynamicMasked.value || "") + appended;
-    if (raw.includes("@")) return dynamicMasked.compiledMasks[3];
-    if (/[a-zA-Z]/.test(raw)) return dynamicMasked.compiledMasks[4];
-    const digitos = raw.replace(/\D/g, "");
-    if (digitos.length > 10) {
-      return digitos.length === 11 && isValidCPF(digitos)
-        ? dynamicMasked.compiledMasks[0]
-        : dynamicMasked.compiledMasks[2];
+  const digitos = valor.replace(/\D/g, "").slice(0, 11);
+
+  if (digitos.length > 10) {
+    // 11 dígitos — celular (00) 00000-0000 ou CPF 000.000.000-00
+    if (digitos[2] === "9") {
+      return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
     }
-    return dynamicMasked.compiledMasks[1];
-  },
-} as const;
+    return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`;
+  }
+  if (digitos.length > 6) {
+    // telefone fixo em formação (00) 0000-0000
+    return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`;
+  }
+  if (digitos.length > 2) {
+    return `(${digitos.slice(0, 2)}) ${digitos.slice(2)}`;
+  }
+  if (digitos.length > 0) {
+    return `(${digitos}`;
+  }
+  return "";
+}
 
 // ---------------------------------------------------------------------------
 // Tipos exportados
@@ -505,12 +504,11 @@ function ContaFormContent({
       </div>
 
       {mostrarPix && (
-        <IMaskInput
-          {...(pixMaskOptions as Record<string, unknown>)}
+        <Input
           value={pixKey}
-          onAccept={(v) => setPixKey(String(v))}
+          onChange={(e) => setPixKey(formatPixKey(e.target.value))}
+          className="h-12 rounded-xl"
           placeholder="Chave Pix — CPF, e-mail, telefone ou aleatória (opcional)"
-          className="flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         />
       )}
 
