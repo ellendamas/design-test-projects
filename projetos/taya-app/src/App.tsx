@@ -121,7 +121,8 @@ import FGTSDadosPage from "@/pages/fgts/DadosPage";
 import FGTSAssinaturaPage from "@/pages/fgts/AssinaturaPage";
 import FGTSSaldoDisponivelPage from "@/pages/fgts/SaldoDisponivelPage";
 import FGTSConfirmacaoPage from "@/pages/fgts/ConfirmacaoPage";
-import LeilaoOfertaAprovadaPage from "@/pages/leilao-clt/OfertaAprovadaPage";
+import LeilaoOfertaPage from "@/pages/leilao-clt/LeilaoOfertaPage";
+import LeilaoDadosPendentesPage from "@/pages/leilao-clt/LeilaoDadosPendentesPage";
 import LeilaoOfertaPublicaPage from "@/pages/leilao-clt/OfertaPublicaPage";
 import LeilaoDadosPage from "@/pages/leilao-clt/DadosPage";
 import LeilaoMfaPage from "@/pages/leilao-clt/MfaPage";
@@ -1360,6 +1361,7 @@ function ContratoFGTSPage() {
 }
 
 function NotificacaoCard({ notificacao }: { notificacao: Notificacao }) {
+  const navigate = useNavigate();
   const iconePorTipo: Record<NotificacaoTipo, ReactNode> = {
     transacional: <CheckCircle size={18} weight="fill" className="text-green-600" />,
     lembrete: <Clock size={18} weight="fill" className="text-[#FD5F31]" />,
@@ -1367,8 +1369,9 @@ function NotificacaoCard({ notificacao }: { notificacao: Notificacao }) {
     sistema: <Info size={18} weight="fill" className="text-blue-500" />,
   };
 
-  return (
-    <div className={`flex gap-3 rounded-2xl border p-4 transition-colors ${!notificacao.lida ? "border-[#FD5F31]/20 bg-[#FFF3EE]" : "border-border bg-white"}`}>
+  const className = `flex w-full gap-3 rounded-2xl border p-4 text-left transition-colors ${!notificacao.lida ? "border-[#FD5F31]/20 bg-[#FFF3EE]" : "border-border bg-white"}`;
+  const conteudo = (
+    <>
       <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${!notificacao.lida ? "bg-white" : "bg-[#F0F0F0]"}`}>{iconePorTipo[notificacao.tipo]}</div>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
@@ -1378,8 +1381,18 @@ function NotificacaoCard({ notificacao }: { notificacao: Notificacao }) {
         <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{notificacao.descricao}</p>
         <p className="mt-1.5 text-[11px] text-muted-foreground/60">{notificacao.data}</p>
       </div>
-    </div>
+    </>
   );
+
+  if (notificacao.rota) {
+    return (
+      <button type="button" onClick={() => navigate(notificacao.rota!)} className={className}>
+        {conteudo}
+      </button>
+    );
+  }
+
+  return <div className={className}>{conteudo}</div>;
 }
 
 function NotificacoesPage() {
@@ -3317,7 +3330,11 @@ function App() {
     | "consultando"
     | "oferta"
     | "contrato"
-    | "consulta_liberada";
+    | "consulta_liberada"
+    | "leilao_aprovado";
+
+  // DESIGN ONLY — ?clt=leilao_aprovado ativa o card de oferta de Leilão CLT aprovada
+  const mostrarLeilaoAprovado = cltStatus === "leilao_aprovado";
 
   // DESIGN ONLY — ?clt=consulta_liberada ativa o card "Consulta concluída" no "Para você agora"
   // Card some quando o usuário avança para a revisão (escolheu uma oferta) ou o contrato é desembolsado
@@ -3394,6 +3411,7 @@ function App() {
 
   // Título "Para você agora" só aparece quando pelo menos 1 dos cards abaixo está ativo
   const temCardParaVoceAgora =
+    mostrarLeilaoAprovado ||
     mostrarCltConsultaLiberada ||
     fgtsStatus === "autorizado" ||
     fgtsStatus === "contrato" ||
@@ -3581,6 +3599,32 @@ function App() {
                   (ver isolarVerificacao acima). */}
               {!isolarVerificacao && (
                 <>
+                {/* Card "Oferta de Leilão CLT aprovada" — exibido quando ?clt=leilao_aprovado
+                    DESIGN ONLY — borda laranja destacada por ser uma oferta nova/urgente,
+                    diferente dos demais cards (pendências). Topo do grupo Produto. */}
+                {mostrarLeilaoAprovado && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/leilao")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-2 border-[#FD5F31] bg-white text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-2 flex items-center justify-between">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE]">
+                            <Money size={20} weight="fill" className="text-[#FD5F31]" />
+                          </div>
+                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">Oferta aprovada</span>
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Você tem uma oferta de Crédito Consignado CLT aprovada!</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Ver oferta <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
                 {/* Card "Proposta aguardando assinatura" — exibido quando ?cp=assinatura_pendente
                     DESIGN ONLY — substitui o card padrão de ?cp=andamento
                     Assinatura é 100% via Unico (modo SMS descontinuado) — card leva direto para o estado "aguardando" da assinatura */}
@@ -4193,7 +4237,8 @@ function App() {
             <Route path="/fgts/confirmacao" element={getStoredUser() ? <FGTSConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
             {/* Jornada Leilão CLT — /leilao (com conta) e /leilao/criar-conta exigem login;
                 as demais são públicas (guest, sem SubPageLayout) por design. */}
-            <Route path="/leilao" element={getStoredUser() ? <LeilaoOfertaAprovadaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao" element={getStoredUser() ? <LeilaoOfertaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/dados-pendentes" element={getStoredUser() ? <LeilaoDadosPendentesPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/leilao/criar-conta" element={getStoredUser() ? <LeilaoCriarContaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/leilao/oferta" element={<LeilaoOfertaPublicaPage />} />
             <Route path="/leilao/dados" element={<LeilaoDadosPage />} />

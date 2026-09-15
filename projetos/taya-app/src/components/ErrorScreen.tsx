@@ -1,4 +1,4 @@
-import { ArrowClockwise, WarningCircle } from "@phosphor-icons/react";
+import { ArrowClockwise, WarningCircle, type Icon } from "@phosphor-icons/react";
 
 export type ErrorCategoria =
   | "otp_invalido"
@@ -98,6 +98,8 @@ type ErrorScreenProps = {
   inline?: boolean;
   /** compact=true → só o conteúdo, sem wrapper e sem padding interno. Use dentro de modais. */
   compact?: boolean;
+  /** Ícone Phosphor a substituir o padrão (WarningCircle) quando a categoria pedir um ícone específico. */
+  icone?: Icon;
 };
 
 export function ErrorScreen({
@@ -106,13 +108,15 @@ export function ErrorScreen({
   labelBotao = "Tentar novamente",
   inline = false,
   compact = false,
+  icone: IconeCustom,
 }: ErrorScreenProps) {
   const erro = ERROS[categoria];
+  const IconeFinal = IconeCustom ?? WarningCircle;
 
   const conteudo = (
     <div className={`flex flex-col items-center text-center gap-3 ${compact ? "" : "p-6"}`}>
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
-        <WarningCircle size={28} className="text-[#FD5F31]" />
+        <IconeFinal size={28} className="text-[#FD5F31]" />
       </div>
       <p className="text-base font-semibold text-foreground">{erro.headline}</p>
       <p className="text-sm text-muted-foreground leading-relaxed">{erro.subtitulo}</p>
