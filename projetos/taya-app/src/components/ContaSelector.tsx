@@ -1,11 +1,52 @@
 import { useState } from "react";
 import { Bank, CaretDown, Check, PencilSimple, Plus, Trash } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { IMaskInput } from "react-imask";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Dialog, DialogContent, DialogClose, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+
+// ---------------------------------------------------------------------------
+// Máscara dinâmica da chave Pix — detecta CPF, telefone, e-mail ou chave
+// aleatória (EVP) no mesmo campo, conforme o usuário digita.
+// ---------------------------------------------------------------------------
+function isValidCPF(cpf: string): boolean {
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let soma = 0;
+  for (let i = 0; i < 9; i++) soma += Number(cpf[i]) * (10 - i);
+  let resto = 11 - (soma % 11);
+  if (resto >= 10) resto = 0;
+  if (resto !== Number(cpf[9])) return false;
+  soma = 0;
+  for (let i = 0; i < 10; i++) soma += Number(cpf[i]) * (11 - i);
+  resto = 11 - (soma % 11);
+  if (resto >= 10) resto = 0;
+  return resto === Number(cpf[10]);
+}
+
+const pixMaskOptions = {
+  mask: [
+    { mask: "000.000.000-00" }, // CPF
+    { mask: "(00) 0000-0000" }, // telefone fixo
+    { mask: "(00) 00000-0000" }, // celular
+    { mask: /^[\w.+-]*@?[\w-]*\.?[a-zA-Z]*$/ }, // e-mail — sem formatação
+    { mask: /^[a-zA-Z0-9-]*$/ }, // chave aleatória (EVP) — sem formatação
+  ],
+  dispatch: (appended: string, dynamicMasked: { value: string; compiledMasks: unknown[] }) => {
+    const raw = (dynamicMasked.value || "") + appended;
+    if (raw.includes("@")) return dynamicMasked.compiledMasks[3];
+    if (/[a-zA-Z]/.test(raw)) return dynamicMasked.compiledMasks[4];
+    const digitos = raw.replace(/\D/g, "");
+    if (digitos.length > 10) {
+      return digitos.length === 11 && isValidCPF(digitos)
+        ? dynamicMasked.compiledMasks[0]
+        : dynamicMasked.compiledMasks[2];
+    }
+    return dynamicMasked.compiledMasks[1];
+  },
+} as const;
 
 // ---------------------------------------------------------------------------
 // Tipos exportados
@@ -464,7 +505,13 @@ function ContaFormContent({
       </div>
 
       {mostrarPix && (
-        <Input value={pixKey} onChange={(e) => setPixKey(e.target.value)} className="h-12 rounded-xl" placeholder="Chave Pix (opcional)" />
+        <IMaskInput
+          {...(pixMaskOptions as Record<string, unknown>)}
+          value={pixKey}
+          onAccept={(v) => setPixKey(String(v))}
+          placeholder="Chave Pix — CPF, e-mail, telefone ou aleatória (opcional)"
+          className="flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        />
       )}
 
       <div className="flex gap-3 pt-2">

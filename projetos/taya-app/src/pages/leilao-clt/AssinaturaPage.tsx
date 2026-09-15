@@ -41,24 +41,13 @@ export default function LeilaoAssinaturaPage() {
           onContinuar={handleIniciarVerificacao}
         />
       ) : (
-        <>
-          <UnicoAguardando
-            titulo="Aguardando sua verificação"
-            descricao="Você saiu antes de concluir a verificação de identidade. Toque em Reabrir verificação para continuar de onde parou."
-            labelBotao="Reabrir verificação"
-            onAssinar={handleIniciarVerificacao}
-            onCancelar={handleCancelar}
-          />
-          {/* DESIGN ONLY — atalho pra demonstrar o desfecho sem esperar o polling real
-              (produção: GET /propostas/{id} detecta a assinatura concluída na Unico) */}
-          <button
-            type="button"
-            onClick={() => navigate("/leilao/sucesso", { state: location.state })}
-            className="w-full py-2 text-center text-xs text-muted-foreground underline underline-offset-2"
-          >
-            DESIGN ONLY — simular assinatura concluída
-          </button>
-        </>
+        <UnicoAguardando
+          titulo="Aguardando sua verificação"
+          descricao="Você saiu antes de concluir a verificação de identidade. Toque em Reabrir verificação para continuar de onde parou."
+          labelBotao="Reabrir verificação"
+          onAssinar={handleIniciarVerificacao}
+          onCancelar={handleCancelar}
+        />
       )}
     </div>
   );
