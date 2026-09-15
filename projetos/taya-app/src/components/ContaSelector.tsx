@@ -17,26 +17,43 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 // mais confiável aqui do que validar dígito verificador de CPF, já que
 // ninguém digita um CPF matematicamente válido só pra testar a tela.
 //
-// A chave aleatória (EVP) é um id longo (UUID, até 36 caracteres) — pode não
-// ter nenhuma letra ainda quando o usuário está começando a digitar/colar,
-// então qualquer sequência com mais de 11 dígitos já não cabe em CPF/celular
-// e é tratada como chave aleatória, sem cortar nem formatar.
+// A chave aleatória (EVP) segue o formato de um UUID v4: 32 caracteres
+// hexadecimais agrupados 8-4-4-4-12. Só aplicamos esse agrupamento quando o
+// valor só tem dígitos/letras hexadecimais (a-f) — uma letra fora desse
+// intervalo (ex: digitando um e-mail antes do @) não entra nessa formatação.
 //
 // Formatação manual (em vez de máscara dinâmica do react-imask) porque o
 // dispatch de máscaras dinâmicas do IMask trava a edição (backspace parava
 // de funcionar) quando o valor já preenchia o padrão inteiro.
 // ---------------------------------------------------------------------------
 const PIX_CHARS_PERMITIDOS = /[^\w.@+-]/g;
+const APENAS_HEX = /^[a-fA-F0-9]*$/;
 
-function formatPixKey(valor: string): string {
+function formatChaveAleatoria(valor: string): string {
+  const hex = valor.replace(/[^a-fA-F0-9]/g, "").slice(0, 32).toLowerCase();
+  const partes = [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32)];
+  return partes.filter((p) => p.length > 0).join("-");
+}
+
+export function formatPixKey(valor: string): string {
   if (valor.includes("@")) return valor;
 
-  const temLetra = /[a-zA-Z]/.test(valor);
+  const temLetraNaoHex = /[g-zG-Z]/.test(valor);
   const digitos = valor.replace(/\D/g, "");
 
-  if (temLetra || digitos.length > 11) {
-    // Chave aleatória (EVP) — sem formatação, só limpa caracteres que vieram
-    // de uma tentativa anterior de mascarar como telefone/CPF (parênteses, espaço)
+  if (temLetraNaoHex) {
+    // Provavelmente e-mail ainda em digitação (antes do @) ou texto livre — sem formatação
+    return valor.replace(PIX_CHARS_PERMITIDOS, "");
+  }
+
+  const apenasSemPontuacao = valor.replace(/[-.\s]/g, "");
+  if (/[a-fA-F]/.test(valor) && APENAS_HEX.test(apenasSemPontuacao)) {
+    return formatChaveAleatoria(valor);
+  }
+
+  if (digitos.length > 11) {
+    // Chave aleatória só numérica (sem letras) — sem formatação, só limpa
+    // caracteres que vieram de uma tentativa anterior de mascarar como telefone/CPF
     return valor.replace(PIX_CHARS_PERMITIDOS, "");
   }
 

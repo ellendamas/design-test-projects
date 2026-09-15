@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { IMaskInput } from "react-imask";
-import { IdentificationCard, LockSimple } from "@phosphor-icons/react";
+import { Bank, IdentificationCard, LockSimple, QrCode } from "@phosphor-icons/react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
@@ -9,14 +9,14 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import EnderecoSelector, { type EnderecoData } from "@/components/EnderecoSelector";
-import ContaSelector, { type ContaData } from "@/components/ContaSelector";
+import ContaSelector, { type ContaData, formatPixKey } from "@/components/ContaSelector";
 import { LEAD_MOCK } from "./leilaoData";
 
 const maskedInputClass =
   "flex h-12 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
-type Etapa = "resumo" | "endereco" | "conta";
-type CampoEditavel = "nome" | "email" | "celular";
+type Etapa = "resumo" | "endereco" | "metodo" | "conta" | "pix";
+type CampoEditavel = "email" | "celular";
 
 interface LocationState {
   email?: string;
@@ -32,30 +32,32 @@ function formatContaResumo(c: ContaData): string {
 }
 
 // Rota: /leilao/confirmar-dados — revisão dos dados já conhecidos do lead (nome/CPF, vindos
-// do token do link) mais e-mail/celular (etapa anterior) e endereço/conta bancária (coletados
-// aqui). CPF nunca é editável; os demais podem ser adicionados ou alterados. Endereço e conta
-// são limitados a 1 cada, já que este usuário não tem conta para gerenciar múltiplos itens.
+// junto no webhook que originou o link) mais e-mail/celular (etapa anterior) e endereço/forma
+// de recebimento (coletados aqui). CPF e nome não são editáveis; os demais podem ser alterados.
+// Endereço e conta são limitados a 1 cada, já que este usuário não tem conta para gerenciar
+// múltiplos itens.
 export default function LeilaoConfirmarDadosPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = (location.state as LocationState | null) ?? {};
 
   const [etapa, setEtapa] = useState<Etapa>("resumo");
-  const [nome, setNome] = useState(LEAD_MOCK.nome);
   const [email, setEmail] = useState(state.email ?? "");
   const [celular, setCelular] = useState(state.celular ?? "");
   const [endereco, setEndereco] = useState<EnderecoData | null>(null);
   const [conta, setConta] = useState<ContaData | null>(null);
+  const [chavePix, setChavePix] = useState<string | null>(null);
+  const [chavePixTemp, setChavePixTemp] = useState("");
 
   const [campoEditando, setCampoEditando] = useState<CampoEditavel | null>(null);
   const [valorTemp, setValorTemp] = useState("");
   const [erroEdicao, setErroEdicao] = useState("");
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  const podeContinuar = !!nome && !!email && !!celular && !!endereco && !!conta;
+  const podeContinuar = !!email && !!celular && !!endereco && (!!conta || !!chavePix);
 
   const abrirEdicao = (campo: CampoEditavel) => {
-    const valores: Record<CampoEditavel, string> = { nome, email, celular };
+    const valores: Record<CampoEditavel, string> = { email, celular };
     setValorTemp(valores[campo]);
     setErroEdicao("");
     setCampoEditando(campo);
@@ -70,12 +72,7 @@ export default function LeilaoConfirmarDadosPage() {
       setErroEdicao("Celular inválido");
       return;
     }
-    if (campoEditando === "nome" && valorTemp.trim().length < 3) {
-      setErroEdicao("Informe o nome completo");
-      return;
-    }
-    if (campoEditando === "nome") setNome(valorTemp);
-    else if (campoEditando === "email") setEmail(valorTemp);
+    if (campoEditando === "email") setEmail(valorTemp);
     else if (campoEditando === "celular") setCelular(valorTemp);
     setCampoEditando(null);
   };
@@ -97,6 +94,48 @@ export default function LeilaoConfirmarDadosPage() {
     );
   }
 
+  if (etapa === "metodo") {
+    return (
+      <PublicLayout>
+        <div className="space-y-3">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+              <Bank size={28} className="text-[#FD5F31]" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Como você quer receber o dinheiro?</h2>
+            <p className="text-sm text-muted-foreground">Escolha uma das opções abaixo</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEtapa("conta")}
+            className="flex w-full items-center gap-4 rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#FD5F31]/40"
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE] text-[#FD5F31]">
+              <Bank size={22} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Conta bancária</p>
+              <p className="text-xs text-muted-foreground">Banco, agência e número da conta</p>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setEtapa("pix")}
+            className="flex w-full items-center gap-4 rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#FD5F31]/40"
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE] text-[#FD5F31]">
+              <QrCode size={22} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Chave Pix</p>
+              <p className="text-xs text-muted-foreground">CPF, e-mail, telefone ou chave aleatória</p>
+            </div>
+          </button>
+        </div>
+      </PublicLayout>
+    );
+  }
+
   if (etapa === "conta") {
     return (
       <PublicLayout>
@@ -104,10 +143,10 @@ export default function LeilaoConfirmarDadosPage() {
           contas={conta ? [conta] : []}
           permitirExcluir={false}
           maxItens={1}
-          mostrarPix
           semProximoPasso
           onConfirmar={(c) => {
             setConta(c);
+            setChavePix(null);
             setEtapa("resumo");
           }}
         />
@@ -115,11 +154,44 @@ export default function LeilaoConfirmarDadosPage() {
     );
   }
 
+  if (etapa === "pix") {
+    return (
+      <PublicLayout
+        footer={
+          <Button
+            className="h-14 w-full rounded-full bg-primary text-base font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+            disabled={!chavePixTemp}
+            onClick={() => {
+              setChavePix(chavePixTemp);
+              setConta(null);
+              setEtapa("resumo");
+            }}
+          >
+            Salvar chave Pix
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+              <QrCode size={28} className="text-[#FD5F31]" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Qual sua chave Pix?</h2>
+            <p className="text-sm text-muted-foreground">CPF, e-mail, telefone ou chave aleatória</p>
+          </div>
+          <Input
+            value={chavePixTemp || chavePix || ""}
+            onChange={(e) => setChavePixTemp(formatPixKey(e.target.value))}
+            className="h-12 rounded-xl"
+            placeholder="Digite sua chave Pix"
+          />
+        </div>
+      </PublicLayout>
+    );
+  }
+
   const editModalContent = (
     <>
-      {campoEditando === "nome" && (
-        <Input value={valorTemp} onChange={(e) => { setValorTemp(e.target.value); setErroEdicao(""); }} className="h-12 rounded-xl" placeholder="Nome completo" autoFocus />
-      )}
       {campoEditando === "email" && (
         <Input type="email" value={valorTemp} onChange={(e) => { setValorTemp(e.target.value); setErroEdicao(""); }} className="h-12 rounded-xl" placeholder="seu@email.com" autoFocus />
       )}
@@ -141,7 +213,7 @@ export default function LeilaoConfirmarDadosPage() {
     </>
   );
 
-  const labelCampo = campoEditando === "nome" ? "Nome" : campoEditando === "email" ? "E-mail" : "Celular";
+  const labelCampo = campoEditando === "email" ? "E-mail" : "Celular";
 
   return (
     <>
@@ -150,7 +222,7 @@ export default function LeilaoConfirmarDadosPage() {
           <Button
             className="h-14 w-full rounded-full bg-primary text-base font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
             disabled={!podeContinuar}
-            onClick={() => navigate("/leilao/mfa", { state: { ...state, nome, email, celular, endereco, conta } })}
+            onClick={() => navigate("/leilao/mfa", { state: { ...state, email, celular, endereco, conta, chavePix } })}
           >
             Continuar
           </Button>
@@ -170,7 +242,7 @@ export default function LeilaoConfirmarDadosPage() {
           <div className="rounded-2xl border border-border bg-white shadow-sm">
             {[
               { label: "CPF", value: LEAD_MOCK.cpf, locked: true as const, campo: undefined },
-              { label: "Nome completo", value: nome, locked: false as const, campo: "nome" as const },
+              { label: "Nome completo", value: LEAD_MOCK.nome, locked: true as const, campo: undefined },
               { label: "E-mail", value: email || "Não informado", locked: false as const, campo: "email" as const },
               { label: "Celular", value: celular || "Não informado", locked: false as const, campo: "celular" as const },
             ].map(({ label, value, locked, campo }, i, arr) => (
@@ -207,13 +279,13 @@ export default function LeilaoConfirmarDadosPage() {
           <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Conta bancária</p>
+                <p className="text-xs text-muted-foreground">Forma de recebimento</p>
                 <p className="text-sm font-medium text-foreground">
-                  {conta ? formatContaResumo(conta) : "Não informado"}
+                  {conta ? formatContaResumo(conta) : chavePix ? `Chave Pix: ${chavePix}` : "Não informado"}
                 </p>
               </div>
-              <button type="button" onClick={() => setEtapa("conta")} className="text-sm font-medium text-[#FD5F31] hover:underline">
-                {conta ? "Alterar" : "Adicionar"}
+              <button type="button" onClick={() => setEtapa("metodo")} className="text-sm font-medium text-[#FD5F31] hover:underline">
+                {conta || chavePix ? "Alterar" : "Adicionar"}
               </button>
             </div>
           </div>

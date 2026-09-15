@@ -74,6 +74,7 @@ export default function LeilaoOfertaPublicaPage() {
 
   return (
     <PublicLayout
+      footerTransparente
       footer={
         <>
           <Button
@@ -117,7 +118,7 @@ export default function LeilaoOfertaPublicaPage() {
             <CheckCircle size={40} className="text-green-600" weight="fill" />
           </motion.div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">Proposta aprovada!</h1>
+            <h1 className="text-2xl font-bold text-foreground">Oferta aprovada</h1>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Encontramos a melhor oferta para você entre as instituições parceiras. Confira os detalhes abaixo.
             </p>

@@ -3,16 +3,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 
-// Mesmo padrão visual de consignado-clt/RedirecionandoUnicoPage.tsx — tela plena, sem
-// SubPageLayout, já que não há distinção visual entre jornadas aqui.
+// Mesmo padrão visual de RedirecionandoUnicoPage.tsx (jornada com conta) — tela plena, sem
+// PublicLayout, já que não há distinção visual entre jornadas aqui.
 // TODO: substituir pela URL real de verificação/assinatura da Unico quando disponível
 const UNICO_VERIFICACAO_URL = "https://unico.io/verificacao";
-const DESTINO = "/leilao/assinatura?status=aguardando";
+const DESTINO = "/leilao/oferta/assinatura?status=aguardando";
 
-// Rota: /leilao/redirecionando/unico — jornada com conta. A jornada pública/guest tem sua
-// própria tela apartada (RedirecionandoUnicoPublicaPage.tsx, rota
-// /leilao/oferta/redirecionando/unico) para nunca depender de auth state no redirecionamento.
-export default function LeilaoRedirecionandoUnicoPage() {
+// Rota: /leilao/oferta/redirecionando/unico — jornada pública/guest, apartada da jornada com
+// conta (/leilao/redirecionando/unico). O destino é fixo (não depende de getStoredUser), pra
+// nunca cair na jornada logada por causa de um usuário deixado em localStorage de outro teste.
+export default function LeilaoRedirecionandoUnicoPublicaPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mostrarBotao, setMostrarBotao] = useState(false);

@@ -130,6 +130,7 @@ import LeilaoMfaPage from "@/pages/leilao-clt/MfaPage";
 import LeilaoAssinaturaPage from "@/pages/leilao-clt/AssinaturaPage";
 import LeilaoAssinaturaPublicaPage from "@/pages/leilao-clt/AssinaturaPublicaPage";
 import LeilaoRedirecionandoUnicoPage from "@/pages/leilao-clt/RedirecionandoUnicoPage";
+import LeilaoRedirecionandoUnicoPublicaPage from "@/pages/leilao-clt/RedirecionandoUnicoPublicaPage";
 import LeilaoSucessoPage from "@/pages/leilao-clt/SucessoPage";
 import LeilaoSucessoPublicaPage from "@/pages/leilao-clt/SucessoPublicaPage";
 import LeilaoCriarContaPage from "@/pages/leilao-clt/CriarContaPage";
@@ -4266,6 +4267,7 @@ function App() {
             <Route path="/leilao/oferta/cancelada" element={<LeilaoCanceladaPublicaPage />} />
             <Route path="/leilao/oferta/falha-averbacao" element={<LeilaoFalhaAverbacaoPublicaPage />} />
             <Route path="/leilao/oferta/falha-desembolso" element={<LeilaoFalhaDesembolsoPublicaPage />} />
+            <Route path="/leilao/oferta/redirecionando/unico" element={<LeilaoRedirecionandoUnicoPublicaPage />} />
             <Route path="/leilao/redirecionando/unico" element={<LeilaoRedirecionandoUnicoPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

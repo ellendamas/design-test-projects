@@ -3,18 +3,31 @@ import { Logo } from "@/components/Logo";
 
 // Layout para telas públicas (sem login) da jornada Leilão CLT — só a marca
 // no header, sem sino/olho/avatar/nav, já que não existe conta pra gerenciar
-// nesse ponto da jornada. Mesmo padrão visual do header de /cadastro e /acesso.
-export function PublicLayout({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
+// nesse ponto da jornada. Header transparente com logo centralizada.
+export function PublicLayout({
+  children,
+  footer,
+  footerTransparente = false,
+}: {
+  children: ReactNode;
+  footer?: ReactNode;
+  /** true remove o fundo branco do rodapé fixo (ex: telas com CTA sobre o próprio conteúdo) */
+  footerTransparente?: boolean;
+}) {
   return (
     <div className="min-h-screen w-full bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-white px-4 py-4 md:px-8">
+      <header className="sticky top-0 z-10 flex justify-center bg-transparent px-4 py-4 md:px-8">
         <Logo size="md" />
       </header>
       <main className={`mx-auto w-full max-w-[560px] px-4 py-6 md:px-0 ${footer ? "pb-28" : ""}`}>
         {children}
       </main>
       {footer && (
-        <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-border bg-white p-4">
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-10 p-4 ${
+            footerTransparente ? "bg-transparent" : "border-t border-border bg-white"
+          }`}
+        >
           <div className="mx-auto w-full max-w-[560px] space-y-2">{footer}</div>
         </div>
       )}
