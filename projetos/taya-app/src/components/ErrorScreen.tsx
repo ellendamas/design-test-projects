@@ -13,7 +13,11 @@ export type ErrorCategoria =
   | "fraude_ou_sensivel"
   | "operacional"
   | "desconhecido"
-  | "simulacao_invalida";
+  | "simulacao_invalida"
+  | "leilao_expirada"
+  | "leilao_cancelada"
+  | "leilao_falha_averbacao"
+  | "leilao_falha_desembolso";
 
 export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string }> = {
   otp_invalido: {
@@ -67,6 +71,22 @@ export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string
   simulacao_invalida: {
     headline: "Sua simulação não é mais válida",
     subtitulo: "Por favor, volte e simule novamente.",
+  },
+  leilao_expirada: {
+    headline: "Sua sessão expirou",
+    subtitulo: "O prazo para aceitar esta oferta encerrou. Acesse o aplicativo CTPS Digital para solicitar uma nova consulta.",
+  },
+  leilao_cancelada: {
+    headline: "Sua oferta foi cancelada",
+    subtitulo: "A instituição financeira cancelou esta oferta. Você pode acessar o aplicativo CTPS Digital para participar de uma nova consulta.",
+  },
+  leilao_falha_averbacao: {
+    headline: "Não foi possível finalizar o registro",
+    subtitulo: "Ocorreu um problema ao registrar sua proposta na folha de pagamento. Entre em contato com nosso suporte.",
+  },
+  leilao_falha_desembolso: {
+    headline: "Tivemos um problema na liberação do valor",
+    subtitulo: "O contrato foi assinado, mas houve uma falha ao depositar o valor. Nossa equipe já foi notificada. Entre em contato com o suporte.",
   },
 };
 

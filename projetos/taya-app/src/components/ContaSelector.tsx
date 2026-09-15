@@ -16,6 +16,7 @@ export interface ContaData {
   agencia: string;
   conta: string;
   digito: string;
+  pixKey?: string;
 }
 
 interface ContaSelectorProps {
@@ -24,6 +25,10 @@ interface ContaSelectorProps {
   onConfirmar: (conta: ContaData) => void;
   /** Modo sem próximo passo (ex: /minha-conta) — clique no card só seleciona; botão "Salvar" confirma */
   semProximoPasso?: boolean;
+  /** false esconde a exclusão de contas (ex: jornadas públicas sem contexto de conta pra gerenciar) */
+  permitirExcluir?: boolean;
+  /** true mostra um campo opcional de chave Pix no formulário, além dos dados bancários */
+  mostrarPix?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,6 +58,8 @@ export default function ContaSelector({
   contas: contasProp = [],
   onConfirmar,
   semProximoPasso = false,
+  permitirExcluir = true,
+  mostrarPix = false,
 }: ContaSelectorProps) {
   // Lista local — começa com os props, cresce quando o usuário adiciona/edita
   const [lista, setLista] = useState<ContaData[]>(contasProp);
@@ -78,10 +85,11 @@ export default function ContaSelector({
   const [agencia, setAgencia] = useState("");
   const [conta, setConta] = useState("");
   const [digito, setDigito] = useState("");
+  const [pixKey, setPixKey] = useState("");
 
   const resetForm = () => {
     setBancoSelecionado(null); setBankSearch(""); setOpenBanco(false);
-    setTipoConta("corrente"); setAgencia(""); setConta(""); setDigito("");
+    setTipoConta("corrente"); setAgencia(""); setConta(""); setDigito(""); setPixKey("");
   };
 
   const fecharModal = () => {
@@ -124,6 +132,7 @@ export default function ContaSelector({
     setAgencia(c.agencia);
     setConta(c.conta);
     setDigito(c.digito);
+    setPixKey(c.pixKey ?? "");
     setModoEdicao(true);
     setEditandoIdx(idx);
     setShowModal(true);
@@ -138,6 +147,7 @@ export default function ContaSelector({
       agencia,
       conta,
       digito,
+      ...(mostrarPix && pixKey ? { pixKey } : {}),
     };
     if (modoEdicao && editandoIdx !== null) {
       setLista(lista.map((c, i) => i === editandoIdx ? dados : c));
@@ -160,6 +170,7 @@ export default function ContaSelector({
     openBanco, setOpenBanco, tipoConta, setTipoConta,
     agencia, setAgencia, conta, setConta, digito, setDigito,
     podeAdicionarForm, handleSalvar, fecharModal, modoEdicao,
+    mostrarPix, pixKey, setPixKey,
   };
 
   return (
@@ -217,14 +228,17 @@ export default function ContaSelector({
                       <p className="text-xs text-muted-foreground">
                         {c.tipoConta} · Ag {c.agencia} · {c.conta}-{c.digito}
                       </p>
+                      {c.pixKey && <p className="text-xs text-muted-foreground">Pix: {c.pixKey}</p>}
                     </div>
                   </div>
                 </button>
-                {/* Ícones — lixeira só no desktop, lápis sempre */}
+                {/* Ícones — lixeira só no desktop (quando permitido), lápis sempre */}
                 <div className="absolute right-2 top-1/2 flex -translate-y-1/2 gap-4">
-                  <button type="button" onClick={() => tentarExcluir(idx)} className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-red-500 md:flex">
-                    <Trash size={24} />
-                  </button>
+                  {permitirExcluir && (
+                    <button type="button" onClick={() => tentarExcluir(idx)} className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-red-500 md:flex">
+                      <Trash size={24} />
+                    </button>
+                  )}
                   <button type="button" onClick={() => abrirEdicao(idx)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-[#FD5F31]">
                     <PencilSimple size={24} />
                   </button>
@@ -281,7 +295,7 @@ export default function ContaSelector({
           <DrawerHeader>
             <div className="flex items-center justify-between">
               <DrawerTitle>{modoEdicao ? "Editar conta" : "Adicionar conta"}</DrawerTitle>
-              {modoEdicao && lista.length > 1 && (
+              {permitirExcluir && modoEdicao && lista.length > 1 && (
                 <button
                   type="button"
                   onClick={() => { fecharModal(); setContaParaExcluir({ idx: editandoIdx!, conta: lista[editandoIdx!] }); }}
@@ -363,6 +377,7 @@ function ContaFormContent({
   openBanco, setOpenBanco, tipoConta, setTipoConta,
   agencia, setAgencia, conta, setConta, digito, setDigito,
   podeAdicionarForm, handleSalvar, fecharModal, modoEdicao,
+  mostrarPix, pixKey, setPixKey,
 }: {
   bancoSelecionado: { cod: string; nome: string } | null;
   setBancoSelecionado: (b: { cod: string; nome: string }) => void;
@@ -376,6 +391,8 @@ function ContaFormContent({
   handleSalvar: () => void;
   fecharModal: () => void;
   modoEdicao: boolean;
+  mostrarPix: boolean;
+  pixKey: string; setPixKey: (v: string) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -445,6 +462,10 @@ function ContaFormContent({
         <span className="pb-3 text-muted-foreground">-</span>
         <Input value={digito} onChange={(e) => setDigito(e.target.value)} className="h-12 rounded-xl" placeholder="Dígito" />
       </div>
+
+      {mostrarPix && (
+        <Input value={pixKey} onChange={(e) => setPixKey(e.target.value)} className="h-12 rounded-xl" placeholder="Chave Pix (opcional)" />
+      )}
 
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={fecharModal}

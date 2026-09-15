@@ -13,6 +13,10 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 // não está "dentro" do app).
 const ROTAS_SEM_CHAT = ["/", "/boas-vindas", "/acesso", "/cadastro"];
 
+// Exceção: telas de falha da jornada pública Leilão CLT (guest, sem conta) que
+// oferecem "Falar com suporte" — o chat precisa abrir mesmo sem usuário logado.
+const ROTAS_CHAT_SEM_CONTA = ["/leilao/falha-averbacao", "/leilao/falha-desembolso"];
+
 function ChatMensagens({ mensagens, carregando }: { mensagens: Mensagem[]; carregando: boolean }) {
   const fimMensagens = useRef<HTMLDivElement>(null);
 
@@ -163,7 +167,8 @@ export function ChatBubble() {
     }
   };
 
-  if (!usuario || ROTAS_SEM_CHAT.includes(location.pathname)) return null;
+  const permitidoSemConta = ROTAS_CHAT_SEM_CONTA.includes(location.pathname);
+  if ((!usuario && !permitidoSemConta) || ROTAS_SEM_CHAT.includes(location.pathname)) return null;
   // Sem conversa real, o botão flutuante não aparece em lugar nenhum —
   // inclusive na Central de Ajuda, que já tem seu próprio CTA "Acessar atendimento".
   if (!aberto && !temConversaAtiva) return null;

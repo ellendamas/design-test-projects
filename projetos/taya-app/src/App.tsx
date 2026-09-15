@@ -121,6 +121,18 @@ import FGTSDadosPage from "@/pages/fgts/DadosPage";
 import FGTSAssinaturaPage from "@/pages/fgts/AssinaturaPage";
 import FGTSSaldoDisponivelPage from "@/pages/fgts/SaldoDisponivelPage";
 import FGTSConfirmacaoPage from "@/pages/fgts/ConfirmacaoPage";
+import LeilaoOfertaAprovadaPage from "@/pages/leilao-clt/OfertaAprovadaPage";
+import LeilaoOfertaPublicaPage from "@/pages/leilao-clt/OfertaPublicaPage";
+import LeilaoDadosPage from "@/pages/leilao-clt/DadosPage";
+import LeilaoMfaPage from "@/pages/leilao-clt/MfaPage";
+import LeilaoAssinaturaPage from "@/pages/leilao-clt/AssinaturaPage";
+import LeilaoRedirecionandoUnicoPage from "@/pages/leilao-clt/RedirecionandoUnicoPage";
+import LeilaoSucessoPage from "@/pages/leilao-clt/SucessoPage";
+import LeilaoCriarContaPage from "@/pages/leilao-clt/CriarContaPage";
+import LeilaoExpiradaPage from "@/pages/leilao-clt/ExpiradaPage";
+import LeilaoCanceladaPage from "@/pages/leilao-clt/CanceladaPage";
+import LeilaoFalhaAverbacaoPage from "@/pages/leilao-clt/FalhaAverbacaoPage";
+import LeilaoFalhaDesembolsoPage from "@/pages/leilao-clt/FalhaDesembolsoPage";
 import CreditoPessoalLanding from "@/pages/credito-pessoal/CreditoPessoalLanding";
 import CreditoPessoalDados from "@/pages/credito-pessoal/CreditoPessoalDados";
 import CreditoPessoalConsultando from "@/pages/credito-pessoal/CreditoPessoalConsultando";
@@ -169,7 +181,7 @@ function isValidCpf(value: string) {
   return digit === Number(cpf[10]);
 }
 
-function isWeakNumericPin(value: string) {
+export function isWeakNumericPin(value: string) {
   if (value.length !== 6) return true;
   if (/^(\d)\1{5}$/.test(value)) return true;
   const asc = "01234567890";
@@ -223,7 +235,7 @@ function isValidExpiry(value: string) {
 
 const HERO_IMAGE = "/images/bem-vindo.png";
 
-const NECESSIDADES = [
+export const NECESSIDADES = [
   {
     id: "credito",
     icon: Money,
@@ -341,7 +353,7 @@ function SecurityStrip() {
   );
 }
 
-function StepHeader({ step, total, title, subtitle, labelWord = "Passo" }: { step: number; total: number; title: string; subtitle: string; labelWord?: string }) {
+export function StepHeader({ step, total, title, subtitle, labelWord = "Passo" }: { step: number; total: number; title: string; subtitle: string; labelWord?: string }) {
   const pct = Math.round((step / total) * 100);
   return (
     <div className="mb-5 space-y-2">
@@ -2122,6 +2134,10 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // DESIGN ONLY — /acesso?redirect=/algum/caminho volta o usuário pra lá após o login,
+  // em vez do /painel padrão. Usado pela jornada Leilão CLT ("Já tenho conta").
+  const redirectPosLogin = () => new URLSearchParams(location.search).get("redirect") || "/painel";
+
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [name, setName] = useState("");
@@ -2497,7 +2513,7 @@ function App() {
     setTimeout(() => {
       const user = getStoredUser() ?? { name: "Usuário", email: "" };
       localStorage.setItem("podeja_user", JSON.stringify(user));
-      navigate("/painel");
+      navigate(redirectPosLogin());
     }, 1000);
   };
 
@@ -2705,7 +2721,7 @@ function App() {
                     const user = getStoredUser() ?? { name: "Usuário", email: "" };
                     if (typeof window !== "undefined") window.localStorage.setItem("podeja_user", JSON.stringify(user));
                     setStoredUser(user);
-                    navigate("/painel");
+                    navigate(redirectPosLogin());
                   }}
                 >
                   Confirmar
@@ -4175,6 +4191,20 @@ function App() {
             <Route path="/fgts/dados" element={getStoredUser() ? <FGTSDadosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/assinar" element={getStoredUser() ? <FGTSAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/confirmacao" element={getStoredUser() ? <FGTSConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* Jornada Leilão CLT — /leilao (com conta) e /leilao/criar-conta exigem login;
+                as demais são públicas (guest, sem SubPageLayout) por design. */}
+            <Route path="/leilao" element={getStoredUser() ? <LeilaoOfertaAprovadaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/criar-conta" element={getStoredUser() ? <LeilaoCriarContaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/oferta" element={<LeilaoOfertaPublicaPage />} />
+            <Route path="/leilao/dados" element={<LeilaoDadosPage />} />
+            <Route path="/leilao/mfa" element={<LeilaoMfaPage />} />
+            <Route path="/leilao/assinatura" element={<LeilaoAssinaturaPage />} />
+            <Route path="/leilao/redirecionando/unico" element={<LeilaoRedirecionandoUnicoPage />} />
+            <Route path="/leilao/sucesso" element={<LeilaoSucessoPage />} />
+            <Route path="/leilao/expirada" element={<LeilaoExpiradaPage />} />
+            <Route path="/leilao/cancelada" element={<LeilaoCanceladaPage />} />
+            <Route path="/leilao/falha-averbacao" element={<LeilaoFalhaAverbacaoPage />} />
+            <Route path="/leilao/falha-desembolso" element={<LeilaoFalhaDesembolsoPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </motion.div>
