@@ -64,7 +64,7 @@ export default function LeilaoSucessoPublicaPage() {
           <Button className="h-14 w-full rounded-full" onClick={() => navigate("/leilao/criar-conta", { state: location.state })}>
             Criar conta para acompanhar
           </Button>
-          <Button variant="outline" className="h-12 w-full rounded-full" onClick={() => navigate("/")}>
+          <Button variant="outline" className="h-12 w-full rounded-full" onClick={() => navigate("/leilao/contrato")}>
             Continuar sem conta
           </Button>
         </>

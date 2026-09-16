@@ -28,6 +28,10 @@ export default function LeilaoCriarContaPage() {
     const user = { name: LEAD_MOCK.nome, email: state.email ?? "" };
     localStorage.setItem("podeja_user", JSON.stringify(user));
     localStorage.setItem("podeja_necessidades", JSON.stringify(necessidades));
+    // Usuário já assinou o contrato do Leilão CLT antes de criar a conta — mostra o card de
+    // contrato ativo em primeiro lugar no "Para você agora" (ver App.tsx, mostrarLeilaoContratoAtivo).
+    // TODO: substituir por estado real da API (contrato com status ATIVO vinculado a este usuário)
+    localStorage.setItem("podeja_leilao_contrato_ativo", "true");
     navigate("/painel");
   };
 

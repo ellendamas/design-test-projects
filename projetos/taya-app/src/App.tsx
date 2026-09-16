@@ -126,6 +126,7 @@ import LeilaoDadosPendentesPage from "@/pages/leilao-clt/LeilaoDadosPendentesPag
 import LeilaoOfertaPublicaPage from "@/pages/leilao-clt/OfertaPublicaPage";
 import LeilaoDadosPage from "@/pages/leilao-clt/DadosPage";
 import LeilaoConfirmarDadosPage from "@/pages/leilao-clt/ConfirmarDadosPage";
+import LeilaoContratoPublicaPage from "@/pages/leilao-clt/ContratoPublicaPage";
 import LeilaoMfaPage from "@/pages/leilao-clt/MfaPage";
 import LeilaoAssinaturaPage from "@/pages/leilao-clt/AssinaturaPage";
 import LeilaoAssinaturaPublicaPage from "@/pages/leilao-clt/AssinaturaPublicaPage";
@@ -3344,6 +3345,11 @@ function App() {
   // DESIGN ONLY — ?clt=leilao_aprovado ativa o card de oferta de Leilão CLT aprovada
   const mostrarLeilaoAprovado = cltStatus === "leilao_aprovado";
 
+  // Gravado em LeilaoCriarContaPage.tsx ao concluir a criação de conta pela jornada sem conta do
+  // Leilão CLT (contrato já assinado antes de criar a conta) — mostra o card de contrato ativo
+  // em primeiro lugar no "Para você agora".
+  const mostrarLeilaoContratoAtivo = localStorage.getItem("podeja_leilao_contrato_ativo") === "true";
+
   // DESIGN ONLY — ?clt=consulta_liberada ativa o card "Consulta concluída" no "Para você agora"
   // Card some quando o usuário avança para a revisão (escolheu uma oferta) ou o contrato é desembolsado
   // TODO: remover localStorage quando API disponibilizar status real
@@ -3419,6 +3425,7 @@ function App() {
 
   // Título "Para você agora" só aparece quando pelo menos 1 dos cards abaixo está ativo
   const temCardParaVoceAgora =
+    mostrarLeilaoContratoAtivo ||
     mostrarLeilaoAprovado ||
     mostrarCltConsultaLiberada ||
     fgtsStatus === "autorizado" ||
@@ -3607,6 +3614,27 @@ function App() {
                   (ver isolarVerificacao acima). */}
               {!isolarVerificacao && (
                 <>
+                {/* Card "Contrato Consignado CLT ativo" — jornada sem conta do Leilão CLT: usuário
+                    assinou o contrato antes de criar a conta, então ao entrar no app pela primeira
+                    vez já tem um contrato para acompanhar. Sempre em primeiro lugar. */}
+                {mostrarLeilaoContratoAtivo && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/contratos/clt-001")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-green-100 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <p className="mb-3 text-2xl leading-none">💰</p>
+                        <p className="text-sm font-semibold text-foreground">Você tem um contrato Consignado CLT ativo!</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-foreground">
+                        Ver contrato <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
                 {/* Card "Oferta de Leilão CLT aprovada" — exibido quando ?clt=leilao_aprovado
                     DESIGN ONLY — borda laranja destacada por ser uma oferta nova/urgente,
                     diferente dos demais cards (pendências). Topo do grupo Produto. */}
@@ -4260,6 +4288,7 @@ function App() {
             <Route path="/leilao/oferta" element={<LeilaoOfertaPublicaPage />} />
             <Route path="/leilao/dados" element={<LeilaoDadosPage />} />
             <Route path="/leilao/confirmar-dados" element={<LeilaoConfirmarDadosPage />} />
+            <Route path="/leilao/contrato" element={<LeilaoContratoPublicaPage />} />
             <Route path="/leilao/mfa" element={<LeilaoMfaPage />} />
             <Route path="/leilao/oferta/assinatura" element={<LeilaoAssinaturaPublicaPage />} />
             <Route path="/leilao/oferta/sucesso" element={<LeilaoSucessoPublicaPage />} />
