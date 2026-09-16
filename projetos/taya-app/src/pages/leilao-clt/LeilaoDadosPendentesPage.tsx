@@ -21,7 +21,7 @@ type Metodo = "conta" | "pix";
 export default function LeilaoDadosPendentesPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("endereco");
-  const [metodo, setMetodo] = useState<Metodo>("conta");
+  const [metodo, setMetodo] = useState<Metodo | null>(null);
   const [conta, setConta] = useState<ContaData | null>(null);
   const [chavePix, setChavePix] = useState<string | null>(null);
 
