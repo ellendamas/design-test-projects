@@ -270,17 +270,6 @@ export default function EnderecoSelector({
         <p className="text-xs text-red-500">Você precisa ter pelo menos um endereço cadastrado.</p>
       )}
 
-      {/* ── Botão de confirmação — aparece quando há seleção ── */}
-      {selectedIdx !== null && (
-        <button
-          type="button"
-          onClick={() => onConfirmar(lista[selectedIdx])}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#d04e08] active:scale-[0.98]"
-        >
-          {semProximoPasso ? "Salvar endereço" : "Avançar"}
-        </button>
-      )}
-
       {/* ── Botão adicionar novo endereço ── */}
       {podeMostrarAdicionar && (
         <button
@@ -290,6 +279,17 @@ export default function EnderecoSelector({
         >
           <Plus size={16} />
           {lista.length === 0 ? "Informar endereço" : "Adicionar outro endereço"}
+        </button>
+      )}
+
+      {/* ── Botão de confirmação — aparece quando há seleção ── */}
+      {selectedIdx !== null && (
+        <button
+          type="button"
+          onClick={() => onConfirmar(lista[selectedIdx])}
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#d04e08] active:scale-[0.98]"
+        >
+          {semProximoPasso ? "Salvar endereço" : "Avançar"}
         </button>
       )}
 

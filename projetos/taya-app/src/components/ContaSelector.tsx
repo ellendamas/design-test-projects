@@ -101,6 +101,12 @@ interface ContaSelectorProps {
   mostrarPix?: boolean;
   /** Quantidade máxima de contas cadastráveis — esconde o botão "Adicionar outra" ao atingir o limite */
   maxItens?: number;
+  /** true esconde o cabeçalho (ícone + título + subtítulo) — usado quando a tela que embute o
+   * seletor já mostra seu próprio título antes dele */
+  ocultarCabecalho?: boolean;
+  /** true confirma a seleção automaticamente (ao salvar uma conta nova/editada ou ao clicar em
+   * uma conta já salva), sem exigir um botão extra de "Avançar"/"Salvar conta" */
+  autoConfirmarSelecao?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -133,6 +139,8 @@ export default function ContaSelector({
   permitirExcluir = true,
   mostrarPix = false,
   maxItens = 10,
+  ocultarCabecalho = false,
+  autoConfirmarSelecao = false,
 }: ContaSelectorProps) {
   // Lista local — começa com os props, cresce quando o usuário adiciona/edita
   const [lista, setLista] = useState<ContaData[]>(contasProp);
@@ -250,17 +258,19 @@ export default function ContaSelector({
     <>
     <div className="space-y-3">
       {/* Cabeçalho */}
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
-          <Bank size={28} className="text-[#FD5F31]" />
+      {!ocultarCabecalho && (
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+            <Bank size={28} className="text-[#FD5F31]" />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">
+            Para qual conta enviamos o dinheiro?
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            O valor é transferido em até 1 dia útil após a assinatura
+          </p>
         </div>
-        <h2 className="text-lg font-semibold text-foreground">
-          Para qual conta enviamos o dinheiro?
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          O valor é transferido em até 1 dia útil após a assinatura
-        </p>
-      </div>
+      )}
 
       {/* ── Lista de contas salvas ── */}
       {lista.length > 0 && (
@@ -271,7 +281,7 @@ export default function ContaSelector({
               <div key={idx} className="relative">
                 <button
                   type="button"
-                  onClick={() => setSelectedIdx(idx)}
+                  onClick={() => { setSelectedIdx(idx); if (autoConfirmarSelecao) onConfirmar(c); }}
                   className={cn(
                     "w-full rounded-2xl border p-4 text-left transition-all",
                     isSelected
@@ -326,8 +336,9 @@ export default function ContaSelector({
         <p className="text-xs text-red-500">Você precisa ter pelo menos uma conta bancária cadastrada.</p>
       )}
 
-      {/* ── Botão de confirmação — aparece quando há seleção ── */}
-      {selectedIdx !== null && (
+      {/* ── Botão de confirmação — aparece quando há seleção (a menos que a confirmação já
+          seja automática) ── */}
+      {selectedIdx !== null && !autoConfirmarSelecao && (
         <button
           type="button"
           onClick={() => onConfirmar(lista[selectedIdx])}
