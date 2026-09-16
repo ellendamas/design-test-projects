@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CheckCircle } from "@phosphor-icons/react";
-import { SubPageLayout, StepHeader, NECESSIDADES, isWeakNumericPin } from "@/App";
+import { StepHeader, NECESSIDADES, isWeakNumericPin } from "@/App";
+import { PublicLayout } from "@/components/PublicLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ export default function LeilaoCriarContaPage() {
   };
 
   return (
-    <SubPageLayout title="Criar sua conta" hideNav>
+    <PublicLayout>
       <div className="space-y-4">
         {step === 1 ? (
           <>
@@ -125,6 +126,6 @@ export default function LeilaoCriarContaPage() {
           </>
         )}
       </div>
-    </SubPageLayout>
+    </PublicLayout>
   );
 }

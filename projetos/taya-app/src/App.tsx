@@ -3347,8 +3347,11 @@ function App() {
 
   // Gravado em LeilaoCriarContaPage.tsx ao concluir a criação de conta pela jornada sem conta do
   // Leilão CLT (contrato já assinado antes de criar a conta) — mostra o card de contrato ativo
-  // em primeiro lugar no "Para você agora".
-  const mostrarLeilaoContratoAtivo = localStorage.getItem("podeja_leilao_contrato_ativo") === "true";
+  // em primeiro lugar no "Para você agora". Some assim que o usuário abre a tela do contrato
+  // pelo card uma vez (ver "podeja_leilao_contrato_visto" abaixo).
+  const mostrarLeilaoContratoAtivo =
+    localStorage.getItem("podeja_leilao_contrato_ativo") === "true" &&
+    localStorage.getItem("podeja_leilao_contrato_visto") !== "true";
 
   // DESIGN ONLY — ?clt=consulta_liberada ativa o card "Consulta concluída" no "Para você agora"
   // Card some quando o usuário avança para a revisão (escolheu uma oferta) ou o contrato é desembolsado
@@ -3620,7 +3623,10 @@ function App() {
                 {mostrarLeilaoContratoAtivo && (
                   <button
                     type="button"
-                    onClick={() => navigate("/contratos/clt-001")}
+                    onClick={() => {
+                      localStorage.setItem("podeja_leilao_contrato_visto", "true");
+                      navigate("/contratos/clt-001");
+                    }}
                     className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-green-100 text-left shadow-sm"
                   >
                     <div className="flex h-full flex-col justify-between p-4">

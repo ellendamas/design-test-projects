@@ -31,6 +31,9 @@ interface EnderecoSelectorProps {
   permitirExcluir?: boolean;
   /** Quantidade máxima de endereços cadastráveis — esconde o botão "Adicionar outro" ao atingir o limite */
   maxItens?: number;
+  /** true confirma a seleção automaticamente (ao salvar um endereço novo/editado ou ao clicar em
+   * um endereço já salvo), sem exigir um botão extra de "Avançar"/"Salvar endereço" */
+  autoConfirmarSelecao?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -59,6 +62,7 @@ export default function EnderecoSelector({
   semProximoPasso = false,
   permitirExcluir = true,
   maxItens = 10,
+  autoConfirmarSelecao = false,
 }: EnderecoSelectorProps) {
   // Lista local — começa com os props, cresce quando o usuário adiciona/edita
   const [lista, setLista] = useState<EnderecoData[]>(enderecosProp);
@@ -216,7 +220,7 @@ export default function EnderecoSelector({
               <div key={idx} className="relative">
                 <button
                   type="button"
-                  onClick={() => setSelectedIdx(idx)}
+                  onClick={() => { setSelectedIdx(idx); if (autoConfirmarSelecao) onConfirmar(end); }}
                   className={cn(
                     "w-full rounded-2xl border p-4 text-left transition-all",
                     isSelected
@@ -282,8 +286,9 @@ export default function EnderecoSelector({
         </button>
       )}
 
-      {/* ── Botão de confirmação — aparece quando há seleção ── */}
-      {selectedIdx !== null && (
+      {/* ── Botão de confirmação — aparece quando há seleção (a menos que a confirmação já
+          seja automática) ── */}
+      {selectedIdx !== null && !autoConfirmarSelecao && (
         <button
           type="button"
           onClick={() => onConfirmar(lista[selectedIdx])}
