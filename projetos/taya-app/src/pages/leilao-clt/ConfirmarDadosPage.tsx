@@ -245,39 +245,20 @@ export default function LeilaoConfirmarDadosPage() {
         {editModalContent}
       </ModalOuDrawer>
 
-      {/* Endereço — sem item ainda: o próprio EnderecoSelector abre seu formulário direto,
-          sem precisar de um modal por fora (evita modal dentro de modal). */}
-      {endereco === null && enderecoAberto && (
-        <div className="hidden">
-          <EnderecoSelector
-            key={enderecoKey}
-            enderecos={[]}
-            permitirExcluir={false}
-            maxItens={1}
-            semProximoPasso
-            onConfirmar={(end) => {
-              setEndereco(end);
-              setEnderecoAberto(false);
-            }}
-          />
-        </div>
-      )}
-      {/* Endereço já cadastrado — mostra o resumo/edição dentro do nosso modal/drawer */}
-      {endereco !== null && (
-        <ModalOuDrawer aberto={enderecoAberto} onFechar={() => setEnderecoAberto(false)} titulo="Endereço de recebimento" isDesktop={isDesktop}>
-          <EnderecoSelector
-            key={enderecoKey}
-            enderecos={[endereco]}
-            permitirExcluir={false}
-            maxItens={1}
-            semProximoPasso
-            onConfirmar={(end) => {
-              setEndereco(end);
-              setEnderecoAberto(false);
-            }}
-          />
-        </ModalOuDrawer>
-      )}
+      {/* Endereço de recebimento */}
+      <ModalOuDrawer aberto={enderecoAberto} onFechar={() => setEnderecoAberto(false)} titulo="Endereço de recebimento" isDesktop={isDesktop}>
+        <EnderecoSelector
+          key={enderecoKey}
+          enderecos={endereco ? [endereco] : []}
+          permitirExcluir={false}
+          maxItens={1}
+          semProximoPasso
+          onConfirmar={(end) => {
+            setEndereco(end);
+            setEnderecoAberto(false);
+          }}
+        />
+      </ModalOuDrawer>
 
       {/* Como quer receber o dinheiro — escolha entre conta bancária ou chave Pix */}
       <ModalOuDrawer aberto={metodoAberto} onFechar={() => setMetodoAberto(false)} titulo="Como você quer receber o dinheiro?" isDesktop={isDesktop}>
@@ -311,40 +292,21 @@ export default function LeilaoConfirmarDadosPage() {
         </div>
       </ModalOuDrawer>
 
-      {/* Conta bancária — mesmo padrão do endereço: sem item ainda, o próprio ContaSelector
-          abre seu formulário direto. */}
-      {conta === null && contaAberto && (
-        <div className="hidden">
-          <ContaSelector
-            key={contaKey}
-            contas={[]}
-            permitirExcluir={false}
-            maxItens={1}
-            semProximoPasso
-            onConfirmar={(c) => {
-              setConta(c);
-              setChavePix(null);
-              setContaAberto(false);
-            }}
-          />
-        </div>
-      )}
-      {conta !== null && (
-        <ModalOuDrawer aberto={contaAberto} onFechar={() => setContaAberto(false)} titulo="Conta bancária" isDesktop={isDesktop}>
-          <ContaSelector
-            key={contaKey}
-            contas={[conta]}
-            permitirExcluir={false}
-            maxItens={1}
-            semProximoPasso
-            onConfirmar={(c) => {
-              setConta(c);
-              setChavePix(null);
-              setContaAberto(false);
-            }}
-          />
-        </ModalOuDrawer>
-      )}
+      {/* Conta bancária */}
+      <ModalOuDrawer aberto={contaAberto} onFechar={() => setContaAberto(false)} titulo="Conta bancária" isDesktop={isDesktop}>
+        <ContaSelector
+          key={contaKey}
+          contas={conta ? [conta] : []}
+          permitirExcluir={false}
+          maxItens={1}
+          semProximoPasso
+          onConfirmar={(c) => {
+            setConta(c);
+            setChavePix(null);
+            setContaAberto(false);
+          }}
+        />
+      </ModalOuDrawer>
 
       {/* Chave Pix */}
       <ModalOuDrawer aberto={pixAberto} onFechar={() => setPixAberto(false)} titulo="Chave Pix" isDesktop={isDesktop}>
