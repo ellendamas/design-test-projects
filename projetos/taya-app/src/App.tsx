@@ -3625,10 +3625,12 @@ function App() {
                   >
                     <div className="flex h-full flex-col justify-between p-4">
                       <div>
-                        <p className="mb-3 text-2xl leading-none">💰</p>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-green-700">
+                          <Money size={20} weight="fill" />
+                        </div>
                         <p className="text-sm font-semibold text-foreground">Você tem um contrato Consignado CLT ativo!</p>
                       </div>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-foreground">
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-green-700">
                         Ver contrato <CaretRight size={12} />
                       </div>
                     </div>

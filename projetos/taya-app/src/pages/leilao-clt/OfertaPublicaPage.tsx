@@ -73,38 +73,7 @@ export default function LeilaoOfertaPublicaPage() {
   ];
 
   return (
-    <PublicLayout
-      footerTransparente
-      footer={
-        <>
-          <Button
-            className="h-14 w-full rounded-full"
-            disabled={!termoAceito}
-            onClick={() => navigate(`/leilao/dados${searchParams.toString() ? `?${searchParams.toString()}` : ""}`)}
-          >
-            Aceitar oferta
-          </Button>
-          <Button
-            variant="outline"
-            className="h-12 w-full rounded-full"
-            onClick={() => navigate("/acesso?redirect=/leilao/oferta")}
-          >
-            Já tenho conta
-          </Button>
-          <p className="pt-1 text-center text-xs leading-relaxed text-muted-foreground">
-            Ao continuar, você aceita os{" "}
-            <button type="button" className="underline underline-offset-2" onClick={() => setTermosAbertos(true)}>
-              Termos de Uso
-            </button>{" "}
-            e a{" "}
-            <button type="button" className="underline underline-offset-2" onClick={() => setTermosAbertos(true)}>
-              Política de Privacidade
-            </button>{" "}
-            do Pode Já.
-          </p>
-        </>
-      }
-    >
+    <PublicLayout>
       <div className="space-y-4">
 
         {/* Cabeçalho de sucesso — igual a LeilaoOfertaPage.tsx (jornada com conta) */}
@@ -203,6 +172,36 @@ export default function LeilaoOfertaPublicaPage() {
             parcelas em folha de pagamento.
           </span>
         </button>
+
+        {/* CTAs — no fluxo do conteúdo (não fixos), já que a tela tem bastante texto para
+            ler e um rodapé fixo cobriria parte dele durante o scroll */}
+        <div className="space-y-2 pt-2">
+          <Button
+            className="h-14 w-full rounded-full"
+            disabled={!termoAceito}
+            onClick={() => navigate(`/leilao/dados${searchParams.toString() ? `?${searchParams.toString()}` : ""}`)}
+          >
+            Aceitar oferta
+          </Button>
+          <Button
+            variant="outline"
+            className="h-12 w-full rounded-full"
+            onClick={() => navigate("/acesso?redirect=/leilao/oferta")}
+          >
+            Já tenho conta
+          </Button>
+          <p className="pt-1 text-center text-xs leading-relaxed text-muted-foreground">
+            Ao continuar, você aceita os{" "}
+            <button type="button" className="underline underline-offset-2" onClick={() => setTermosAbertos(true)}>
+              Termos de Uso
+            </button>{" "}
+            e a{" "}
+            <button type="button" className="underline underline-offset-2" onClick={() => setTermosAbertos(true)}>
+              Política de Privacidade
+            </button>{" "}
+            do Pode Já.
+          </p>
+        </div>
 
       </div>
       <TermosModal aberto={termosAbertos} onFechar={() => setTermosAbertos(false)} />
