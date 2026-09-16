@@ -7,16 +7,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import EnderecoSelector from "@/components/EnderecoSelector";
 import ContaSelector, { type ContaData, formatPixKey } from "@/components/ContaSelector";
 
 type Step = "endereco" | "forma";
+type Metodo = "conta" | "pix";
 
-function formatContaResumo(c: ContaData): string {
-  return `${c.banco.nome} · Ag ${c.agencia} · ${c.conta}-${c.digito}`;
-}
-
-// Dialog no desktop, Drawer no mobile — mesmo padrão de ConfirmarDadosPage.tsx (jornada sem conta).
+// Dialog no desktop, Drawer no mobile — usado só para o input de inserção da chave Pix.
+// O seletor de método (conta ou pix) e o seletor de conta em si (lista/formulário via
+// ContaSelector) ficam direto na tela, sem modal.
 function ModalOuDrawer({
   aberto,
   onFechar,
@@ -60,25 +60,16 @@ function ModalOuDrawer({
 export default function LeilaoDadosPendentesPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("endereco");
+  const [metodo, setMetodo] = useState<Metodo | null>(null);
   const [conta, setConta] = useState<ContaData | null>(null);
   const [chavePix, setChavePix] = useState<string | null>(null);
   const [chavePixTemp, setChavePixTemp] = useState("");
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  const [metodoAberto, setMetodoAberto] = useState(false);
-  const [contaAberto, setContaAberto] = useState(false);
-  const [contaKey, setContaKey] = useState(0);
   const [pixAberto, setPixAberto] = useState(false);
-
-  const abrirConta = () => {
-    setContaKey((k) => k + 1);
-    setMetodoAberto(false);
-    setContaAberto(true);
-  };
 
   const abrirPix = () => {
     setChavePixTemp(chavePix ?? "");
-    setMetodoAberto(false);
     setPixAberto(true);
   };
 
@@ -103,25 +94,66 @@ export default function LeilaoDadosPendentesPage() {
       <SubPageLayout title="Confirme seus dados" hideNav>
         <div className="space-y-4 pb-4 md:mx-auto md:max-w-[560px]">
           <div className="flex gap-1">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-1 flex-1 rounded-full bg-[#FD5F31]" />
-            ))}
+            {[1, 2].map((i) => (<div key={i} className="h-1 flex-1 rounded-full bg-[#FD5F31]" />))}
           </div>
           <p className="text-xs text-muted-foreground">Etapa 2 de 2 — Forma de recebimento</p>
 
-          <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Forma de recebimento</p>
-                <p className="text-sm font-medium text-foreground">
-                  {conta ? formatContaResumo(conta) : chavePix ? `Chave Pix: ${chavePix}` : "Não informado"}
-                </p>
+          {/* Seletor de método — direto na tela, não em modal */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setMetodo("conta")}
+              className={cn(
+                "flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-colors",
+                metodo === "conta" ? "border-[#FD5F31] bg-[#FFF3EE]" : "border-border bg-white hover:border-[#FD5F31]/40",
+              )}
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#FD5F31]">
+                <Bank size={22} />
               </div>
-              <button type="button" onClick={() => setMetodoAberto(true)} className="text-sm font-medium text-[#FD5F31] hover:underline">
-                {conta || chavePix ? "Alterar" : "Adicionar"}
-              </button>
-            </div>
+              <p className="text-sm font-semibold text-foreground">Conta bancária</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMetodo("pix")}
+              className={cn(
+                "flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-colors",
+                metodo === "pix" ? "border-[#FD5F31] bg-[#FFF3EE]" : "border-border bg-white hover:border-[#FD5F31]/40",
+              )}
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#FD5F31]">
+                <QrCode size={22} />
+              </div>
+              <p className="text-sm font-semibold text-foreground">Chave Pix</p>
+            </button>
           </div>
+
+          {/* Seletor de conta — direto na tela; só o formulário de adicionar/editar (dentro do
+              próprio ContaSelector) abre em modal/drawer */}
+          {metodo === "conta" && (
+            <ContaSelector
+              contas={conta ? [conta] : []}
+              permitirExcluir={false}
+              maxItens={1}
+              semProximoPasso
+              onConfirmar={(c) => { setConta(c); setChavePix(null); }}
+            />
+          )}
+
+          {/* Chave Pix — resumo na tela; só o input de digitação abre em modal/drawer */}
+          {metodo === "pix" && (
+            <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Chave Pix</p>
+                  <p className="text-sm font-medium text-foreground">{chavePix ?? "Não informado"}</p>
+                </div>
+                <button type="button" onClick={abrirPix} className="text-sm font-medium text-[#FD5F31] hover:underline">
+                  {chavePix ? "Alterar" : "Adicionar"}
+                </button>
+              </div>
+            </div>
+          )}
 
           <Button
             className="h-14 w-full rounded-full"
@@ -133,56 +165,7 @@ export default function LeilaoDadosPendentesPage() {
         </div>
       </SubPageLayout>
 
-      {/* Como quer receber o dinheiro — escolha entre conta bancária ou chave Pix. Fechar e
-          reabrir permite trocar de opção a qualquer momento (ex: escolheu Pix por engano). */}
-      <ModalOuDrawer aberto={metodoAberto} onFechar={() => setMetodoAberto(false)} titulo="Como você quer receber o dinheiro?" isDesktop={isDesktop}>
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={abrirConta}
-            className="flex w-full items-center gap-4 rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#FD5F31]/40"
-          >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE] text-[#FD5F31]">
-              <Bank size={22} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">Conta bancária</p>
-              <p className="text-xs text-muted-foreground">Banco, agência e número da conta</p>
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={abrirPix}
-            className="flex w-full items-center gap-4 rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#FD5F31]/40"
-          >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE] text-[#FD5F31]">
-              <QrCode size={22} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">Chave Pix</p>
-              <p className="text-xs text-muted-foreground">CPF, e-mail, telefone ou chave aleatória</p>
-            </div>
-          </button>
-        </div>
-      </ModalOuDrawer>
-
-      {/* Conta bancária */}
-      <ModalOuDrawer aberto={contaAberto} onFechar={() => setContaAberto(false)} titulo="Conta bancária" isDesktop={isDesktop}>
-        <ContaSelector
-          key={contaKey}
-          contas={conta ? [conta] : []}
-          permitirExcluir={false}
-          maxItens={1}
-          semProximoPasso
-          onConfirmar={(c) => {
-            setConta(c);
-            setChavePix(null);
-            setContaAberto(false);
-          }}
-        />
-      </ModalOuDrawer>
-
-      {/* Chave Pix */}
+      {/* Chave Pix — único conteúdo em modal/drawer nesta etapa (a inserção do dado em si) */}
       <ModalOuDrawer aberto={pixAberto} onFechar={() => setPixAberto(false)} titulo="Chave Pix" isDesktop={isDesktop}>
         <div className="space-y-4">
           <p className="text-xs text-muted-foreground">CPF, e-mail, telefone ou chave aleatória</p>
