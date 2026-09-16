@@ -43,9 +43,10 @@ export default function LeilaoMfaPage() {
 
   return (
     <PublicLayout
+      footerTransparente
       footer={
         <Button
-          className="h-14 w-full rounded-full bg-primary text-base font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+          className="h-14 w-full rounded-full"
           disabled={codigo.length !== 6}
           onClick={verificar}
         >

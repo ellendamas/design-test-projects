@@ -166,9 +166,10 @@ export default function LeilaoConfirmarDadosPage() {
   return (
     <>
       <PublicLayout
+        footerTransparente
         footer={
           <Button
-            className="h-14 w-full rounded-full bg-primary text-base font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+            className="h-14 w-full rounded-full"
             disabled={!podeContinuar}
             onClick={() => navigate("/leilao/mfa", { state: { ...state, email, celular, endereco, conta, chavePix } })}
           >

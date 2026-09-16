@@ -78,7 +78,7 @@ export default function LeilaoOfertaPublicaPage() {
       footer={
         <>
           <Button
-            className="h-14 w-full rounded-full bg-primary text-base font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+            className="h-14 w-full rounded-full"
             disabled={!termoAceito}
             onClick={() => navigate(`/leilao/dados${searchParams.toString() ? `?${searchParams.toString()}` : ""}`)}
           >
@@ -86,7 +86,7 @@ export default function LeilaoOfertaPublicaPage() {
           </Button>
           <Button
             variant="outline"
-            className="h-12 w-full rounded-full border-primary text-primary hover:bg-primary-light"
+            className="h-12 w-full rounded-full"
             onClick={() => navigate("/acesso?redirect=/leilao/oferta")}
           >
             Já tenho conta

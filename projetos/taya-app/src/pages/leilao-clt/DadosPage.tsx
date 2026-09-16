@@ -23,9 +23,10 @@ export default function LeilaoDadosPage() {
 
   return (
     <PublicLayout
+      footerTransparente
       footer={
         <Button
-          className="h-14 w-full rounded-full bg-primary text-base font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
+          className="h-14 w-full rounded-full"
           disabled={!emailValido || !celularValido}
           onClick={() =>
             navigate("/leilao/confirmar-dados", {
