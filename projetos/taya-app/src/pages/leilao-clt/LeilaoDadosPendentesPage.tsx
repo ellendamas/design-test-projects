@@ -89,8 +89,7 @@ export default function LeilaoDadosPendentesPage() {
         {metodo === "conta" && (
           <ContaSelector
             contas={conta ? [conta] : []}
-            permitirExcluir={false}
-            maxItens={1}
+            maxItens={5}
             semProximoPasso
             ocultarCabecalho
             autoConfirmarSelecao
