@@ -103,7 +103,7 @@ export default function LeilaoOfertaPage() {
         <div className="rounded-2xl border border-border bg-white p-3">
           <div className="flex flex-col items-center gap-3 text-center">
             <img
-              src="/images/logo-celcoin.png"
+              src="/images/logo-celcoin.svg"
               alt="Celcoin"
               className="h-10 object-contain"
               onError={(e) => {
@@ -112,7 +112,7 @@ export default function LeilaoOfertaPage() {
             />
             <p className="text-xs font-medium text-muted-foreground">Parceiro oficial</p>
             <p className="text-xs text-muted-foreground leading-relaxed w-full">
-              Você viu o nome "Celcoin" na Carteira de Trabalho Digital porque ela é a instituição financeira parceira que participa do leilão de crédito consignado. A Pode Já trabalha com a Celcoin para cuidar de toda a sua jornada a partir daqui.
+              A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital — por isso foi o nome que você viu lá. Aqui no app, quem cuida da sua contratação é a Pode Já.
             </p>
           </div>
         </div>
