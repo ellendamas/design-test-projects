@@ -27,6 +27,13 @@ interface EnderecoSelectorProps {
   onConfirmar: (endereco: EnderecoData) => void;
   /** Modo sem próximo passo (ex: /minha-conta) — clique no card só seleciona; botão "Salvar" confirma */
   semProximoPasso?: boolean;
+  /** false esconde a exclusão de endereços (ex: jornadas públicas sem contexto de conta pra gerenciar) */
+  permitirExcluir?: boolean;
+  /** Quantidade máxima de endereços cadastráveis — esconde o botão "Adicionar outro" ao atingir o limite */
+  maxItens?: number;
+  /** true confirma a seleção automaticamente (ao salvar um endereço novo/editado ou ao clicar em
+   * um endereço já salvo), sem exigir um botão extra de "Avançar"/"Salvar endereço" */
+  autoConfirmarSelecao?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,6 +60,9 @@ export default function EnderecoSelector({
   enderecos: enderecosProp = [],
   onConfirmar,
   semProximoPasso = false,
+  permitirExcluir = true,
+  maxItens = 10,
+  autoConfirmarSelecao = false,
 }: EnderecoSelectorProps) {
   // Lista local — começa com os props, cresce quando o usuário adiciona/edita
   const [lista, setLista] = useState<EnderecoData[]>(enderecosProp);
@@ -181,7 +191,7 @@ export default function EnderecoSelector({
     if (semProximoPasso) onConfirmar(dados);
   };
 
-  const podeMostrarAdicionar = lista.length < 10;
+  const podeMostrarAdicionar = lista.length < maxItens;
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   return (
@@ -210,7 +220,7 @@ export default function EnderecoSelector({
               <div key={idx} className="relative">
                 <button
                   type="button"
-                  onClick={() => setSelectedIdx(idx)}
+                  onClick={() => { setSelectedIdx(idx); if (autoConfirmarSelecao) onConfirmar(end); }}
                   className={cn(
                     "w-full rounded-2xl border p-4 text-left transition-all",
                     isSelected
@@ -243,11 +253,13 @@ export default function EnderecoSelector({
                     </div>
                   </div>
                 </button>
-                {/* Ícones — lixeira só no desktop, lápis sempre */}
+                {/* Ícones — lixeira só no desktop (quando permitido), lápis sempre */}
                 <div className="absolute right-2 top-1/2 flex -translate-y-1/2 gap-4">
-                  <button type="button" onClick={() => tentarExcluir(idx)} className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-red-500 md:flex">
-                    <Trash size={24} />
-                  </button>
+                  {permitirExcluir && (
+                    <button type="button" onClick={() => tentarExcluir(idx)} className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-red-500 md:flex">
+                      <Trash size={24} />
+                    </button>
+                  )}
                   <button type="button" onClick={() => abrirEdicao(idx)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-[#FD5F31]">
                     <PencilSimple size={24} />
                   </button>
@@ -262,17 +274,6 @@ export default function EnderecoSelector({
         <p className="text-xs text-red-500">Você precisa ter pelo menos um endereço cadastrado.</p>
       )}
 
-      {/* ── Botão de confirmação — aparece quando há seleção ── */}
-      {selectedIdx !== null && (
-        <button
-          type="button"
-          onClick={() => onConfirmar(lista[selectedIdx])}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#d04e08] active:scale-[0.98]"
-        >
-          {semProximoPasso ? "Salvar endereço" : "Avançar"}
-        </button>
-      )}
-
       {/* ── Botão adicionar novo endereço ── */}
       {podeMostrarAdicionar && (
         <button
@@ -282,6 +283,18 @@ export default function EnderecoSelector({
         >
           <Plus size={16} />
           {lista.length === 0 ? "Informar endereço" : "Adicionar outro endereço"}
+        </button>
+      )}
+
+      {/* ── Botão de confirmação — aparece quando há seleção (a menos que a confirmação já
+          seja automática) ── */}
+      {selectedIdx !== null && !autoConfirmarSelecao && (
+        <button
+          type="button"
+          onClick={() => onConfirmar(lista[selectedIdx])}
+          className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white hover:bg-[#d04e08] active:scale-[0.98]"
+        >
+          {semProximoPasso ? "Salvar endereço" : "Avançar"}
         </button>
       )}
 
@@ -311,7 +324,7 @@ export default function EnderecoSelector({
           <DrawerHeader>
             <div className="flex items-center justify-between">
               <DrawerTitle>{modoEdicao ? "Editar endereço" : "Adicionar endereço"}</DrawerTitle>
-              {modoEdicao && lista.length > 1 && (
+              {permitirExcluir && modoEdicao && lista.length > 1 && (
                 <button
                   type="button"
                   onClick={() => { fecharModal(); setEnderecoParaExcluir({ idx: editandoIdx!, end: lista[editandoIdx!] }); }}

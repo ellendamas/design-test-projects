@@ -8,6 +8,8 @@ export interface Notificacao {
   data: string;
   lida: boolean;
   grupo: "hoje" | "semana" | "anteriores";
+  /** Quando presente, o card de notificação fica clicável e navega pra essa rota. */
+  rota?: string;
 }
 
 export const notificacoesMock: Notificacao[] = [
@@ -48,3 +50,17 @@ export const notificacoesMock: Notificacao[] = [
     grupo: "semana",
   },
 ];
+
+// DESIGN ONLY — ativada via ?clt=leilao_aprovado no painel (ver NotificacoesContext,
+// que lê a URL direto por estar fora do <BrowserRouter>).
+// TODO: notificação push real para dispositivo — pendente integração com backend
+export const notificacaoLeilaoMock: Notificacao = {
+  id: "leilao-clt-001",
+  tipo: "oferta",
+  titulo: "Oferta de crédito aprovada!",
+  descricao: "Você tem uma oferta de Crédito Consignado CLT disponível. Acesse para assinar.",
+  data: "Agora",
+  lida: false,
+  grupo: "hoje",
+  rota: "/leilao",
+};

@@ -1,4 +1,4 @@
-import { ArrowClockwise, WarningCircle } from "@phosphor-icons/react";
+import { ArrowClockwise, WarningCircle, type Icon } from "@phosphor-icons/react";
 
 export type ErrorCategoria =
   | "otp_invalido"
@@ -13,7 +13,11 @@ export type ErrorCategoria =
   | "fraude_ou_sensivel"
   | "operacional"
   | "desconhecido"
-  | "simulacao_invalida";
+  | "simulacao_invalida"
+  | "leilao_expirada"
+  | "leilao_cancelada"
+  | "leilao_falha_averbacao"
+  | "leilao_falha_desembolso";
 
 export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string }> = {
   otp_invalido: {
@@ -68,6 +72,22 @@ export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string
     headline: "Sua simulação não é mais válida",
     subtitulo: "Por favor, volte e simule novamente.",
   },
+  leilao_expirada: {
+    headline: "Sua sessão expirou",
+    subtitulo: "O prazo para aceitar esta oferta encerrou. Acesse o aplicativo CTPS Digital para solicitar uma nova consulta.",
+  },
+  leilao_cancelada: {
+    headline: "Sua oferta foi cancelada",
+    subtitulo: "A instituição financeira cancelou esta oferta. Você pode acessar o aplicativo CTPS Digital para participar de uma nova consulta.",
+  },
+  leilao_falha_averbacao: {
+    headline: "Não foi possível finalizar o registro",
+    subtitulo: "Ocorreu um problema ao registrar sua proposta na folha de pagamento. Entre em contato com nosso suporte.",
+  },
+  leilao_falha_desembolso: {
+    headline: "Tivemos um problema na liberação do valor",
+    subtitulo: "O contrato foi assinado, mas houve uma falha ao depositar o valor. Nossa equipe já foi notificada. Entre em contato com o suporte.",
+  },
 };
 
 type ErrorScreenProps = {
@@ -78,6 +98,8 @@ type ErrorScreenProps = {
   inline?: boolean;
   /** compact=true → só o conteúdo, sem wrapper e sem padding interno. Use dentro de modais. */
   compact?: boolean;
+  /** Ícone Phosphor a substituir o padrão (WarningCircle) quando a categoria pedir um ícone específico. */
+  icone?: Icon;
 };
 
 export function ErrorScreen({
@@ -86,13 +108,15 @@ export function ErrorScreen({
   labelBotao = "Tentar novamente",
   inline = false,
   compact = false,
+  icone: IconeCustom,
 }: ErrorScreenProps) {
   const erro = ERROS[categoria];
+  const IconeFinal = IconeCustom ?? WarningCircle;
 
   const conteudo = (
     <div className={`flex flex-col items-center text-center gap-3 ${compact ? "" : "p-6"}`}>
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
-        <WarningCircle size={28} className="text-[#FD5F31]" />
+        <IconeFinal size={28} className="text-[#FD5F31]" />
       </div>
       <p className="text-base font-semibold text-foreground">{erro.headline}</p>
       <p className="text-sm text-muted-foreground leading-relaxed">{erro.subtitulo}</p>
