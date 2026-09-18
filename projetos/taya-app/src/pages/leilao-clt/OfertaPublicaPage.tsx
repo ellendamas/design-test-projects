@@ -110,7 +110,7 @@ export default function LeilaoOfertaPublicaPage() {
             />
             <p className="text-xs font-medium text-muted-foreground">Parceiro oficial</p>
             <p className="text-xs text-muted-foreground leading-relaxed w-full">
-              A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital — por isso foi o nome que você viu lá. Aqui no app, quem cuida da sua contratação é a Pode Já.
+              A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital. Quem cuida da sua contratação a partir de agora é a Pode Já, plataforma digital que conecta você a instituições financeiras parceiras.
             </p>
           </div>
         </div>
