@@ -27,7 +27,7 @@ export default function LeilaoSucessoPage() {
   const conta = (location.state as { conta?: ContaData } | null)?.conta ?? null;
   const usuario = getStoredUser();
   const primeiroNome = usuario?.name?.split(" ")[0] ?? "";
-  const provedor = "Bull";
+  const provedor = "Celcoin";
 
   const linhasResumo = [
     {
