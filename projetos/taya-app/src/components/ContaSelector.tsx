@@ -8,6 +8,76 @@ import { Dialog, DialogContent, DialogClose, DialogHeader, DialogTitle } from "@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 
 // ---------------------------------------------------------------------------
+// Máscara da chave Pix — detecta CPF, telefone, e-mail ou chave aleatória
+// (EVP) no mesmo campo, conforme o usuário digita.
+//
+// CPF e celular têm os dois 11 dígitos, então não dá pra diferenciar só pela
+// quantidade. Usamos a regra prática: todo celular brasileiro tem "9" como
+// primeiro dígito da linha, depois do DDD (padrão nacional desde 2016) — bem
+// mais confiável aqui do que validar dígito verificador de CPF, já que
+// ninguém digita um CPF matematicamente válido só pra testar a tela.
+//
+// A chave aleatória (EVP) segue o formato de um UUID v4: 32 caracteres
+// hexadecimais agrupados 8-4-4-4-12. Só aplicamos esse agrupamento quando o
+// valor só tem dígitos/letras hexadecimais (a-f) — uma letra fora desse
+// intervalo (ex: digitando um e-mail antes do @) não entra nessa formatação.
+//
+// Formatação manual (em vez de máscara dinâmica do react-imask) porque o
+// dispatch de máscaras dinâmicas do IMask trava a edição (backspace parava
+// de funcionar) quando o valor já preenchia o padrão inteiro.
+// ---------------------------------------------------------------------------
+const PIX_CHARS_PERMITIDOS = /[^\w.@+-]/g;
+const APENAS_HEX = /^[a-fA-F0-9]*$/;
+
+function formatChaveAleatoria(valor: string): string {
+  const hex = valor.replace(/[^a-fA-F0-9]/g, "").slice(0, 32).toLowerCase();
+  const partes = [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32)];
+  return partes.filter((p) => p.length > 0).join("-");
+}
+
+export function formatPixKey(valor: string): string {
+  if (valor.includes("@")) return valor;
+
+  const temLetraNaoHex = /[g-zG-Z]/.test(valor);
+  const digitos = valor.replace(/\D/g, "");
+
+  if (temLetraNaoHex) {
+    // Provavelmente e-mail ainda em digitação (antes do @) ou texto livre — sem formatação
+    return valor.replace(PIX_CHARS_PERMITIDOS, "");
+  }
+
+  const apenasSemPontuacao = valor.replace(/[-.\s]/g, "");
+  if (/[a-fA-F]/.test(valor) && APENAS_HEX.test(apenasSemPontuacao)) {
+    return formatChaveAleatoria(valor);
+  }
+
+  if (digitos.length > 11) {
+    // Chave aleatória só numérica (sem letras) — sem formatação, só limpa
+    // caracteres que vieram de uma tentativa anterior de mascarar como telefone/CPF
+    return valor.replace(PIX_CHARS_PERMITIDOS, "");
+  }
+
+  if (digitos.length > 10) {
+    // 11 dígitos — celular (00) 00000-0000 ou CPF 000.000.000-00
+    if (digitos[2] === "9") {
+      return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
+    }
+    return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`;
+  }
+  if (digitos.length > 6) {
+    // telefone fixo em formação (00) 0000-0000
+    return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`;
+  }
+  if (digitos.length > 2) {
+    return `(${digitos.slice(0, 2)}) ${digitos.slice(2)}`;
+  }
+  if (digitos.length > 0) {
+    return `(${digitos}`;
+  }
+  return "";
+}
+
+// ---------------------------------------------------------------------------
 // Tipos exportados
 // ---------------------------------------------------------------------------
 export interface ContaData {
@@ -16,6 +86,7 @@ export interface ContaData {
   agencia: string;
   conta: string;
   digito: string;
+  pixKey?: string;
 }
 
 interface ContaSelectorProps {
@@ -24,6 +95,18 @@ interface ContaSelectorProps {
   onConfirmar: (conta: ContaData) => void;
   /** Modo sem próximo passo (ex: /minha-conta) — clique no card só seleciona; botão "Salvar" confirma */
   semProximoPasso?: boolean;
+  /** false esconde a exclusão de contas (ex: jornadas públicas sem contexto de conta pra gerenciar) */
+  permitirExcluir?: boolean;
+  /** true mostra um campo opcional de chave Pix no formulário, além dos dados bancários */
+  mostrarPix?: boolean;
+  /** Quantidade máxima de contas cadastráveis — esconde o botão "Adicionar outra" ao atingir o limite */
+  maxItens?: number;
+  /** true esconde o cabeçalho (ícone + título + subtítulo) — usado quando a tela que embute o
+   * seletor já mostra seu próprio título antes dele */
+  ocultarCabecalho?: boolean;
+  /** true confirma a seleção automaticamente (ao salvar uma conta nova/editada ou ao clicar em
+   * uma conta já salva), sem exigir um botão extra de "Avançar"/"Salvar conta" */
+  autoConfirmarSelecao?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,6 +136,11 @@ export default function ContaSelector({
   contas: contasProp = [],
   onConfirmar,
   semProximoPasso = false,
+  permitirExcluir = true,
+  mostrarPix = false,
+  maxItens = 10,
+  ocultarCabecalho = false,
+  autoConfirmarSelecao = false,
 }: ContaSelectorProps) {
   // Lista local — começa com os props, cresce quando o usuário adiciona/edita
   const [lista, setLista] = useState<ContaData[]>(contasProp);
@@ -78,10 +166,11 @@ export default function ContaSelector({
   const [agencia, setAgencia] = useState("");
   const [conta, setConta] = useState("");
   const [digito, setDigito] = useState("");
+  const [pixKey, setPixKey] = useState("");
 
   const resetForm = () => {
     setBancoSelecionado(null); setBankSearch(""); setOpenBanco(false);
-    setTipoConta("corrente"); setAgencia(""); setConta(""); setDigito("");
+    setTipoConta("corrente"); setAgencia(""); setConta(""); setDigito(""); setPixKey("");
   };
 
   const fecharModal = () => {
@@ -124,6 +213,7 @@ export default function ContaSelector({
     setAgencia(c.agencia);
     setConta(c.conta);
     setDigito(c.digito);
+    setPixKey(c.pixKey ?? "");
     setModoEdicao(true);
     setEditandoIdx(idx);
     setShowModal(true);
@@ -138,6 +228,7 @@ export default function ContaSelector({
       agencia,
       conta,
       digito,
+      ...(mostrarPix && pixKey ? { pixKey } : {}),
     };
     if (modoEdicao && editandoIdx !== null) {
       setLista(lista.map((c, i) => i === editandoIdx ? dados : c));
@@ -152,7 +243,7 @@ export default function ContaSelector({
     if (semProximoPasso) onConfirmar(dados);
   };
 
-  const podeMostrarAdicionar = lista.length < 10;
+  const podeMostrarAdicionar = lista.length < maxItens;
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const formProps = {
@@ -160,23 +251,26 @@ export default function ContaSelector({
     openBanco, setOpenBanco, tipoConta, setTipoConta,
     agencia, setAgencia, conta, setConta, digito, setDigito,
     podeAdicionarForm, handleSalvar, fecharModal, modoEdicao,
+    mostrarPix, pixKey, setPixKey,
   };
 
   return (
     <>
     <div className="space-y-3">
       {/* Cabeçalho */}
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
-          <Bank size={28} className="text-[#FD5F31]" />
+      {!ocultarCabecalho && (
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+            <Bank size={28} className="text-[#FD5F31]" />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">
+            Para qual conta enviamos o dinheiro?
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            O valor é transferido em até 1 dia útil após a assinatura
+          </p>
         </div>
-        <h2 className="text-lg font-semibold text-foreground">
-          Para qual conta enviamos o dinheiro?
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          O valor é transferido em até 1 dia útil após a assinatura
-        </p>
-      </div>
+      )}
 
       {/* ── Lista de contas salvas ── */}
       {lista.length > 0 && (
@@ -187,7 +281,7 @@ export default function ContaSelector({
               <div key={idx} className="relative">
                 <button
                   type="button"
-                  onClick={() => setSelectedIdx(idx)}
+                  onClick={() => { setSelectedIdx(idx); if (autoConfirmarSelecao) onConfirmar(c); }}
                   className={cn(
                     "w-full rounded-2xl border p-4 text-left transition-all",
                     isSelected
@@ -217,14 +311,17 @@ export default function ContaSelector({
                       <p className="text-xs text-muted-foreground">
                         {c.tipoConta} · Ag {c.agencia} · {c.conta}-{c.digito}
                       </p>
+                      {c.pixKey && <p className="text-xs text-muted-foreground">Pix: {c.pixKey}</p>}
                     </div>
                   </div>
                 </button>
-                {/* Ícones — lixeira só no desktop, lápis sempre */}
+                {/* Ícones — lixeira só no desktop (quando permitido), lápis sempre */}
                 <div className="absolute right-2 top-1/2 flex -translate-y-1/2 gap-4">
-                  <button type="button" onClick={() => tentarExcluir(idx)} className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-red-500 md:flex">
-                    <Trash size={24} />
-                  </button>
+                  {permitirExcluir && (
+                    <button type="button" onClick={() => tentarExcluir(idx)} className="hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-red-500 md:flex">
+                      <Trash size={24} />
+                    </button>
+                  )}
                   <button type="button" onClick={() => abrirEdicao(idx)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-[#FD5F31]">
                     <PencilSimple size={24} />
                   </button>
@@ -239,8 +336,9 @@ export default function ContaSelector({
         <p className="text-xs text-red-500">Você precisa ter pelo menos uma conta bancária cadastrada.</p>
       )}
 
-      {/* ── Botão de confirmação — aparece quando há seleção ── */}
-      {selectedIdx !== null && (
+      {/* ── Botão de confirmação — aparece quando há seleção (a menos que a confirmação já
+          seja automática) ── */}
+      {selectedIdx !== null && !autoConfirmarSelecao && (
         <button
           type="button"
           onClick={() => onConfirmar(lista[selectedIdx])}
@@ -281,7 +379,7 @@ export default function ContaSelector({
           <DrawerHeader>
             <div className="flex items-center justify-between">
               <DrawerTitle>{modoEdicao ? "Editar conta" : "Adicionar conta"}</DrawerTitle>
-              {modoEdicao && lista.length > 1 && (
+              {permitirExcluir && modoEdicao && lista.length > 1 && (
                 <button
                   type="button"
                   onClick={() => { fecharModal(); setContaParaExcluir({ idx: editandoIdx!, conta: lista[editandoIdx!] }); }}
@@ -363,6 +461,7 @@ function ContaFormContent({
   openBanco, setOpenBanco, tipoConta, setTipoConta,
   agencia, setAgencia, conta, setConta, digito, setDigito,
   podeAdicionarForm, handleSalvar, fecharModal, modoEdicao,
+  mostrarPix, pixKey, setPixKey,
 }: {
   bancoSelecionado: { cod: string; nome: string } | null;
   setBancoSelecionado: (b: { cod: string; nome: string }) => void;
@@ -376,6 +475,8 @@ function ContaFormContent({
   handleSalvar: () => void;
   fecharModal: () => void;
   modoEdicao: boolean;
+  mostrarPix: boolean;
+  pixKey: string; setPixKey: (v: string) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -445,6 +546,15 @@ function ContaFormContent({
         <span className="pb-3 text-muted-foreground">-</span>
         <Input value={digito} onChange={(e) => setDigito(e.target.value)} className="h-12 rounded-xl" placeholder="Dígito" />
       </div>
+
+      {mostrarPix && (
+        <Input
+          value={pixKey}
+          onChange={(e) => setPixKey(formatPixKey(e.target.value))}
+          className="h-12 rounded-xl"
+          placeholder="Chave Pix — CPF, e-mail, telefone ou aleatória (opcional)"
+        />
+      )}
 
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={fecharModal}

@@ -124,6 +124,28 @@ import FGTSDadosPage from "@/pages/fgts/DadosPage";
 import FGTSAssinaturaPage from "@/pages/fgts/AssinaturaPage";
 import FGTSSaldoDisponivelPage from "@/pages/fgts/SaldoDisponivelPage";
 import FGTSConfirmacaoPage from "@/pages/fgts/ConfirmacaoPage";
+import LeilaoOfertaPage from "@/pages/leilao-clt/LeilaoOfertaPage";
+import LeilaoDadosPendentesPage from "@/pages/leilao-clt/LeilaoDadosPendentesPage";
+import LeilaoOfertaPublicaPage from "@/pages/leilao-clt/OfertaPublicaPage";
+import LeilaoDadosPage from "@/pages/leilao-clt/DadosPage";
+import LeilaoConfirmarDadosPage from "@/pages/leilao-clt/ConfirmarDadosPage";
+import LeilaoContratoPublicaPage from "@/pages/leilao-clt/ContratoPublicaPage";
+import LeilaoMfaPage from "@/pages/leilao-clt/MfaPage";
+import LeilaoAssinaturaPage from "@/pages/leilao-clt/AssinaturaPage";
+import LeilaoAssinaturaPublicaPage from "@/pages/leilao-clt/AssinaturaPublicaPage";
+import LeilaoRedirecionandoUnicoPage from "@/pages/leilao-clt/RedirecionandoUnicoPage";
+import LeilaoRedirecionandoUnicoPublicaPage from "@/pages/leilao-clt/RedirecionandoUnicoPublicaPage";
+import LeilaoSucessoPage from "@/pages/leilao-clt/SucessoPage";
+import LeilaoSucessoPublicaPage from "@/pages/leilao-clt/SucessoPublicaPage";
+import LeilaoCriarContaPage from "@/pages/leilao-clt/CriarContaPage";
+import LeilaoExpiradaPage from "@/pages/leilao-clt/ExpiradaPage";
+import LeilaoExpiradaPublicaPage from "@/pages/leilao-clt/ExpiradaPublicaPage";
+import LeilaoCanceladaPage from "@/pages/leilao-clt/CanceladaPage";
+import LeilaoCanceladaPublicaPage from "@/pages/leilao-clt/CanceladaPublicaPage";
+import LeilaoFalhaAverbacaoPage from "@/pages/leilao-clt/FalhaAverbacaoPage";
+import LeilaoFalhaAverbacaoPublicaPage from "@/pages/leilao-clt/FalhaAverbacaoPublicaPage";
+import LeilaoFalhaDesembolsoPage from "@/pages/leilao-clt/FalhaDesembolsoPage";
+import LeilaoFalhaDesembolsoPublicaPage from "@/pages/leilao-clt/FalhaDesembolsoPublicaPage";
 import CreditoPessoalLanding from "@/pages/credito-pessoal/CreditoPessoalLanding";
 import CreditoPessoalDados from "@/pages/credito-pessoal/CreditoPessoalDados";
 import CreditoPessoalConsultando from "@/pages/credito-pessoal/CreditoPessoalConsultando";
@@ -172,7 +194,7 @@ function isValidCpf(value: string) {
   return digit === Number(cpf[10]);
 }
 
-function isWeakNumericPin(value: string) {
+export function isWeakNumericPin(value: string) {
   if (value.length !== 6) return true;
   if (/^(\d)\1{5}$/.test(value)) return true;
   const asc = "01234567890";
@@ -226,7 +248,7 @@ function isValidExpiry(value: string) {
 
 const HERO_IMAGE = "/images/bem-vindo.png";
 
-const NECESSIDADES = [
+export const NECESSIDADES = [
   {
     id: "credito",
     icon: Money,
@@ -344,7 +366,7 @@ function SecurityStrip() {
   );
 }
 
-function StepHeader({ step, total, title, subtitle, labelWord = "Passo" }: { step: number; total: number; title: string; subtitle: string; labelWord?: string }) {
+export function StepHeader({ step, total, title, subtitle, labelWord = "Passo" }: { step: number; total: number; title: string; subtitle: string; labelWord?: string }) {
   const pct = Math.round((step / total) * 100);
   return (
     <div className="mb-5 space-y-2">
@@ -1364,6 +1386,7 @@ function ContratoFGTSPage() {
 }
 
 function NotificacaoCard({ notificacao }: { notificacao: Notificacao }) {
+  const navigate = useNavigate();
   const iconePorTipo: Record<NotificacaoTipo, ReactNode> = {
     transacional: <CheckCircle size={18} weight="fill" className="text-green-600" />,
     lembrete: <Clock size={18} weight="fill" className="text-[#FD5F31]" />,
@@ -1371,8 +1394,9 @@ function NotificacaoCard({ notificacao }: { notificacao: Notificacao }) {
     sistema: <Info size={18} weight="fill" className="text-blue-500" />,
   };
 
-  return (
-    <div className={`flex gap-3 rounded-2xl border p-4 transition-colors ${!notificacao.lida ? "border-[#FD5F31]/20 bg-[#FFF3EE]" : "border-border bg-white"}`}>
+  const className = `flex w-full gap-3 rounded-2xl border p-4 text-left transition-colors ${!notificacao.lida ? "border-[#FD5F31]/20 bg-[#FFF3EE]" : "border-border bg-white"}`;
+  const conteudo = (
+    <>
       <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${!notificacao.lida ? "bg-white" : "bg-[#F0F0F0]"}`}>{iconePorTipo[notificacao.tipo]}</div>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
@@ -1382,8 +1406,18 @@ function NotificacaoCard({ notificacao }: { notificacao: Notificacao }) {
         <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{notificacao.descricao}</p>
         <p className="mt-1.5 text-[11px] text-muted-foreground/60">{notificacao.data}</p>
       </div>
-    </div>
+    </>
   );
+
+  if (notificacao.rota) {
+    return (
+      <button type="button" onClick={() => navigate(notificacao.rota!)} className={className}>
+        {conteudo}
+      </button>
+    );
+  }
+
+  return <div className={className}>{conteudo}</div>;
 }
 
 function NotificacoesPage() {
@@ -2274,8 +2308,13 @@ function App() {
     } else setStoredUser(user);
   }, [location.pathname, location.search, navigate]);
 
-  // DESIGN ONLY — recupera (e limpa) o destino salvo acima; usar em todo navigate() de sucesso de login
+  // DESIGN ONLY — destino pós-login: prioriza ?redirect=/algum/caminho explícito na URL de acesso
+  // (ex: /acesso?redirect=/leilao/oferta, usado pela jornada Leilão CLT em "Já tenho conta"),
+  // senão recupera (e limpa) o destino salvo pelo guard de rota protegida acima; usar em todo
+  // navigate() de sucesso de login.
   const destinoPosLogin = () => {
+    const redirectParam = new URLSearchParams(location.search).get("redirect");
+    if (redirectParam) return redirectParam;
     const salvo = sessionStorage.getItem("podeja_destino_pos_login");
     if (salvo) {
       sessionStorage.removeItem("podeja_destino_pos_login");
@@ -3333,7 +3372,19 @@ function App() {
     | "consultando"
     | "oferta"
     | "contrato"
-    | "consulta_liberada";
+    | "consulta_liberada"
+    | "leilao_aprovado";
+
+  // DESIGN ONLY — ?clt=leilao_aprovado ativa o card de oferta de Leilão CLT aprovada
+  const mostrarLeilaoAprovado = cltStatus === "leilao_aprovado";
+
+  // Gravado em LeilaoCriarContaPage.tsx ao concluir a criação de conta pela jornada sem conta do
+  // Leilão CLT (contrato já assinado antes de criar a conta) — mostra o card de contrato ativo
+  // em primeiro lugar no "Para você agora". Some assim que o usuário abre a tela do contrato
+  // pelo card uma vez (ver "podeja_leilao_contrato_visto" abaixo).
+  const mostrarLeilaoContratoAtivo =
+    localStorage.getItem("podeja_leilao_contrato_ativo") === "true" &&
+    localStorage.getItem("podeja_leilao_contrato_visto") !== "true";
 
   // DESIGN ONLY — ?clt=consulta_liberada ativa o card "Consulta concluída" no "Para você agora"
   // Card some quando o usuário avança para a revisão (escolheu uma oferta) ou o contrato é desembolsado
@@ -3397,7 +3448,7 @@ function App() {
     ? verificacaoParam === "telefone"
     : localStorage.getItem("podeja_telefone_validado") !== "true" && !celularTrocadoPendente; // DESIGN ONLY
 
-  // DESIGN ONLY — condição dos novos cards pós-troca (Ajuste 2)
+  // DESIGN ONLY — condição dos novos cards pós-troca
   const mostrarEmailNovo = verificacaoParam ? verificacaoParam === "email_novo" : emailTrocadoPendente;
   const mostrarCelularNovo = verificacaoParam ? verificacaoParam === "celular_novo" : celularTrocadoPendente;
 
@@ -3410,6 +3461,8 @@ function App() {
 
   // Título "Para você agora" só aparece quando pelo menos 1 dos cards abaixo está ativo
   const temCardParaVoceAgora =
+    mostrarLeilaoContratoAtivo ||
+    mostrarLeilaoAprovado ||
     mostrarCltConsultaLiberada ||
     fgtsStatus === "autorizado" ||
     fgtsStatus === "contrato" ||
@@ -3502,7 +3555,7 @@ function App() {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/80">Para você agora</p>
               <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
 
-              {/* Ordem de prioridade do Sistema A (Ajuste 3): Segurança → Produto → Conta.
+              {/* Ordem de prioridade do Sistema A: Segurança → Produto → Conta.
                   Dentro de Segurança: pós-troca (Fluxo B) vem antes de inicial (Fluxo A),
                   celular antes de e-mail em cada par. */}
 
@@ -3600,6 +3653,58 @@ function App() {
                   (ver isolarVerificacao acima). */}
               {!isolarVerificacao && (
                 <>
+                {/* Card "Contrato Consignado CLT ativo" — jornada sem conta do Leilão CLT: usuário
+                    assinou o contrato antes de criar a conta, então ao entrar no app pela primeira
+                    vez já tem um contrato para acompanhar. Sempre em primeiro lugar. */}
+                {mostrarLeilaoContratoAtivo && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem("podeja_leilao_contrato_visto", "true");
+                      navigate("/contratos/clt-001");
+                    }}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-green-100 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-green-700">
+                          <Money size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Você tem um contrato Consignado CLT ativo!</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-green-700">
+                        Ver contrato <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Card "Oferta de Leilão CLT aprovada" — exibido quando ?clt=leilao_aprovado
+                    DESIGN ONLY — borda laranja destacada por ser uma oferta nova/urgente,
+                    diferente dos demais cards (pendências). Topo do grupo Produto. */}
+                {mostrarLeilaoAprovado && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/leilao")}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-2 border-[#FD5F31] bg-white text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-2 flex items-center justify-between">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE]">
+                            <Money size={20} weight="fill" className="text-[#FD5F31]" />
+                          </div>
+                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">Oferta aprovada</span>
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Você tem uma oferta de Crédito Consignado CLT aprovada!</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Ver oferta <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
                 {/* Card "Proposta aguardando assinatura" — exibido quando ?cp=assinatura_pendente
                     DESIGN ONLY — substitui o card padrão de ?cp=andamento
                     Assinatura é 100% via Unico (modo SMS descontinuado) — card leva direto para o estado "aguardando" da assinatura */}
@@ -4213,6 +4318,33 @@ function App() {
             <Route path="/fgts/dados" element={getStoredUser() ? <FGTSDadosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/assinar" element={getStoredUser() ? <FGTSAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/fgts/confirmacao" element={getStoredUser() ? <FGTSConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* Jornada Leilão CLT — com conta (exige login) e pública/guest são fluxos
+                apartados: cada etapa da jornada guest (a partir de /leilao/oferta) tem sua
+                própria tela e rota, sem compartilhar componente com a jornada logada. */}
+            <Route path="/leilao" element={getStoredUser() ? <LeilaoOfertaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/dados-pendentes" element={getStoredUser() ? <LeilaoDadosPendentesPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/assinatura" element={getStoredUser() ? <LeilaoAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/sucesso" element={getStoredUser() ? <LeilaoSucessoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/expirada" element={getStoredUser() ? <LeilaoExpiradaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/cancelada" element={getStoredUser() ? <LeilaoCanceladaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/falha-averbacao" element={getStoredUser() ? <LeilaoFalhaAverbacaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/leilao/falha-desembolso" element={getStoredUser() ? <LeilaoFalhaDesembolsoPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* /leilao/criar-conta é o mini-onboarding de QUEM AINDA NÃO TEM conta — se já
+                houver usuário logado, não faz sentido "criar conta" de novo. */}
+            <Route path="/leilao/criar-conta" element={!getStoredUser() ? <LeilaoCriarContaPage /> : <Navigate to="/painel" replace />} />
+            <Route path="/leilao/oferta" element={<LeilaoOfertaPublicaPage />} />
+            <Route path="/leilao/dados" element={<LeilaoDadosPage />} />
+            <Route path="/leilao/confirmar-dados" element={<LeilaoConfirmarDadosPage />} />
+            <Route path="/leilao/contrato" element={<LeilaoContratoPublicaPage />} />
+            <Route path="/leilao/mfa" element={<LeilaoMfaPage />} />
+            <Route path="/leilao/oferta/assinatura" element={<LeilaoAssinaturaPublicaPage />} />
+            <Route path="/leilao/oferta/sucesso" element={<LeilaoSucessoPublicaPage />} />
+            <Route path="/leilao/oferta/expirada" element={<LeilaoExpiradaPublicaPage />} />
+            <Route path="/leilao/oferta/cancelada" element={<LeilaoCanceladaPublicaPage />} />
+            <Route path="/leilao/oferta/falha-averbacao" element={<LeilaoFalhaAverbacaoPublicaPage />} />
+            <Route path="/leilao/oferta/falha-desembolso" element={<LeilaoFalhaDesembolsoPublicaPage />} />
+            <Route path="/leilao/oferta/redirecionando/unico" element={<LeilaoRedirecionandoUnicoPublicaPage />} />
+            <Route path="/leilao/redirecionando/unico" element={<LeilaoRedirecionandoUnicoPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </motion.div>
