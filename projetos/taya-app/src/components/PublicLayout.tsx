@@ -14,17 +14,23 @@ export function PublicLayout({
   children,
   footer,
   footerTransparente = false,
+  ocultarHeader = false,
 }: {
   children: ReactNode;
   footer?: ReactNode;
   /** true remove o fundo branco do rodapé fixo (ex: telas com CTA sobre o próprio conteúdo) */
   footerTransparente?: boolean;
+  /** true esconde o header com a logo — usado só na primeira tela da jornada (chegada pelo
+   * link), pra logo da Pode Já aparecer a partir da segunda tela, não na primeira */
+  ocultarHeader?: boolean;
 }) {
   return (
     <div className="min-h-screen w-full bg-background">
-      <header className="flex justify-center bg-transparent px-4 py-4 md:px-8">
-        <Logo size="md" />
-      </header>
+      {!ocultarHeader && (
+        <header className="flex justify-center bg-transparent px-4 py-4 md:px-8">
+          <Logo size="md" />
+        </header>
+      )}
       <main className={`mx-auto w-full max-w-[560px] px-4 py-6 md:px-0 ${footer ? "pb-28" : ""}`}>
         {children}
       </main>

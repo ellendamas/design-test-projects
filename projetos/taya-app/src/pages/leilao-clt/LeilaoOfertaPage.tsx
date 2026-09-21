@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CaretDown, Check, CheckCircle } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { SubPageLayout } from "@/App";
+import { Logo } from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { OFERTA_LEILAO } from "./leilaoData";
 
@@ -94,27 +95,6 @@ export default function LeilaoOfertaPage() {
           </div>
         </div>
 
-        {/* Bloco de parceria Pode Já × Celcoin — o leilão acontece dentro da Carteira de
-            Trabalho Digital sob o nome Celcoin (instituição parceira regulamentada); ao abrir
-            o link, o usuário passa a ver a identidade da Pode Já. Este box existe pra explicar
-            essa troca de nome antes que ela gere estranhamento. */}
-        <div className="rounded-2xl border border-border bg-white p-3">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <img
-              src="/images/logo-celcoin.svg"
-              alt="Celcoin"
-              className="h-10 object-contain"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-            <p className="text-xs font-medium text-muted-foreground">Parceiro oficial</p>
-            <p className="text-xs text-muted-foreground leading-relaxed w-full">
-              A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital. Quem cuida da sua contratação a partir de agora é a Pode Já, plataforma digital que conecta você a diversas soluções financeiras.
-            </p>
-          </div>
-        </div>
-
         {/* Bloco 1 — Composição do empréstimo */}
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
@@ -165,6 +145,34 @@ export default function LeilaoOfertaPage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Bloco de parceria Pode Já × Celcoin — o leilão acontece dentro da Carteira de
+            Trabalho Digital sob o nome Celcoin (instituição parceira que participa do leilão);
+            ao abrir o link, o usuário passa a ver a identidade da Pode Já. Este box existe pra
+            explicar essa troca de nome antes que ela gere estranhamento. Mesmo card cinza
+            neutro já usado em consignado-clt/SemOfertaPage.tsx (bg-muted). */}
+        <div className="rounded-2xl bg-muted p-4">
+          <div className="flex items-center justify-center gap-3">
+            <img
+              src="/images/logo-celcoin.svg"
+              alt="Celcoin"
+              className="h-6 object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <span className="text-sm text-muted-foreground">+</span>
+            <Logo size="sm" />
+          </div>
+          <div className="mt-3 space-y-2 text-center">
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital.
+            </p>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Quem cuida da sua contratação a partir de agora é a Pode Já, plataforma digital que conecta você a diversas soluções financeiras.
+            </p>
+          </div>
         </div>
 
         {/* Consentimento — botão-checkbox custom */}
