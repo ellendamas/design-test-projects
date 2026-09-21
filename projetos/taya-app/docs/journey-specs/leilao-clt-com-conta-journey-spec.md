@@ -28,6 +28,7 @@ status: draft
 - **Telas/componentes que esta jornada *integra*, mas não possui:**
   - `ContaSelector` / `EnderecoSelector` (`src/components/*`) — reaproveitados de outros produtos. Dois props novos foram adicionados **a esses componentes compartilhados** especificamente para esta jornada: `ocultarCabecalho` e `autoConfirmarSelecao` (ver seção 6) — usados apenas onde a jornada Leilão CLT chama esses componentes; o comportamento default (sem essas props) não muda para os outros produtos.
   - `ErrorScreen` (`src/components/ErrorScreen.tsx`) — 4 categorias de erro novas foram adicionadas ao `Record` compartilhado: `leilao_expirada`, `leilao_cancelada`, `leilao_falha_averbacao`, `leilao_falha_desembolso`.
+  - `Logo` (`src/components/Logo.tsx`) — reaproveitado no bloco de parceria da tela de oferta (LC-01), lado a lado com o logo da Celcoin.
   - `UnicoNotice` / `UnicoAguardando` (`src/components/*`) — reaproveitados sem alteração do padrão já usado em Consignado CLT.
   - `ContratoCLTPage` (rota `/contratos/clt-001`, em `App.tsx`) — tela de contrato já existente, reaproveitada como destino do card do dashboard.
   - Card "Para você agora" no dashboard (`src/App.tsx`) — novo card `mostrarLeilaoContratoAtivo`, inserido dentro da seção já existente de cards (mas só aparece para quem veio pela jornada **sem conta** e criou conta depois — ver `leilao-clt-sem-conta-journey-spec.md`).
@@ -76,9 +77,9 @@ status: draft
 
 **Componentes principais**
 - Ícone de sucesso animado (`CheckCircle`, spring)
-- Bloco de parceria Pode Já × Celcoin (logo `/images/logo-celcoin.svg`, rótulo "Parceiro oficial", texto explicativo)
 - Card "Sua oferta" com badge do parceiro (`Celcoin`)
-- Card "Detalhes do consignado" (fundo laranja claro), agora em **accordion colapsável**
+- Card "Detalhes do consignado" (fundo laranja claro), em **accordion colapsável**
+- Bloco de parceria Pode Já × Celcoin (logos lado a lado + "+", texto explicativo)
 - Checkbox de consentimento (custom, não é o componente `Checkbox` padrão)
 - CTA primária "Aceitar e continuar", fixa no rodapé (`fixed bottom-0`, `md:relative` no desktop)
 
@@ -90,16 +91,16 @@ status: draft
 **Regras de negócio**
 - Valores vêm de `OFERTA_LEILAO` (mock): R$ 32.533,83 em 48x de R$ 891,20, taxa 2,49% a.m.
 - IOF, taxa anual, CET e total a pagar são **calculados no cliente** (`iof = valor * 0.0332`, `cetMensal = taxaMensal + 0.21`) — `// TODO: receber IOF/CET/total real da API`.
-- **Bloco de parceria Celcoin** *(adicionado nesta rodada)*: explica que o leilão acontece dentro da Carteira de Trabalho Digital sob o nome "Celcoin" (instituição parceira que participa do leilão); ao abrir o link, o usuário passa a ver a identidade da Pode Já. Existe pra essa troca de nome não gerar estranhamento. Logo com fallback (`onError` esconde a imagem se o arquivo não carregar).
-- **Accordion "Detalhes do consignado"** *(era um card sempre visível; convertido nesta rodada)*: mesmos 5 rótulos de antes (Taxa de juros, CET, Parcelas, Primeira parcela, Total a pagar), agora escondidos por padrão atrás de um botão-trigger com `CaretDown` que gira 180° ao abrir — mesmo padrão de interação de `consignado-clt/SimuladorPage.tsx`. O copy dos rótulos/valores não mudou, só a apresentação (reduzir quantidade de informação visível de uma vez na tela).
-- **Removida** *(nesta rodada)* a frase de descrição "Encontramos a melhor oferta para você entre as instituições parceiras. Confira os detalhes abaixo." — não fazia sentido com o que realmente acontece no leilão.
-- **Removido** *(nesta rodada)* o card "Previsão de crédito na conta" desta tela — mudou de lugar para LC-06 (Sucesso), por fazer mais sentido no momento em que o usuário já sabe que vai receber o dinheiro.
+- **Accordion "Detalhes do consignado"**: mesmos 5 rótulos de antes (Taxa de juros, CET, Parcelas, Primeira parcela, Total a pagar), escondidos por padrão atrás de um botão-trigger com `CaretDown` que gira 180° ao abrir — mesmo padrão de interação de `consignado-clt/SimuladorPage.tsx`. Copy dos rótulos/valores inalterado.
+- **Bloco de parceria Celcoin** *(reposicionado e redesenhado nesta rodada, seguindo referência de layout no Figma — node `273:232`)*: fica **depois** do accordion "Detalhes do consignado" e **antes** do consentimento (antes ficava logo após o cabeçalho, primeiro elemento da tela). Mostra os logos da Celcoin e da Pode Já lado a lado, separados por um "+" (reaproveita o componente `Logo` já existente, `src/components/Logo.tsx`, em vez de um `<img>` cru) — **sem** o rótulo "Parceiro oficial" que existia antes. Texto em duas frases centralizadas, dentro de um card cinza neutro (`bg-muted`, mesmo padrão já usado em `consignado-clt/SemOfertaPage.tsx`) em vez do card branco com borda anterior. Explica que o leilão acontece dentro da Carteira de Trabalho Digital sob o nome "Celcoin"; ao abrir o link, o usuário passa a ver a identidade da Pode Já. Logo da Celcoin com fallback (`onError` esconde a imagem se o arquivo não carregar).
+- **Removida** a frase de descrição "Encontramos a melhor oferta para você entre as instituições parceiras. Confira os detalhes abaixo." — não fazia sentido com o que realmente acontece no leilão.
+- **Removido** o card "Previsão de crédito na conta" desta tela — mudou de lugar para LC-06 (Sucesso), por fazer mais sentido no momento em que o usuário já sabe que vai receber o dinheiro.
 - Provedor mock trocado de `"Bull"` (herdado por engano do Consignado CLT, onde é um parceiro real e diferente) para `"Celcoin"`, coerente com o bloco de parceria.
 
 **Microcopy crítica**
-- Título: **"Oferta aprovada!"** — *unificado nesta rodada* com o título já usado na jornada sem conta (antes desta mudança era "Proposta aprovada!", só nesta versão)
-- Bloco de parceria: rótulo "Parceiro oficial" / texto "A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital. Quem cuida da sua contratação a partir de agora é a Pode Já, plataforma digital que conecta você a diversas soluções financeiras."
+- Título: **"Oferta aprovada!"** — unificado com o título já usado na jornada sem conta (antes era "Proposta aprovada!", só nesta versão)
 - Accordion: rótulo do trigger "Detalhes do consignado" (conteúdo interno sem alteração de copy)
+- Bloco de parceria: **sem rótulo** (era "Parceiro oficial", removido) / texto em duas frases: "A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital." + "Quem cuida da sua contratação a partir de agora é a Pode Já, plataforma digital que conecta você a diversas soluções financeiras."
 - Texto do consentimento: "Ao continuar, concordo com os termos do contrato de consentimento realizado e autorizo o desconto das parcelas em folha de pagamento."
 - CTA primária: "Aceitar e continuar"
 
@@ -107,6 +108,7 @@ status: draft
 - Contraste AA nos textos sobre fundo laranja claro (`#FFF3EE`/`#D94E28`)
 - Alvo de toque mínimo 44px nos CTAs
 - Estado do accordion comunicado visualmente pela rotação do ícone — **falta** `aria-expanded` no botão-trigger (ver Open Questions)
+- Logos do bloco de parceria têm `alt` (`"Celcoin"` / `"Pode Já"`)
 
 ---
 
@@ -329,6 +331,7 @@ status: draft
 | LC-01 → LC-06 | changed | Card "Previsão de crédito na conta" mudou da tela de oferta para a tela de sucesso | Faz mais sentido no momento em que o usuário já sabe que vai receber o dinheiro, não antes de aceitar a oferta | Reduz informação na tela de oferta; reforça a confirmação na tela de sucesso |
 | LC-01 | changed | Título unificado para "Oferta aprovada!" (era "Proposta aprovada!", só nesta versão) | Consistência com o título já usado na jornada sem conta | Mesma terminologia nas duas jornadas |
 | LC-01/LC-06 | changed | Provedor mock trocado de "Bull" para "Celcoin" | "Bull" era um resquício copiado do Consignado CLT, sem relação real com este produto; ficava contraditório ao lado do bloco de parceria novo | Consistência entre o badge do parceiro e o texto explicativo |
+| LC-01 | changed | Bloco de parceria reposicionado (de antes do card "Sua oferta" para depois do accordion "Detalhes do consignado") e redesenhado: logos da Celcoin e Pode Já lado a lado com "+", sem o rótulo "Parceiro oficial", card cinza neutro (`bg-muted`) em vez de branco com borda | Alinhamento a referência de layout entregue no Figma (node `273:232`) | Aproxima o protótipo do design de referência aprovado |
 
 ## 7) Taxonomia de eventos Amplitude
 

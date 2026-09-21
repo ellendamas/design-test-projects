@@ -26,7 +26,8 @@ status: draft
 - **Origem:** demanda "Leilão CLT" — protótipo de design para handoff, sem API real conectada ainda.
 - **Telas/componentes que esta jornada *possui* (criados especificamente para ela):** `OfertaPublicaPage.tsx`, `DadosPage.tsx`, `ConfirmarDadosPage.tsx`, `MfaPage.tsx`, `AssinaturaPublicaPage.tsx`, `RedirecionandoUnicoPublicaPage.tsx`, `SucessoPublicaPage.tsx`, `CriarContaPage.tsx`, `ContratoPublicaPage.tsx`, `ExpiradaPublicaPage.tsx`, `CanceladaPublicaPage.tsx`, `FalhaAverbacaoPublicaPage.tsx`, `FalhaDesembolsoPublicaPage.tsx` (em `src/pages/leilao-clt/*`), mais `leilaoData.ts` e `PixSelector.tsx` (compartilhados com a jornada com conta, mas construídos exclusivamente para esta feature).
 - **Telas/componentes que esta jornada *integra*, mas não possui:**
-  - `PublicLayout` (`src/components/PublicLayout.tsx`) — layout guest sem sidebar/menu, header centralizado só com logo, usado em toda a jornada.
+  - `PublicLayout` (`src/components/PublicLayout.tsx`) — layout guest sem sidebar/menu, header centralizado só com logo, usado em toda a jornada. Ganhou um prop novo nesta rodada, `ocultarHeader`, usado só na primeira tela (LG-01) pra esconder a logo da Pode Já ali — aditivo, default `false`, não afeta as outras telas que usam o mesmo layout.
+  - `Logo` (`src/components/Logo.tsx`) — reaproveitado no bloco de parceria da tela de oferta (LG-01), lado a lado com o logo da Celcoin.
   - `ContaSelector` / `EnderecoSelector` (`src/components/*`) — reaproveitados de outros produtos, usados aqui **sem** os props `ocultarCabecalho`/`autoConfirmarSelecao` (esses props existem, mas quem os usa é a jornada com conta — ver `leilao-clt-com-conta-journey-spec.md`).
   - `ErrorScreen` (`src/components/ErrorScreen.tsx`) — 4 categorias de erro novas foram adicionadas ao `Record` compartilhado: `leilao_expirada`, `leilao_cancelada`, `leilao_falha_averbacao`, `leilao_falha_desembolso`.
   - `UnicoNotice` / `UnicoAguardando` (`src/components/*`) — reaproveitados sem alteração do padrão já usado em Consignado CLT.
@@ -79,10 +80,11 @@ status: draft
 - Apresentar a oferta já aprovada (valor, parcelas, taxa, IOF) e coletar o consentimento antes de avançar, sem exigir login.
 
 **Componentes principais**
+- **Sem header** — logo da Pode Já escondida só nesta tela (`<PublicLayout ocultarHeader>`); a tela começa direto no ícone de sucesso
 - Ícone de sucesso animado (`CheckCircle`, spring)
-- Bloco de parceria Pode Já × Celcoin (logo `/images/logo-celcoin.svg`, rótulo "Parceiro oficial", texto explicativo)
 - Card "Sua oferta" com badge do parceiro (`Celcoin`)
-- Card "Detalhes do consignado" (fundo laranja claro), agora em **accordion colapsável**
+- Card "Detalhes do consignado" (fundo laranja claro), em **accordion colapsável**
+- Bloco de parceria Pode Já × Celcoin (logos lado a lado + "+", texto explicativo)
 - Checkbox de consentimento (custom)
 - CTA primária "Aceitar oferta" + CTA secundária "Já tenho conta" (`variant="outline"`) + rodapé de Termos de Uso/Política de Privacidade (abre `TermosModal`)
 
@@ -96,16 +98,17 @@ status: draft
 - IOF, taxa anual, CET e total a pagar são **calculados no cliente** — `// TODO: receber IOF/CET/total real da API`.
 - CTAs **não são fixas** no rodapé — ficam no fluxo do conteúdo, decisão deliberada porque a tela tem bastante texto para ler e um rodapé fixo cobriria conteúdo durante o scroll.
 - Propaga `searchParams` (ex.: `?token=mock`) para a próxima rota (`/leilao/dados`).
-- **Bloco de parceria Celcoin** *(adicionado nesta rodada)*: explica que o leilão acontece dentro da Carteira de Trabalho Digital sob o nome "Celcoin"; ao abrir o link, o usuário passa a ver a identidade da Pode Já. Logo com fallback (`onError` esconde a imagem se o arquivo não carregar).
-- **Accordion "Detalhes do consignado"** *(era um card sempre visível; convertido nesta rodada)*: mesmos 5 rótulos de antes, agora escondidos por padrão atrás de um botão-trigger com `CaretDown` que gira 180° ao abrir — mesmo padrão de `consignado-clt/SimuladorPage.tsx`. Copy inalterado.
-- **Removida** *(nesta rodada)* a frase de descrição "Encontramos a melhor oferta para você entre as instituições parceiras. Confira os detalhes abaixo." — não fazia sentido com o que realmente acontece no leilão.
-- **Removido** *(nesta rodada)* o card "Previsão de crédito na conta" desta tela — mudou de lugar para LG-07 (Sucesso).
+- **Header escondido nesta tela**: prop novo `ocultarHeader` no `PublicLayout` (`src/components/PublicLayout.tsx`), usado **só** em `/leilao/oferta` (LG-01) — a logo da Pode Já só volta a aparecer a partir de LG-02 (Dados básicos) em diante. Decisão deliberada: na primeira tela, quem "apresenta" a oferta é a Celcoin (é o nome que o usuário viu na CTPS); mostrar a logo da Pode Já já na chegada antecipava uma identidade que só faz sentido a partir do bloco de parceria mais abaixo na mesma tela.
+- **Accordion "Detalhes do consignado"**: mesmos 5 rótulos de antes, escondidos por padrão atrás de um botão-trigger com `CaretDown` que gira 180° ao abrir — mesmo padrão de `consignado-clt/SimuladorPage.tsx`. Copy inalterado.
+- **Bloco de parceria Celcoin** *(reposicionado e redesenhado nesta rodada, seguindo referência de layout no Figma — node `273:232`)*: fica **depois** do accordion "Detalhes do consignado" e **antes** do consentimento (antes ficava logo após o cabeçalho, primeiro elemento da tela). Mostra os logos da Celcoin e da Pode Já lado a lado, separados por um "+" (reaproveita o componente `Logo` já existente, `src/components/Logo.tsx`) — **sem** o rótulo "Parceiro oficial" que existia antes. Texto em duas frases centralizadas, dentro de um card cinza neutro (`bg-muted`, mesmo padrão já usado em `consignado-clt/SemOfertaPage.tsx`) em vez do card branco com borda anterior.
+- **Removida** a frase de descrição "Encontramos a melhor oferta para você entre as instituições parceiras. Confira os detalhes abaixo." — não fazia sentido com o que realmente acontece no leilão.
+- **Removido** o card "Previsão de crédito na conta" desta tela — mudou de lugar para LG-07 (Sucesso).
 - Provedor mock trocado de `"Bull"` para `"Celcoin"`, coerente com o bloco de parceria.
 
 **Microcopy crítica**
-- Título: "Oferta aprovada" *(já era este texto; agora também é o título usado na jornada com conta, que antes dizia "Proposta aprovada!")*
-- Bloco de parceria: rótulo "Parceiro oficial" / texto "A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital. Quem cuida da sua contratação a partir de agora é a Pode Já, plataforma digital que conecta você a diversas soluções financeiras."
+- Título: "Oferta aprovada" (já era este texto; agora também é o título usado na jornada com conta, que antes dizia "Proposta aprovada!")
 - Accordion: rótulo do trigger "Detalhes do consignado" (conteúdo interno sem alteração de copy)
+- Bloco de parceria: **sem rótulo** (era "Parceiro oficial", removido) / texto em duas frases: "A Celcoin é parceira oficial do leilão de crédito consignado dentro da Carteira de Trabalho Digital." + "Quem cuida da sua contratação a partir de agora é a Pode Já, plataforma digital que conecta você a diversas soluções financeiras."
 - Texto do consentimento: "Ao continuar, concordo com os termos do contrato de consentimento realizado e autorizo o desconto das parcelas em folha de pagamento."
 - CTA primária: "Aceitar oferta" / CTA secundária: "Já tenho conta"
 
@@ -113,6 +116,8 @@ status: draft
 - Contraste AA nos textos sobre fundo laranja claro (`#FFF3EE`/`#D94E28`)
 - Alvo de toque mínimo 44px nos CTAs
 - Estado do accordion comunicado visualmente pela rotação do ícone — **falta** `aria-expanded` no botão-trigger (ver Open Questions)
+- Logos do bloco de parceria têm `alt` (`"Celcoin"` / `"Pode Já"`)
+- Ausência de header/logo nesta tela não afeta navegação por teclado nem leitor de tela (não é um elemento interativo removido, só visual)
 
 ---
 
@@ -382,6 +387,8 @@ status: draft
 | LG-01 | changed | Card "Detalhes do consignado" virou accordion colapsável (copy inalterado) | Tela tinha informação demais visível de uma vez | Reduz densidade de informação percebida |
 | LG-01 → LG-07 | changed | Card "Previsão de crédito na conta" mudou da tela de oferta para a tela de sucesso | Faz mais sentido no momento em que o usuário já sabe que vai receber o dinheiro | Reduz informação na tela de oferta; reforça a confirmação na tela de sucesso |
 | LG-01/LG-07 | changed | Provedor mock trocado de "Bull" para "Celcoin" | "Bull" era um resquício copiado do Consignado CLT; ficava contraditório ao lado do bloco de parceria novo | Consistência entre o badge do parceiro e o texto explicativo |
+| LG-01 | changed | Bloco de parceria reposicionado (de antes do card "Sua oferta" para depois do accordion "Detalhes do consignado") e redesenhado: logos da Celcoin e Pode Já lado a lado com "+", sem o rótulo "Parceiro oficial", card cinza neutro (`bg-muted`) em vez de branco com borda | Alinhamento a referência de layout entregue no Figma (node `273:232`) | Aproxima o protótipo do design de referência aprovado |
+| LG-01 | changed | Header (logo da Pode Já) escondido só nesta tela — prop novo `ocultarHeader` no `PublicLayout`, compartilhado com o resto da jornada guest | A logo da Pode Já não deve aparecer na primeira tela (chegada pelo link); só a partir da segunda tela, quando o usuário já entendeu a relação com a Celcoin | Evita confundir a identidade de quem apresenta a oferta logo na chegada |
 
 ## 7) Taxonomia de eventos Amplitude
 
