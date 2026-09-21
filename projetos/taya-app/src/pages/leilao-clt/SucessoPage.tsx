@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { CheckCircle } from "@phosphor-icons/react";
+import { CalendarBlank, CheckCircle } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { SubPageLayout, getStoredUser } from "@/App";
 import { Button } from "@/components/ui/button";
@@ -75,8 +75,24 @@ export default function LeilaoSucessoPage() {
             Dinheiro a caminho{primeiroNome ? `, ${primeiroNome}` : ""}!
           </h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Seu empréstimo foi aprovado. O valor cai na sua conta entre hoje e em até 3 dias úteis.
+            Seu empréstimo foi aprovado.
           </p>
+        </div>
+
+        {/* Previsão de crédito — movido da tela de oferta aprovada pra cá, já que faz mais
+            sentido no momento em que o usuário já sabe que vai receber o dinheiro */}
+        <div className="w-full rounded-2xl border border-border bg-white p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF3EE]">
+              <CalendarBlank size={16} className="text-[#FD5F31]" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Previsão de crédito na conta</p>
+              <p className="text-sm font-semibold text-foreground">
+                Entre hoje e em até 3 dias úteis
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="w-full rounded-2xl bg-[#FFF3EE] p-4">
