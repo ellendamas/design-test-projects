@@ -90,7 +90,7 @@ export default function LeilaoOfertaPage() {
             <CheckCircle size={40} className="text-green-600" weight="fill" />
           </motion.div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">Proposta aprovada!</h1>
+            <h1 className="text-2xl font-bold text-foreground">Oferta aprovada!</h1>
           </div>
         </div>
 
