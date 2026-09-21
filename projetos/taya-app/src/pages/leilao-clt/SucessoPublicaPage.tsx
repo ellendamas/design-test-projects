@@ -25,7 +25,7 @@ export default function LeilaoSucessoPublicaPage() {
   const location = useLocation();
   const conta = (location.state as { conta?: ContaData } | null)?.conta ?? null;
   const primeiroNome = LEAD_MOCK.nome.split(" ")[0];
-  const provedor = "Bull";
+  const provedor = "Celcoin";
 
   const linhasResumo = [
     {
