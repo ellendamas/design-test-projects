@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarBlank, Check, CheckCircle } from "@phosphor-icons/react";
+import { CaretDown, Check, CheckCircle } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { SubPageLayout } from "@/App";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ const proximoMesPorExtenso = () => {
 export default function LeilaoOfertaPage() {
   const navigate = useNavigate();
   const [termoAceito, setTermoAceito] = useState(false);
+  const [detalhesAbertos, setDetalhesAbertos] = useState(false);
 
   const { valor, parcelas: prazo, valorParcela, taxaMensal } = OFERTA_LEILAO;
   const provedor = "Celcoin";
@@ -90,9 +91,6 @@ export default function LeilaoOfertaPage() {
           </motion.div>
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-foreground">Proposta aprovada!</h1>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Encontramos a melhor oferta para você entre as instituições parceiras. Confira os detalhes abaixo.
-            </p>
           </div>
         </div>
 
@@ -141,34 +139,32 @@ export default function LeilaoOfertaPage() {
           </div>
         </div>
 
-        {/* Bloco 2 — Previsão de crédito */}
-        {/* TODO: receber datas reais da API */}
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF3EE]">
-              <CalendarBlank size={16} className="text-[#FD5F31]" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Previsão de crédito na conta</p>
-              <p className="text-sm font-semibold text-foreground">
-                Entre hoje e em até 3 dias úteis
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Bloco 3 — Detalhes do consignado (bg laranja) */}
+        {/* Bloco 2 — Detalhes do consignado (bg laranja), em accordion pra reduzir a
+            quantidade de informação já visível nesta tela — mesmo padrão de accordion de
+            consignado-clt/SimuladorPage.tsx, copy inalterado. */}
         <div className="rounded-2xl bg-[#FFF3EE] p-4">
-          <p className="mb-3 text-sm font-semibold text-[#D94E28]">Detalhes do consignado</p>
+          <button
+            type="button"
+            onClick={() => setDetalhesAbertos((p) => !p)}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-semibold text-[#D94E28]">Detalhes do consignado</span>
+            <CaretDown
+              size={16}
+              className={cn("text-[#D94E28] transition-transform", detalhesAbertos && "rotate-180")}
+            />
+          </button>
 
-          <div className="space-y-2">
-            {linhasDetalhes.map((linha) => (
-              <div key={linha.label} className="flex items-center justify-between">
-                <span className="text-xs text-[#D94E28]/70">{linha.label}</span>
-                <span className="text-xs font-medium text-[#D94E28]">{linha.value}</span>
-              </div>
-            ))}
-          </div>
+          {detalhesAbertos && (
+            <div className="mt-3 space-y-2">
+              {linhasDetalhes.map((linha) => (
+                <div key={linha.label} className="flex items-center justify-between">
+                  <span className="text-xs text-[#D94E28]/70">{linha.label}</span>
+                  <span className="text-xs font-medium text-[#D94E28]">{linha.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Consentimento — botão-checkbox custom */}
