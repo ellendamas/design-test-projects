@@ -70,10 +70,11 @@ function ModalOuDrawer({
 }
 
 // Rota: /leilao/confirmar-dados — revisão dos dados já conhecidos do lead (nome/CPF, vindos
-// junto no webhook que originou o link) mais e-mail/celular (etapa anterior) e endereço/forma
-// de recebimento (coletados aqui). CPF e nome não são editáveis; os demais podem ser alterados.
-// Endereço e conta são limitados a 1 cada. Tudo acontece em modal/drawer — o usuário nunca sai
-// desta tela, pra não dar a impressão de uma jornada grande.
+// junto no webhook que originou o link) mais e-mail, celular, endereço e forma de recebimento
+// (todos coletados aqui — não existe mais uma tela própria de e-mail/celular antes desta).
+// CPF e nome não são editáveis; os demais podem ser alterados/preenchidos. Endereço e conta são
+// limitados a 1 cada. Tudo acontece em modal/drawer — o usuário nunca sai desta tela, pra não
+// dar a impressão de uma jornada grande.
 export default function LeilaoConfirmarDadosPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -190,11 +191,11 @@ export default function LeilaoConfirmarDadosPage() {
 
           <div className="rounded-2xl border border-border bg-white shadow-sm">
             {[
-              { label: "CPF", value: LEAD_MOCK.cpf, locked: true as const, campo: undefined },
-              { label: "Nome completo", value: LEAD_MOCK.nome, locked: true as const, campo: undefined },
-              { label: "E-mail", value: email || "Não informado", locked: false as const, campo: "email" as const },
-              { label: "Celular", value: celular || "Não informado", locked: false as const, campo: "celular" as const },
-            ].map(({ label, value, locked, campo }, i, arr) => (
+              { label: "CPF", value: LEAD_MOCK.cpf, locked: true as const, campo: undefined, preenchido: true },
+              { label: "Nome completo", value: LEAD_MOCK.nome, locked: true as const, campo: undefined, preenchido: true },
+              { label: "E-mail", value: email || "Não informado", locked: false as const, campo: "email" as const, preenchido: !!email },
+              { label: "Celular", value: celular || "Não informado", locked: false as const, campo: "celular" as const, preenchido: !!celular },
+            ].map(({ label, value, locked, campo, preenchido }, i, arr) => (
               <div key={label} className={`flex items-center justify-between px-4 py-3 ${i < arr.length - 1 ? "border-b border-border" : ""}`}>
                 <div>
                   <p className="text-xs text-muted-foreground">{label}</p>
@@ -204,7 +205,7 @@ export default function LeilaoConfirmarDadosPage() {
                   <LockSimple size={16} className="text-muted-foreground" />
                 ) : (
                   <button type="button" onClick={() => abrirEdicao(campo!)} className="text-sm font-medium text-[#FD5F31] hover:underline">
-                    Alterar
+                    {preenchido ? "Alterar" : "Adicionar"}
                   </button>
                 )}
               </div>

@@ -204,7 +204,7 @@ export default function LeilaoOfertaPublicaPage() {
           <Button
             className="h-14 w-full rounded-full"
             disabled={!termoAceito}
-            onClick={() => navigate(`/leilao/dados${searchParams.toString() ? `?${searchParams.toString()}` : ""}`)}
+            onClick={() => navigate(`/leilao/confirmar-dados${searchParams.toString() ? `?${searchParams.toString()}` : ""}`)}
           >
             Aceitar oferta
           </Button>

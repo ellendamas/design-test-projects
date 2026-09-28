@@ -127,9 +127,7 @@ import FGTSConfirmacaoPage from "@/pages/fgts/ConfirmacaoPage";
 import LeilaoOfertaPage from "@/pages/leilao-clt/LeilaoOfertaPage";
 import LeilaoDadosPendentesPage from "@/pages/leilao-clt/LeilaoDadosPendentesPage";
 import LeilaoOfertaPublicaPage from "@/pages/leilao-clt/OfertaPublicaPage";
-import LeilaoDadosPage from "@/pages/leilao-clt/DadosPage";
 import LeilaoConfirmarDadosPage from "@/pages/leilao-clt/ConfirmarDadosPage";
-import LeilaoContratoPublicaPage from "@/pages/leilao-clt/ContratoPublicaPage";
 import LeilaoMfaPage from "@/pages/leilao-clt/MfaPage";
 import LeilaoAssinaturaPage from "@/pages/leilao-clt/AssinaturaPage";
 import LeilaoAssinaturaPublicaPage from "@/pages/leilao-clt/AssinaturaPublicaPage";
@@ -4333,9 +4331,7 @@ function App() {
                 houver usuário logado, não faz sentido "criar conta" de novo. */}
             <Route path="/leilao/criar-conta" element={!getStoredUser() ? <LeilaoCriarContaPage /> : <Navigate to="/painel" replace />} />
             <Route path="/leilao/oferta" element={<LeilaoOfertaPublicaPage />} />
-            <Route path="/leilao/dados" element={<LeilaoDadosPage />} />
             <Route path="/leilao/confirmar-dados" element={<LeilaoConfirmarDadosPage />} />
-            <Route path="/leilao/contrato" element={<LeilaoContratoPublicaPage />} />
             <Route path="/leilao/mfa" element={<LeilaoMfaPage />} />
             <Route path="/leilao/oferta/assinatura" element={<LeilaoAssinaturaPublicaPage />} />
             <Route path="/leilao/oferta/sucesso" element={<LeilaoSucessoPublicaPage />} />

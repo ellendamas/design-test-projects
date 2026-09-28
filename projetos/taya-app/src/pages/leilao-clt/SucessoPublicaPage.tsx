@@ -20,6 +20,9 @@ const proximoMesAno = () => {
 
 // Rota: /leilao/oferta/sucesso — jornada pública/guest, apartada da jornada com conta
 // (/leilao/sucesso), mas com a mesma estrutura/informações da tela de sucesso interna do app.
+// Não existe mais tela de contrato nem CTA "Continuar sem conta" para quem não cria conta —
+// o usuário recebe a proposta/CCB por e-mail; esta tela já é o destino final da jornada guest,
+// com ou sem clique em "Criar conta para acompanhar".
 export default function LeilaoSucessoPublicaPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,14 +63,9 @@ export default function LeilaoSucessoPublicaPage() {
     <PublicLayout
       footerTransparente
       footer={
-        <>
-          <Button className="h-14 w-full rounded-full" onClick={() => navigate("/leilao/criar-conta", { state: location.state })}>
-            Criar conta para acompanhar
-          </Button>
-          <Button variant="outline" className="h-12 w-full rounded-full" onClick={() => navigate("/leilao/contrato")}>
-            Continuar sem conta
-          </Button>
-        </>
+        <Button className="h-14 w-full rounded-full" onClick={() => navigate("/leilao/criar-conta", { state: location.state })}>
+          Criar conta para acompanhar
+        </Button>
       }
     >
       <div className="flex flex-col items-center gap-5 px-6 pb-4 pt-4">
@@ -85,7 +83,7 @@ export default function LeilaoSucessoPublicaPage() {
             Dinheiro a caminho, {primeiroNome}!
           </h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Seu empréstimo foi aprovado.
+            Agora é com a gente! Você vai receber o contrato e os detalhes da sua proposta no e-mail cadastrado assim que estiverem prontos.
           </p>
         </div>
 
@@ -118,9 +116,9 @@ export default function LeilaoSucessoPublicaPage() {
         </div>
 
         <div className="w-full border-t border-border pt-4 text-left">
-          <p className="text-sm font-semibold text-foreground">Acompanhe seu contrato</p>
+          <p className="text-sm font-semibold text-foreground">Você acabou de dar o primeiro passo</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Crie sua conta no Pode Já para ver o contrato, boletos e histórico de pagamentos.
+            No Pode Já tem muito mais esperando por você, crédito pessoal, FGTS e benefícios que cabem no bolso.
           </p>
         </div>
       </div>
