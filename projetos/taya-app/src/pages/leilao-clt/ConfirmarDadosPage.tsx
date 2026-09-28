@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { IMaskInput } from "react-imask";
 import { Bank, IdentificationCard, LockSimple, QrCode } from "@phosphor-icons/react";
@@ -99,6 +99,19 @@ export default function LeilaoConfirmarDadosPage() {
   const [contaKey, setContaKey] = useState(0);
   const [pixAberto, setPixAberto] = useState(false);
 
+  // Dica apontando pro botão "Adicionar" do e-mail — aparece sozinha ao entrar na tela (e-mail
+  // sempre nasce vazio aqui, já que não existe mais uma tela anterior que o pré-preencha) e some
+  // sozinha depois de alguns segundos, ou assim que o usuário interage com o campo. Mesmo padrão
+  // visual/comportamento do tooltip de ChatBubble.tsx (bolha escura + seta, 4s de exibição).
+  const [mostrarDicaEmail, setMostrarDicaEmail] = useState(false);
+  useEffect(() => {
+    if (email) return;
+    setMostrarDicaEmail(true);
+    const t = window.setTimeout(() => setMostrarDicaEmail(false), 4000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const podeContinuar = !!email && !!celular && !!endereco && (!!conta || !!chavePix);
 
   const abrirEdicao = (campo: CampoEditavel) => {
@@ -106,6 +119,7 @@ export default function LeilaoConfirmarDadosPage() {
     setValorTemp(valores[campo]);
     setErroEdicao("");
     setCampoEditando(campo);
+    if (campo === "email") setMostrarDicaEmail(false);
   };
 
   const salvarEdicao = () => {
@@ -204,9 +218,17 @@ export default function LeilaoConfirmarDadosPage() {
                 {locked ? (
                   <LockSimple size={16} className="text-muted-foreground" />
                 ) : (
-                  <button type="button" onClick={() => abrirEdicao(campo!)} className="text-sm font-medium text-[#FD5F31] hover:underline">
-                    {preenchido ? "Alterar" : "Adicionar"}
-                  </button>
+                  <div className="relative">
+                    <button type="button" onClick={() => abrirEdicao(campo!)} className="text-sm font-medium text-[#FD5F31] hover:underline">
+                      {preenchido ? "Alterar" : "Adicionar"}
+                    </button>
+                    {campo === "email" && mostrarDicaEmail && (
+                      <div className="absolute bottom-full right-0 z-10 mb-2 w-44 rounded-xl bg-foreground px-3 py-2 text-xs text-white shadow-lg">
+                        Clique aqui para adicionar seu e-mail
+                        <div className="absolute -bottom-1.5 right-5 h-3 w-3 rotate-45 bg-foreground" />
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
