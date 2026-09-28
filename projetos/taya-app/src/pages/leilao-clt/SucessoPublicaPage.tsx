@@ -68,7 +68,7 @@ export default function LeilaoSucessoPublicaPage() {
         </Button>
       }
     >
-      <div className="flex flex-col items-center gap-5 px-6 pb-4 pt-4">
+      <div className="flex flex-col items-center gap-5 px-6 pb-0 pt-4">
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -115,7 +115,7 @@ export default function LeilaoSucessoPublicaPage() {
           ))}
         </div>
 
-        <div className="w-full border-t border-border pt-4 text-left">
+        <div className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm">
           <p className="text-sm font-semibold text-foreground">Você acabou de dar o primeiro passo</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             No Pode Já tem muito mais esperando por você, crédito pessoal, FGTS e benefícios que cabem no bolso.
