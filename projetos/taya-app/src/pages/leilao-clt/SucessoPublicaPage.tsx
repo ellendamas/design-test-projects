@@ -68,7 +68,7 @@ export default function LeilaoSucessoPublicaPage() {
         </Button>
       }
     >
-      <div className="flex flex-col items-center gap-5 px-6 pb-0 pt-4">
+      <div className="flex flex-col items-center gap-5 pt-4">
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
