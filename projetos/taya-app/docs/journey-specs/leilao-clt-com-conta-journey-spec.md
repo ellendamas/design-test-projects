@@ -305,7 +305,7 @@ status: draft
 - visível / oculto (depois do primeiro clique, ou se a flag de origem nunca foi setada)
 
 **Regras de negócio**
-- Só aparece se `podeja_leilao_contrato_ativo === "true"` **e** `podeja_leilao_contrato_visto !== "true"` — a primeira flag é setada na jornada **sem conta** ao criar a conta pós-sucesso (ver `leilao-clt-sem-conta-journey-spec.md`, tela LG-08); é o **único** jeito de o card aparecer.
+- Só aparece se `podeja_leilao_contrato_ativo === "true"` **e** `podeja_leilao_contrato_visto !== "true"` — a primeira flag é setada na jornada **sem conta** ao criar a conta pós-sucesso (ver `leilao-clt-sem-conta-journey-spec.md`, tela LG-07); é o **único** jeito de o card aparecer.
 - Ao clicar, grava `podeja_leilao_contrato_visto = "true"` **antes** de navegar para `/contratos/clt-001` — o card não aparece mais em nenhuma visita futura.
 - Sempre em primeira posição entre os cards de "Para você agora".
 

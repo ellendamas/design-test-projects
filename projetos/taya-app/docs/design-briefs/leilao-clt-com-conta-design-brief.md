@@ -14,8 +14,8 @@
 
 | Artefato | Link |
 |---|---|
-| Protótipo navegável (código) | Branch `feat/leilao-clt`, PR [#8](https://github.com/ellendamas/design-test-projects/pull/8) |
-| Especificação completa (todas as telas, estados, regras) | [`docs/journey-specs/leilao-clt-journey-spec.md`](../journey-specs/leilao-clt-journey-spec.md) |
+| Protótipo navegável (código) | Branch `main`, repositório `ellendamas/design-test-projects` |
+| Especificação completa (todas as telas, estados, regras) | [`docs/journey-specs/leilao-clt-com-conta-journey-spec.md`](../journey-specs/leilao-clt-com-conta-journey-spec.md) |
 | Entry point de teste | `/painel?clt=leilao_aprovado` → card "Oferta de Leilão CLT aprovada" → `/leilao` |
 
 > Não há arquivo de Figma nesta demanda — o protótipo é o próprio código React (design-to-code direto), rodando em `npm run dev` dentro de `projetos/taya-app`.
@@ -130,7 +130,7 @@ Um usuário que **já tem conta** no Pode Já e teve seu CPF consultado via CTPS
 1. Qual o contrato real do callback da Unico (verificação de identidade + assinatura)? Hoje a tela de sucesso é alcançada só por navegação direta de URL — não existe nenhum evento real fechando esse loop. Isso bloqueia a User Story de integração com a Unico.
 2. Qual o endpoint real de cálculo de IOF/CET/taxas? Hoje é uma aproximação calculada no cliente (mesma fórmula do Consignado CLT).
 3. O card "Contrato ativo" deveria ter algum limite de tempo além de "sumir no primeiro clique" (ex.: expirar depois de N dias sem clique)?
-4. Nenhuma instrumentação de analytics existe ainda — uma proposta de taxonomia de eventos já está documentada em `docs/journey-specs/leilao-clt-journey-spec.md` (seção 7); precisa de validação do PO/Analytics antes de virar User Story.
+4. Nenhuma instrumentação de analytics existe ainda — uma proposta de taxonomia de eventos já está documentada em `docs/journey-specs/leilao-clt-com-conta-journey-spec.md` (seção 7); precisa de validação do PO/Analytics antes de virar User Story.
 
 ---
 
