@@ -98,7 +98,7 @@ src/
 │   ├── credito-pessoal/   (16 arquivos)
 │   ├── duvidas/           (1 arquivo)
 │   ├── fgts/              (11 arquivos)
-│   ├── leilao-clt/        (25 arquivos — a jornada mais complexa do repo)
+│   ├── leilao-clt/        (23 arquivos — a jornada mais complexa do repo)
 │   ├── minha-conta/       (1 arquivo)
 │   └── seguro-vida/       (1 arquivo)
 └── utils/
