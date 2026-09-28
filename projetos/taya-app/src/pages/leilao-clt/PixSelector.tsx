@@ -225,9 +225,7 @@ export default function PixSelector({
                 )}
               </div>
             </DrawerHeader>
-            <div className="px-4 pb-6">
-              <PixFormContent chaveTemp={chaveTemp} setChaveTemp={setChaveTemp} handleSalvar={handleSalvar} fecharModal={fecharModal} />
-            </div>
+            <PixFormContent chaveTemp={chaveTemp} setChaveTemp={setChaveTemp} handleSalvar={handleSalvar} fecharModal={fecharModal} />
           </DrawerContent>
         </Drawer>
       )}

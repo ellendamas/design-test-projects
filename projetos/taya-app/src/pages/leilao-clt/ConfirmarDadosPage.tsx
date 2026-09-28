@@ -63,7 +63,7 @@ function ModalOuDrawer({
         <DrawerHeader>
           <DrawerTitle>{titulo}</DrawerTitle>
         </DrawerHeader>
-        <div className="max-h-[70vh] overflow-y-auto px-4 pb-6">{children}</div>
+        <div className="max-h-[70vh] overflow-y-auto">{children}</div>
       </DrawerContent>
     </Drawer>
   );
