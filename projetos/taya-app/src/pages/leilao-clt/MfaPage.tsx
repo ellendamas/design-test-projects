@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { PublicLayout } from "@/components/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const CODIGO_VALIDO = "123456"; // TODO: integrar com endpoint real de MFA
+const MAX_TENTATIVAS = 3;
 
-// Rota: /leilao/mfa
+// Rota: /leilao/mfa — aceita ?mfaErro=expirado pra pré-visualizar o estado de código expirado
+// sem precisar esperar (DESIGN ONLY, já que o backend real ainda não existe).
 export default function LeilaoMfaPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const forcarExpirado = searchParams.get("mfaErro") === "expirado"; // DESIGN ONLY
   const state = (location.state as { celular?: string } | null) ?? {};
   const celularMascarado = (() => {
     const d = (state.celular ?? "").replace(/\D/g, "");
@@ -19,6 +23,8 @@ export default function LeilaoMfaPage() {
 
   const [codigo, setCodigo] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [tentativasRestantes, setTentativasRestantes] = useState(MAX_TENTATIVAS);
+  const [bloqueado, setBloqueado] = useState(false);
   const [countdown, setCountdown] = useState(30);
 
   useEffect(() => {
@@ -27,14 +33,28 @@ export default function LeilaoMfaPage() {
     return () => window.clearTimeout(t);
   }, [countdown]);
 
+  // DESIGN ONLY — mostra o estado de código expirado direto, sem precisar digitar nada.
+  useEffect(() => {
+    if (forcarExpirado) setErro("Código expirou. Solicite um novo código para continuar.");
+  }, [forcarExpirado]);
+
   const verificar = () => {
+    if (forcarExpirado || bloqueado) return;
     if (codigo.length !== 6) {
       setErro("Digite o código de 6 dígitos.");
       return;
     }
     if (codigo !== CODIGO_VALIDO) {
-      setErro("Código inválido. Verifique e tente novamente.");
+      const restantes = tentativasRestantes - 1;
       setCodigo("");
+      if (restantes <= 0) {
+        setBloqueado(true);
+        setErro("Muitas tentativas. Aguarde 15 minutos antes de tentar de novo.");
+        return;
+      }
+      setTentativasRestantes(restantes);
+      const sufixo = restantes === 1 ? "Resta 1 tentativa." : `Restam ${restantes} tentativas.`;
+      setErro(`Código inválido. Verifique e tente novamente. ${sufixo}`);
       return;
     }
     localStorage.setItem("podeja_telefone_validado", "true");
@@ -47,7 +67,7 @@ export default function LeilaoMfaPage() {
       footer={
         <Button
           className="h-14 w-full rounded-full"
-          disabled={codigo.length !== 6}
+          disabled={codigo.length !== 6 || bloqueado || forcarExpirado}
           onClick={verificar}
         >
           Verificar e continuar
@@ -65,6 +85,7 @@ export default function LeilaoMfaPage() {
               <InputOTP
                 maxLength={6}
                 value={codigo}
+                disabled={bloqueado || forcarExpirado}
                 onChange={(v) => {
                   setCodigo(v);
                   if (erro) setErro(null);
@@ -79,7 +100,7 @@ export default function LeilaoMfaPage() {
             </div>
             {erro && <p className="text-center text-sm text-red-500">{erro}</p>}
             <div className="text-center">
-              {countdown > 0 ? (
+              {bloqueado ? null : countdown > 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Reenviar em <span className="font-semibold">{countdown}s</span>
                 </p>
@@ -90,6 +111,7 @@ export default function LeilaoMfaPage() {
                     setCountdown(30);
                     setCodigo("");
                     setErro(null);
+                    setTentativasRestantes(MAX_TENTATIVAS);
                   }}
                   className="text-sm font-semibold text-primary underline"
                 >
