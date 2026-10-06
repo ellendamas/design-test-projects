@@ -177,3 +177,25 @@ padrão é sempre a forma completa, mesmo em copy informal.
 4. **Quantidade máxima de tentativas do OTP** — usei 3 na simulação de `MfaPage.tsx` por ser um
    número comum, mas não vi essa regra confirmada em nenhum lugar do protótipo ou do inventário do
    James. Vale confirmar o número real com o dev antes de finalizar.
+
+---
+
+## Como simular cada um no protótipo (localhost:4173)
+
+| Edge case | URL |
+|---|---|
+| A1 · Link expirado | `/leilao/oferta/expirada` · `/leilao/expirada` |
+| A2 · Proposta cancelada | `/leilao/oferta/cancelada` · `/leilao/cancelada` |
+| A3 · Link já usado | `/leilao/oferta/assinatura?erro=leilao_link_usado` · `/leilao/assinatura?erro=leilao_link_usado` |
+| A4 · Link de outra pessoa | `/leilao/oferta/assinatura?erro=leilao_link_outro_cpf` · `/leilao/assinatura?erro=leilao_link_outro_cpf` |
+| Falha na averbação | `/leilao/oferta/falha-averbacao` · `/leilao/falha-averbacao` |
+| Falha no desembolso | `/leilao/oferta/falha-desembolso` · `/leilao/falha-desembolso` |
+| A6 · Fallback genérico | `/leilao/oferta/assinatura?erro=desconhecido` — troque `desconhecido` por qualquer categoria do dicionário pra pré-visualizar ela |
+| B2 · Redirecionando pra Unico | `/leilao/oferta/redirecionando/unico` · `/leilao/redirecionando/unico` (abre sozinho) |
+| B3 · Preparando assinatura | `/leilao/oferta/assinatura?status=preparando` · `/leilao/assinatura?status=preparando` |
+| B3/B4 · Aguardando / voltou sem concluir | `/leilao/oferta/assinatura?status=aguardando` · `/leilao/assinatura?status=aguardando` |
+| B5 · Alerta inline no "Assinar" | `/leilao/oferta/assinatura?assinarErro=1` · `/leilao/assinatura?assinarErro=1` |
+| C7/C8 · OTP errado / bloqueado / expirado | `/leilao/mfa` (digite código errado 3x) · `/leilao/mfa?mfaErro=expirado` |
+
+Rotas em `/leilao/...` (sem `/oferta/`) são a jornada com conta — precisa estar logado (mock) pra
+não cair no redirect pra `/boas-vindas`.
