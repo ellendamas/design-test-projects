@@ -1,9 +1,8 @@
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { HourglassMedium } from "@phosphor-icons/react";
 import { PublicLayout } from "@/components/PublicLayout";
 import UnicoNotice from "@/components/UnicoNotice";
 import UnicoAguardando from "@/components/UnicoAguardando";
-import { ErrorScreen, type ErrorCategoria } from "@/components/ErrorScreen";
+import { ERROS, ErrorScreen, type ErrorCategoria } from "@/components/ErrorScreen";
 
 // Label do CTA de erro varia por categoria — as demais caem no default "Voltar à oferta".
 const LABEL_BOTAO_ERRO: Partial<Record<ErrorCategoria, string>> = {
@@ -48,9 +47,16 @@ export default function LeilaoAssinaturaPublicaPage() {
   }
 
   if (etapa === "preparando") {
+    // Spinner padrão do app (mesmo anel usado em consignado-clt/LoadingPage.tsx) em vez do
+    // ícone estático do ErrorScreen — aqui é loading de verdade, não um erro.
+    const { headline, subtitulo } = ERROS.leilao_preparando_assinatura;
     return (
       <PublicLayout>
-        <ErrorScreen categoria="leilao_preparando_assinatura" icone={HourglassMedium} />
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#FD5F31] border-t-transparent" />
+          <p className="text-base font-semibold text-foreground">{headline}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{subtitulo}</p>
+        </div>
       </PublicLayout>
     );
   }

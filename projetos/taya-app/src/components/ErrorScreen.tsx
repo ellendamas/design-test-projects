@@ -101,8 +101,9 @@ export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string
     headline: "Esse link não é seu",
     subtitulo: "Essa proposta foi enviada para outro CPF. Saia da conta atual e abra o link novamente para continuar.",
   },
-  // Sem onTentarNovamente — tela passiva, sem CTA (ver AssinaturaPage/AssinaturaPublicaPage,
-  // etapa "preparando").
+  // Copy reaproveitada direto do dicionário (não passa por <ErrorScreen>) — a etapa
+  // "preparando" de AssinaturaPage/AssinaturaPublicaPage usa o spinner padrão do app em vez
+  // do ícone estático, já que é loading de verdade, não um erro.
   leilao_preparando_assinatura: {
     headline: "Preparando sua assinatura",
     subtitulo: "Isso leva só alguns segundos.",
