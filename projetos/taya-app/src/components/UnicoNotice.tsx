@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Camera, FileText, Fingerprint, ShieldCheck } from "@phosphor-icons/react";
+import { Camera, FileText, Fingerprint, ShieldCheck, WarningCircle } from "@phosphor-icons/react";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -17,6 +17,8 @@ type UnicoNoticeProps = {
   itens?: UnicoItem[];
   labelBotao?: string;
   onContinuar: () => void;
+  /** true mostra o alerta inline de "não foi possível iniciar a assinatura" acima do CTA. */
+  alerta?: boolean;
 };
 
 // ---------------------------------------------------------------------------
@@ -45,6 +47,7 @@ export default function UnicoNotice({
   itens     = DEFAULT_ITENS,
   labelBotao = "Continuar para verificação",
   onContinuar,
+  alerta,
 }: UnicoNoticeProps) {
   const [unicoLogoError, setUnicoLogoError] = useState(false);
 
@@ -102,6 +105,19 @@ export default function UnicoNotice({
           Ao continuar, você será redirecionado para o app/ambiente da Unico.
           Seus dados são protegidos conforme a LGPD.
         </p>
+
+        {/* Alerta inline — ex: tentativa anterior de assinatura falhou */}
+        {alerta && (
+          <div className="rounded-2xl border border-[#FD5F31]/30 bg-[#FFF3EE] p-4">
+            <div className="flex gap-3">
+              <WarningCircle size={18} className="mt-0.5 shrink-0 text-[#FD5F31]" />
+              <div>
+                <p className="text-sm font-semibold text-[#D94E28]">Não foi possível iniciar a assinatura</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-[#D94E28]">Tente novamente em instantes.</p>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
 

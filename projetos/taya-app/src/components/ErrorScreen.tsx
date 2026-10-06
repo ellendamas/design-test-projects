@@ -17,7 +17,10 @@ export type ErrorCategoria =
   | "leilao_expirada"
   | "leilao_cancelada"
   | "leilao_falha_averbacao"
-  | "leilao_falha_desembolso";
+  | "leilao_falha_desembolso"
+  | "leilao_link_usado"
+  | "leilao_link_outro_cpf"
+  | "leilao_preparando_assinatura";
 
 export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string }> = {
   otp_invalido: {
@@ -87,6 +90,22 @@ export const ERROS: Record<ErrorCategoria, { headline: string; subtitulo: string
   leilao_falha_desembolso: {
     headline: "Tivemos um problema na liberação do valor",
     subtitulo: "O contrato foi assinado, mas houve uma falha ao depositar o valor. Nossa equipe já foi notificada. Entre em contato com o suporte.",
+  },
+  // Reason "consumed" na API — ainda sem call-site ativo hoje (decisão: não ativar por enquanto).
+  // Categoria mantida aqui só pra permitir pré-visualizar via ?erro=leilao_link_usado.
+  leilao_link_usado: {
+    headline: "Você já concluiu essa proposta",
+    subtitulo: "Essa oferta já foi aceita anteriormente. Se você já tem conta no Pode Já, entre para acompanhar os detalhes.",
+  },
+  leilao_link_outro_cpf: {
+    headline: "Esse link não é seu",
+    subtitulo: "Essa proposta foi enviada para outro CPF. Saia da conta atual e abra o link novamente para continuar.",
+  },
+  // Sem onTentarNovamente — tela passiva, sem CTA (ver AssinaturaPage/AssinaturaPublicaPage,
+  // etapa "preparando").
+  leilao_preparando_assinatura: {
+    headline: "Preparando sua assinatura",
+    subtitulo: "Isso leva só alguns segundos.",
   },
 };
 
