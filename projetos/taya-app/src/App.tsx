@@ -114,6 +114,11 @@ import ConsignadoCLTConfirmacaoPage from "@/pages/consignado-clt/ConfirmacaoPage
 import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
 import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
 import AssistenciasSaudePage from "@/pages/assistencias/SaudePage";
+import AssistenciasVerificarCelularPage from "@/pages/assistencias/VerificarCelularPage";
+import AssistenciasConfirmarDadosPage from "@/pages/assistencias/ConfirmarDadosPage";
+import AssistenciasPagamentoPage from "@/pages/assistencias/PagamentoPage";
+import AssistenciasConfirmacaoPage from "@/pages/assistencias/ConfirmacaoPage";
+import AssistenciasAssinaturaPage from "@/pages/assistencias/AssinaturaPage";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
 import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
 import FGTSLoadingPage from "@/pages/fgts/LoadingPage";
@@ -2383,7 +2388,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) {
@@ -4362,6 +4367,11 @@ function App() {
             <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias" element={getStoredUser() ? <AssistenciasPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude" element={getStoredUser() ? <AssistenciasSaudePage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/verificar-celular" element={getStoredUser() ? <AssistenciasVerificarCelularPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/confirmar-dados" element={getStoredUser() ? <AssistenciasConfirmarDadosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/pagamento" element={getStoredUser() ? <AssistenciasPagamentoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/confirmacao" element={getStoredUser() ? <AssistenciasConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/assinatura" element={getStoredUser() ? <AssistenciasAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal" element={getStoredUser() ? <CreditoPessoalLanding /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/dados" element={getStoredUser() ? <CreditoPessoalDados /> : <Navigate to="/boas-vindas" replace />} />
