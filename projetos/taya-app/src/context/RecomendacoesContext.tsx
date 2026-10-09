@@ -67,9 +67,10 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
   const interesseEnergia = interesses.includes("energia");
   const { streak, saldo } = useSeubolso();
 
-  // Falha de cobrança só é relevante pra quem já assina — card não compete com o "O2", que já
-  // some pra assinantes. Ver cobrancaBenemedFalhou() em shared.ts pros dois jeitos de testar.
-  const cobrancaBenemedFalha = assinaturaBenemedAtiva && cobrancaBenemedFalhou();
+  // A checagem de assinatura ativa já está embutida em cobrancaBenemedFalhou() (exceto no
+  // bypass via ?assinaturaCobranca=falhou, que funciona sozinho pra pré-visualização — ver
+  // shared.ts). Em uso real (sem o bypass), nunca compete com o "O2", que já some pra assinantes.
+  const cobrancaBenemedFalha = cobrancaBenemedFalhou();
 
   // DESIGN ONLY — ?recomendacoes=vazio força zero cards, para visualizar o painel sem "Para você agora"
   // Provider fica fora do <BrowserRouter> (main.tsx), por isso lê a URL direto em vez de useSearchParams()
