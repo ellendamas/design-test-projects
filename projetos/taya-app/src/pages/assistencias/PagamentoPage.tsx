@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Check, Clock, Copy, QrCode } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
-import { Button } from "@/components/ui/button";
 import { PLANOS, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/pagamento — Pix mockado (QR + copia e cola), sem chamada real de
 // API ainda. O payload do QR e o código copia-e-cola abaixo são só texto de exemplo.
+//
+// Sem webhook real de confirmação: copiar o código Pix dispara a simulação do pagamento
+// confirmado 10s depois (DESIGN ONLY), em vez de um botão manual de "simular pagamento".
 const PIX_COPIA_COLA =
   "00020126580014BR.GOV.BCB.PIX0136benemed-podeja-mock@exemplo.com.br5204000053039865406" +
   "0000.005802BR5913Pode Ja Pagto6009SAO PAULO62070503***6304ABCD";
@@ -18,6 +20,15 @@ export default function AssistenciasPagamentoPage() {
   const plano = (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
   const [copiado, setCopiado] = useState(false);
   const [qrFalhou, setQrFalhou] = useState(false);
+  const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
+
+  useEffect(() => {
+    if (!aguardandoConfirmacao) return;
+    const t = window.setTimeout(() => {
+      navigate("/assistencias/saude/confirmacao", { state: { plano }, replace: true });
+    }, 10000);
+    return () => window.clearTimeout(t);
+  }, [aguardandoConfirmacao, navigate, plano]);
 
   const copiar = async () => {
     try {
@@ -26,6 +37,7 @@ export default function AssistenciasPagamentoPage() {
       // ambiente sem permissão de clipboard — segue sem quebrar a tela
     }
     setCopiado(true);
+    setAguardandoConfirmacao(true);
     toast.success("Código Pix copiado!");
     window.setTimeout(() => setCopiado(false), 2500);
   };
@@ -85,13 +97,12 @@ export default function AssistenciasPagamentoPage() {
           </p>
         </div>
 
-        {/* DESIGN ONLY — ainda não há webhook real de confirmação de pagamento */}
-        <Button
-          className="h-14 w-full rounded-full"
-          onClick={() => navigate("/assistencias/saude/confirmacao", { state: { plano } })}
-        >
-          Simular pagamento confirmado
-        </Button>
+        {aguardandoConfirmacao && (
+          <div className="flex items-center justify-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#FD5F31] border-t-transparent" />
+            <p className="text-sm font-medium text-foreground">Aguardando confirmação do pagamento...</p>
+          </div>
+        )}
       </div>
     </SubPageLayout>
   );
