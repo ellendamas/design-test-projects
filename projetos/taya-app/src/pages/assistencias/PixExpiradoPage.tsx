@@ -29,7 +29,7 @@ export default function AssistenciasPixExpiradoPage() {
           <h1 className="text-2xl font-bold text-foreground">O código Pix expirou</h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Não identificamos a confirmação do pagamento do plano {plano.nome} a tempo. Gere um
-            novo código para continuar — você não precisa escolher o plano de novo.
+            novo código para continuar, você não precisa escolher o plano de novo.
           </p>
         </div>
 

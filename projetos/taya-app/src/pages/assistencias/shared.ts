@@ -51,3 +51,20 @@ export function ativarAssinaturaBenemed(plano: Plano): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(ASSINATURA_ATIVA_KEY, plano.id);
 }
+
+// Status de cobrança da assinatura — ainda não existe webhook real da BeneMed avisando
+// sucesso/falha de cobrança, então isso é 100% mock. Dois jeitos de ligar o estado de falha pra
+// testar o card "Não conseguimos cobrar" no Para Você Agora, sem precisar do webhook:
+//   1) ?assinaturaCobranca=falhou na URL (DESIGN ONLY, não precisa de Router — mesmo padrão de
+//      `forcarRecomendacoesVazias` em RecomendacoesContext.tsx)
+//   2) trocar a constante COBRANCA_FALHOU_MOCK abaixo pra true
+const COBRANCA_FALHOU_MOCK = false; // troque pra true pra simular falha sem usar o query param
+
+export function cobrancaBenemedFalhou(): boolean {
+  if (typeof window !== "undefined") {
+    const forcado = new URLSearchParams(window.location.search).get("assinaturaCobranca");
+    if (forcado === "falhou") return true;
+    if (forcado === "em_dia") return false;
+  }
+  return COBRANCA_FALHOU_MOCK;
+}
