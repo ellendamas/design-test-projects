@@ -1,40 +1,30 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CheckCircle, Stethoscope } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { PLANOS, telefoneJaValidado, type PlanoId } from "./shared";
 
 // Rota: /assistencias/saude — primeira tela do fluxo de oferta BeneMed (vertical Saúde dentro
 // de Assistências). Mostra os 3 planos lado a lado, sem pré-seleção. Dado de plano é mockado —
 // ainda não integra com a API da BeneMed.
 //
-// Fora de escopo deste bloco: verificação de telefone, revisão/consentimento, pagamento Pix,
-// confirmação e gestão da assinatura — vêm num próximo bloco. Por isso o CTA "Continuar" ainda
-// não navega pra lugar nenhum.
-
-type PlanoId = "mensal" | "semestral" | "anual";
-
-type Plano = {
-  id: PlanoId;
-  nome: string;
-  precoMes: string;
-  cobranca: string;
-  destaque?: string;
-};
-
-const PLANOS: Plano[] = [
-  { id: "mensal", nome: "Mensal", precoMes: "R$ 39,90", cobranca: "Cobrança mensal" },
-  { id: "semestral", nome: "Semestral", precoMes: "R$ 34,90", cobranca: "R$ 209,40 a cada 6 meses" },
-  { id: "anual", nome: "Anual", precoMes: "R$ 29,90", cobranca: "R$ 358,80 a cada 12 meses", destaque: "Mais econômico" },
-];
+// Ao continuar: se o telefone do usuário ainda não foi validado (mesma flag usada no resto do
+// app), intercala a etapa de verificação por SMS antes da confirmação de dados; senão, pula
+// direto pra ela.
 
 export default function AssistenciasSaudePage() {
+  const navigate = useNavigate();
   const [planoSelecionado, setPlanoSelecionado] = useState<PlanoId | null>(null);
 
-  // TODO: navegar pro próximo passo do fluxo (verificação de telefone) quando esse bloco
-  // for implementado — por enquanto não há destino.
-  const handleContinuar = () => {};
+  const handleContinuar = () => {
+    const plano = PLANOS.find((p) => p.id === planoSelecionado);
+    if (!plano) return;
+    const destino = telefoneJaValidado() ? "/assistencias/saude/confirmar-dados" : "/assistencias/saude/verificar-celular";
+    navigate(destino, { state: { plano } });
+  };
 
   return (
     <SubPageLayout title="Saúde" hideNav>
