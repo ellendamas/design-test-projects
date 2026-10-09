@@ -28,6 +28,10 @@ export type RecomendacaoCard = {
   dispensavel: boolean;
   reexibirApos?: number;
   persistirDispensa?: boolean;
+  /** true dá destaque de atenção redobrada (fundo amarelo) — mesmo tratamento visual dos cards
+   * de verificação pendente de e-mail/celular. Usar só pra algo que bloqueia/ameaça o que o
+   * usuário já tem, não pra oportunidades comuns. */
+  atencao?: boolean;
 };
 
 type DispensadoPersistido = {
@@ -112,6 +116,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         cta: "Regularizar",
         destino: "/assistencias/saude/assinatura",
         dispensavel: false,
+        atencao: true,
       },
       {
         id: "O1",

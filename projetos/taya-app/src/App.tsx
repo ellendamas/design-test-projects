@@ -1552,7 +1552,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
               key={card.id}
               animate={exiting === card.id ? { x: -20, opacity: 0 } : { x: 0, opacity: 1 }}
               transition={{ duration: 0.2 }}
-              className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] rounded-xl shadow-sm ${variant === "light" ? "" : "border"}`}
+              className={`${card.atencao ? "border-0 bg-amber-50" : variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] rounded-xl shadow-sm ${!card.atencao && variant !== "light" ? "border" : ""}`}
             >
               <div className="relative flex h-full flex-col justify-between p-3">
                 {card.dispensavel && (
@@ -1567,7 +1567,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
                   </button>
                 )}
                 <div className="mb-2">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">{iconMap[card.icone]}</div>
+                  <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full ${card.atencao ? "bg-amber-100 text-amber-600" : "bg-[#FFF3EE] text-[#FD5F31]"}`}>{iconMap[card.icone]}</div>
                   <p className="text-sm font-semibold text-foreground">{card.texto}</p>
                 </div>
                 {card.cta && (
