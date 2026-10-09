@@ -110,6 +110,7 @@ import ConsignadoCLTAssinaturaPage from "@/pages/consignado-clt/AssinaturaPage";
 import ConsignadoCLTConfirmacaoPage from "@/pages/consignado-clt/ConfirmacaoPage";
 import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
 import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
+import AssistenciasSaudePage from "@/pages/assistencias/SaudePage";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
 import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
 import FGTSLoadingPage from "@/pages/fgts/LoadingPage";
@@ -1581,6 +1582,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
 }
 
 function AssistenciasPage() {
+  const navigate = useNavigate();
   const { interesses, registrarInteresse } = useInteresse();
   const assistencias = interesses.includes("assistencias");
   const categoriasRef = useRef<HTMLDivElement>(null);
@@ -1590,20 +1592,24 @@ function AssistenciasPage() {
   const dragStartX = useRef(0);
   const dragStartScroll = useRef(0);
 
+  // `id` é a chave estável usada tanto na rota de oferta (/assistencias/:id) quanto no
+  // identificador de interesse por categoria (ver InteresseContext.tsx). `disponivel` marca
+  // quem já tem oferta real de parceiro — hoje só Saúde (BeneMed); as outras 12 ficam
+  // "em breve" até ganharem parceiro próprio.
   const categorias = [
-    { nome: "Saúde", icon: <Stethoscope size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80&fit=crop&crop=center" alt="Saúde" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a partir de R$ 39,90", tag: "Clínico geral e 5 especialidades" },
-    { nome: "Odonto", icon: <Tooth size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=80&fit=crop&crop=center" alt="Odonto" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
-    { nome: "Pet", icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80&fit=crop&crop=center" alt="Pet" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
-    { nome: "Psicologia", icon: <Brain size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80&fit=crop&crop=faces" alt="Psicologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
-    { nome: "Previdência", icon: <Umbrella size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80&fit=crop&crop=center" alt="Previdência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
-    { nome: "Bem-estar", icon: <Heartbeat size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80&fit=crop&crop=center" alt="Bem-estar" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
-    { nome: "Educação", icon: <BookOpen size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80&fit=crop&crop=center" alt="Educação" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
-    { nome: "Tecnologia", icon: <DeviceMobile size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&fit=crop&crop=center" alt="Tecnologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
-    { nome: "Residência", icon: <House size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop&crop=center" alt="Residência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
-    { nome: "Prevenção", icon: <FirstAid size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=80&fit=crop&crop=center" alt="Prevenção" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
-    { nome: "Notícias", icon: <Newspaper size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80&fit=crop&crop=center" alt="Notícias" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
-    { nome: "Recompensa", icon: <Gift size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400&q=80&fit=crop&crop=center" alt="Recompensa" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
-    { nome: "Sorteio", icon: <Trophy size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&q=80&fit=crop&crop=center" alt="Sorteio" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
+    { id: "saude", nome: "Saúde", disponivel: true, icon: <Stethoscope size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80&fit=crop&crop=center" alt="Saúde" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a partir de R$ 39,90", tag: "Clínico geral e 5 especialidades" },
+    { id: "odonto", nome: "Odonto", disponivel: false, icon: <Tooth size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=80&fit=crop&crop=center" alt="Odonto" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
+    { id: "pet", nome: "Pet", disponivel: false, icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80&fit=crop&crop=center" alt="Pet" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
+    { id: "psicologia", nome: "Psicologia", disponivel: false, icon: <Brain size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80&fit=crop&crop=faces" alt="Psicologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
+    { id: "previdencia", nome: "Previdência", disponivel: false, icon: <Umbrella size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80&fit=crop&crop=center" alt="Previdência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
+    { id: "bem-estar", nome: "Bem-estar", disponivel: false, icon: <Heartbeat size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80&fit=crop&crop=center" alt="Bem-estar" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
+    { id: "educacao", nome: "Educação", disponivel: false, icon: <BookOpen size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80&fit=crop&crop=center" alt="Educação" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
+    { id: "tecnologia", nome: "Tecnologia", disponivel: false, icon: <DeviceMobile size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&fit=crop&crop=center" alt="Tecnologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
+    { id: "residencia", nome: "Residência", disponivel: false, icon: <House size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop&crop=center" alt="Residência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
+    { id: "prevencao", nome: "Prevenção", disponivel: false, icon: <FirstAid size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=80&fit=crop&crop=center" alt="Prevenção" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
+    { id: "noticias", nome: "Notícias", disponivel: false, icon: <Newspaper size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80&fit=crop&crop=center" alt="Notícias" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
+    { id: "recompensa", nome: "Recompensa", disponivel: false, icon: <Gift size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400&q=80&fit=crop&crop=center" alt="Recompensa" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
+    { id: "sorteio", nome: "Sorteio", disponivel: false, icon: <Trophy size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&q=80&fit=crop&crop=center" alt="Sorteio" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
   ];
 
   const faqItems = FAQ["assistencias"];
@@ -1634,6 +1640,20 @@ function AssistenciasPage() {
       duration: 5000,
       icon: <Bell size={16} className="text-[#FD5F31]" />,
       description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
+    });
+  };
+
+  // Interesse por categoria "em breve" — chave composta (assistencias-<id>) no mesmo
+  // InteresseContext genérico, sem mexer no provider. Cada categoria registra e exibe seu
+  // próprio estado, independente do CTA único do rodapé.
+  const handleInteresseCategoria = (categoriaId: string, categoriaNome: string) => {
+    const chave = `assistencias-${categoriaId}`;
+    if (interesses.includes(chave)) return;
+    registrarInteresse(chave);
+    toast("Em breve!", {
+      duration: 5000,
+      icon: <Bell size={16} className="text-[#FD5F31]" />,
+      description: `Você será um dos primeiros a saber quando ${categoriaNome} chegar.`,
     });
   };
 
@@ -1672,14 +1692,6 @@ function AssistenciasPage() {
           </div>
         </div>
 
-        <Card className="border-0 bg-[#FFF3EE] shadow-sm">
-          <CardContent className="p-6 text-center">
-            <p className="text-4xl font-bold text-[#FD5F31]">R$ 4.600</p>
-            <p className="mt-2 text-sm font-semibold text-foreground">de economia média por ano em saúde e bem-estar</p>
-            <p className="mt-1 text-xs text-muted-foreground">Comparado à contratação individual dos serviços no mercado</p>
-          </CardContent>
-        </Card>
-
         <div className="relative">
           <h3 className="text-sm font-semibold text-foreground">O que está incluído</h3>
           <p className="mt-1 text-xs text-muted-foreground">13 categorias de assistência para você e sua família</p>
@@ -1714,21 +1726,70 @@ function AssistenciasPage() {
               if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
             }}
           >
-            {categorias.map((item) => (
-              <Card key={item.nome} className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
-                <div className="h-[120px] overflow-hidden rounded-t-2xl">
-                  {item.hero}
-                </div>
-                <CardContent className="p-3">
-                  <div className="mb-2 flex items-center gap-2">
-                    {item.icon}
-                    <p className="text-sm font-semibold text-foreground">{item.nome}</p>
+            {categorias.map((item) => {
+              if (item.disponivel) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => navigate(`/assistencias/${item.id}`)}
+                    className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border border-border bg-white text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
+                    style={{ scrollSnapAlign: "start" }}
+                  >
+                    <div className="relative h-[120px] overflow-hidden">
+                      {item.hero}
+                      <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-[#FD5F31] shadow">
+                        <ArrowRight size={14} />
+                      </span>
+                    </div>
+                    <div className="p-3">
+                      <div className="mb-2 flex items-center gap-2">
+                        {item.icon}
+                        <p className="text-sm font-semibold text-foreground">{item.nome}</p>
+                      </div>
+                      <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
+                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#374151]">{item.tag}</p>
+                    </div>
+                  </button>
+                );
+              }
+
+              const chaveInteresse = `assistencias-${item.id}`;
+              const interesseRegistrado = interesses.includes(chaveInteresse);
+
+              return (
+                <Card key={item.id} className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
+                  <div className="relative h-[120px] overflow-hidden rounded-t-2xl">
+                    {item.hero}
+                    <span className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground shadow">
+                      Em breve
+                    </span>
                   </div>
-                  <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
-                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#374151]">{item.tag}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      {item.icon}
+                      <p className="text-sm font-semibold text-foreground">{item.nome}</p>
+                    </div>
+                    <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleInteresseCategoria(item.id, item.nome)}
+                      disabled={interesseRegistrado}
+                      className={`mt-1 flex items-center gap-1 text-xs font-semibold ${interesseRegistrado ? "text-muted-foreground" : "text-[#FD5F31]"}`}
+                    >
+                      {interesseRegistrado ? (
+                        <>
+                          <CheckCircle size={14} weight="fill" />
+                          Avisado
+                        </>
+                      ) : (
+                        "Avisar quando chegar"
+                      )}
+                    </button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           <div className="pointer-events-none absolute left-0 top-[58%] hidden -translate-y-1/2 md:flex">
@@ -2281,7 +2342,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -4233,6 +4294,7 @@ function App() {
             <Route path="/seubolso/historico" element={getStoredUser() ? <SeubolsoHistoricoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias" element={getStoredUser() ? <AssistenciasPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude" element={getStoredUser() ? <AssistenciasSaudePage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal" element={getStoredUser() ? <CreditoPessoalLanding /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/dados" element={getStoredUser() ? <CreditoPessoalDados /> : <Navigate to="/boas-vindas" replace />} />

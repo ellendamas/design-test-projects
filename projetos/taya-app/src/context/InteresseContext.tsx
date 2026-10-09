@@ -1,5 +1,10 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
+// `produto` é só uma string livre — já serve tanto pra um produto inteiro ("assistencias",
+// "energia", "seguro-vida") quanto pra um identificador mais específico dentro dele, por
+// convenção "<produto>-<categoria>" (ex: "assistencias-odonto", um interesse registrado na
+// categoria Odonto da página de Assistências, independente do interesse geral "assistencias").
+// Não exige nenhuma mudança aqui pra isso funcionar — o array plano já suporta qualquer string.
 type InteresseContextType = {
   interesses: string[];
   registrarInteresse: (produto: string) => void;
