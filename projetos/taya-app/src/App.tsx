@@ -1608,12 +1608,22 @@ function AssistenciasPage() {
   const dragStartX = useRef(0);
   const dragStartScroll = useRef(0);
 
-  // `id` é a chave estável usada tanto na rota de oferta (/assistencias/:id) quanto no
-  // identificador de interesse por categoria (ver InteresseContext.tsx). `disponivel` marca
-  // quem já tem oferta real de parceiro — hoje só Saúde (BeneMed); as outras 12 ficam
+  // Saúde (BeneMed) saiu do carrossel — tem seção de destaque própria, renderizada à parte
+  // logo abaixo do hero (ver `categoriaSaude` + bloco "Destaque — Saúde (BeneMed)").
+  const categoriaSaude = {
+    id: "saude",
+    nome: "Saúde",
+    icon: <Stethoscope size={20} className="text-[#FD5F31]" />,
+    hero: <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80&fit=crop&crop=center" alt="Saúde" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />,
+    beneficio: "Consultas a partir de R$ 39,90",
+    tag: "Clínico geral e 5 especialidades",
+  };
+
+  // `id` é a chave estável usada no identificador de interesse por categoria (ver
+  // InteresseContext.tsx). `disponivel` marca quem já tem oferta real de parceiro — hoje
+  // nenhuma destas (Saúde foi pra fora do carrossel, ver `categoriaSaude` acima) — ficam
   // "em breve" até ganharem parceiro próprio.
   const categorias = [
-    { id: "saude", nome: "Saúde", disponivel: true, icon: <Stethoscope size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80&fit=crop&crop=center" alt="Saúde" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a partir de R$ 39,90", tag: "Clínico geral e 5 especialidades" },
     { id: "odonto", nome: "Odonto", disponivel: false, icon: <Tooth size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=80&fit=crop&crop=center" alt="Odonto" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
     { id: "pet", nome: "Pet", disponivel: false, icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80&fit=crop&crop=center" alt="Pet" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
     { id: "psicologia", nome: "Psicologia", disponivel: false, icon: <Brain size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80&fit=crop&crop=faces" alt="Psicologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
@@ -1708,9 +1718,42 @@ function AssistenciasPage() {
           </div>
         </div>
 
+        {/* Destaque — Saúde (BeneMed), fora do carrossel: é a única categoria com oferta real hoje */}
+        <button
+          type="button"
+          onClick={() => navigate(`/assistencias/${categoriaSaude.id}`)}
+          className="w-full overflow-hidden rounded-2xl border border-border bg-white text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
+        >
+          <div className="h-[100px] w-full overflow-hidden">
+            {categoriaSaude.hero}
+          </div>
+          <div className="p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              {/* Placeholder do logo do parceiro — trocar pelo asset final da BeneMed quando chegar */}
+              <div className="flex h-7 items-center rounded-md bg-[#F3F4F6] px-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Logo BeneMed
+              </div>
+              <span className="rounded-full bg-[#E9F7EF] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1A7A4C]">
+                Disponível
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  {categoriaSaude.icon}
+                  <p className="text-sm font-semibold text-foreground">{categoriaSaude.nome}</p>
+                </div>
+                <p className="mt-1 text-xs font-semibold text-[#FD5F31]">{categoriaSaude.beneficio}</p>
+                <p className="mt-0.5 text-xs text-[#374151]">{categoriaSaude.tag}</p>
+              </div>
+              <ArrowRight size={18} className="shrink-0 text-[#FD5F31]" />
+            </div>
+          </div>
+        </button>
+
         <div className="relative">
           <h3 className="text-sm font-semibold text-foreground">O que está incluído</h3>
-          <p className="mt-1 text-xs text-muted-foreground">13 categorias de assistência para você e sua família</p>
+          <p className="mt-1 text-xs text-muted-foreground">{categorias.length} categorias a caminho para você e sua família</p>
           <div
             ref={categoriasRef}
             className={`mt-3 flex w-full gap-3 overflow-x-auto pb-1 touch-pan-x select-none [&::-webkit-scrollbar]:hidden ${draggingCategorias ? "cursor-grabbing" : "cursor-grab"}`}
