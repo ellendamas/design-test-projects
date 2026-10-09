@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 import { useInteresse } from "@/context/InteresseContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
-import { temAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
+import { cobrancaBenemedFalhou, temAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
 
 type GrupoCard = "P" | "O" | "G";
 
@@ -67,6 +67,10 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
   const interesseEnergia = interesses.includes("energia");
   const { streak, saldo } = useSeubolso();
 
+  // Falha de cobrança só é relevante pra quem já assina — card não compete com o "O2", que já
+  // some pra assinantes. Ver cobrancaBenemedFalhou() em shared.ts pros dois jeitos de testar.
+  const cobrancaBenemedFalha = assinaturaBenemedAtiva && cobrancaBenemedFalhou();
+
   // DESIGN ONLY — ?recomendacoes=vazio força zero cards, para visualizar o painel sem "Para você agora"
   // Provider fica fora do <BrowserRouter> (main.tsx), por isso lê a URL direto em vez de useSearchParams()
   // TODO: remover quando P2/P4 estiverem ligados a uma condição real (endereço/conta cadastrados)
@@ -96,6 +100,16 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         texto: "Adicione sua conta bancária para receber crédito.",
         cta: "Adicionar",
         destino: "/minha-conta/dados-bancarios",
+        dispensavel: false,
+      },
+      {
+        id: "P5",
+        grupo: "P",
+        prioridade: 1,
+        icone: "Heartbeat",
+        texto: "Não conseguimos cobrar sua mensalidade BeneMed.",
+        cta: "Regularizar",
+        destino: "/assistencias/saude/assinatura",
         dispensavel: false,
       },
       {
@@ -188,6 +202,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     let ativos = cardsBase.filter((card) => !isDispensadoPersistido(card));
 
     ativos = ativos.filter((card) => {
+      if (card.id === "P5" && !cobrancaBenemedFalha) return false;
       if (card.id === "O2" && assinaturaBenemedAtiva) return false;
       if (card.id === "O3" && interesseEnergia) return false;
       if (card.id === "G1" && streak === 0) return false;
@@ -202,7 +217,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     }
 
     return ativos.sort((a, b) => a.prioridade - b.prioridade);
-  }, [assinaturaBenemedAtiva, cardsBase, dispensados, dispensadosSessao, interesseEnergia, saldo, streak, forcarRecomendacoesVazias]);
+  }, [assinaturaBenemedAtiva, cardsBase, cobrancaBenemedFalha, dispensados, dispensadosSessao, interesseEnergia, saldo, streak, forcarRecomendacoesVazias]);
 
   const dispensar = (id: string) => {
     const card = cardsBase.find((item) => item.id === id);
