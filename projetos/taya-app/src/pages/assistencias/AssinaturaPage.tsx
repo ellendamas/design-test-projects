@@ -1,5 +1,5 @@
-import { useLocation } from "react-router-dom";
-import { ShieldCheck } from "@phosphor-icons/react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { CaretRight, ShieldCheck } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/context/ChatContext";
@@ -7,13 +7,15 @@ import { getAssinaturaBenemedAtiva, PLANOS, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/assinatura — "Meu plano" da assinatura BeneMed, mesmo padrão
 // visual das telas de contrato existentes (ver ContratoSeguroPage em App.tsx: selo de status +
-// grid de dados principais). O botão de cancelar NÃO chama nenhum endpoint de cancelamento
-// ainda — só direciona pro chat de suporte, igual ao padrão já usado em
+// grid de dados principais). "Cancelar assinatura" é só um item de lista simples, no mesmo
+// padrão dos botões de Minha Conta (AccountScreen em App.tsx) — NÃO chama nenhum endpoint de
+// cancelamento ainda, só direciona pro chat de suporte, igual ao padrão já usado em
 // minha-conta/VerificarContato.tsx (handleIniciarChatSuporte).
 //
 // Prioriza o estado persistido (quem contratou de verdade e veio pela ConfirmacaoPage) sobre o
 // location.state, pra funcionar também em acesso direto via URL/Contratos.
 export default function AssistenciasAssinaturaPage() {
+  const navigate = useNavigate();
   const location = useLocation();
   const plano = getAssinaturaBenemedAtiva() ?? (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
   const { abrirChat, enviarMensagemContexto } = useChat();
@@ -54,6 +56,13 @@ export default function AssistenciasAssinaturaPage() {
         </div>
       </div>
 
+      <Button
+        className="mb-6 h-14 w-full rounded-full"
+        onClick={() => navigate("/assistencias/saude/assinatura/benemed")}
+      >
+        Ir para BeneMed
+      </Button>
+
       <div className="mb-6 rounded-2xl border border-border bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
           <ShieldCheck size={18} className="text-[#FD5F31]" />
@@ -65,15 +74,16 @@ export default function AssistenciasAssinaturaPage() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-dashed border-border bg-white p-4 shadow-sm">
-        <p className="text-sm font-semibold text-foreground">Cancelar assinatura</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          O cancelamento é feito junto ao nosso time de atendimento.
-        </p>
-        <Button variant="outline" className="mt-3 h-11 w-full rounded-full" onClick={handleCancelar}>
-          Falar com o suporte
-        </Button>
-      </div>
+      <button
+        type="button"
+        onClick={handleCancelar}
+        className="w-full rounded-2xl border border-border bg-white px-4 py-3.5 text-left text-sm text-foreground"
+      >
+        <div className="flex items-center justify-between">
+          Cancelar assinatura
+          <CaretRight size={16} className="text-muted-foreground" />
+        </div>
+      </button>
     </SubPageLayout>
   );
 }

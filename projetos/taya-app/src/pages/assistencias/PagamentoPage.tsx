@@ -3,10 +3,15 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Clock, Copy, QrCode } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
-import { PLANOS, type Plano } from "./shared";
+import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, PLANOS, temAssinaturaBenemedAtiva, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/pagamento — Pix mockado (QR + copia e cola), sem chamada real de
 // API ainda. O payload do QR e o código copia-e-cola abaixo são só texto de exemplo.
+//
+// Mesma tela serve dois contextos: primeira contratação (vindo de SaudePage.tsx) e
+// regularização de cobrança que falhou (vindo do card "P5" do Para Você Agora) — detectado
+// sozinho (assinatura ativa + cobrança marcada como falhada), sem precisar passar flag nenhuma
+// via navegação. Só muda o texto do header; QR/copia-cola/confirmação são idênticos.
 //
 // Sem webhook real de confirmação: copiar o código Pix dispara a simulação do pagamento
 // confirmado 10s depois (DESIGN ONLY), em vez de um botão manual de "simular pagamento".
@@ -20,7 +25,8 @@ export default function AssistenciasPagamentoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const plano = (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
+  const plano = getAssinaturaBenemedAtiva() ?? (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
+  const modoRegularizacao = temAssinaturaBenemedAtiva() && cobrancaBenemedFalhou();
   const [copiado, setCopiado] = useState(false);
   const [qrFalhou, setQrFalhou] = useState(false);
   const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
@@ -61,7 +67,9 @@ export default function AssistenciasPagamentoPage() {
             <QrCode size={28} className="text-[#FD5F31]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Pague com Pix para ativar</h1>
+            <h1 className="text-xl font-bold text-foreground">
+              {modoRegularizacao ? "Pague com Pix para regularizar" : "Pague com Pix para ativar"}
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Plano {plano.nome} · {plano.cobranca}
             </p>
