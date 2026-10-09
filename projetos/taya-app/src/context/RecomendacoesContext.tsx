@@ -114,7 +114,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         icone: "Heartbeat",
         texto: "Não conseguimos cobrar sua mensalidade BeneMed.",
         cta: "Regularizar",
-        destino: "/assistencias/saude/assinatura",
+        destino: "/assistencias/saude/pagamento",
         dispensavel: false,
         atencao: true,
       },

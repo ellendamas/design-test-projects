@@ -53,20 +53,33 @@ export function ativarAssinaturaBenemed(plano: Plano): void {
 }
 
 // Status de cobrança da assinatura — ainda não existe webhook real da BeneMed avisando
-// sucesso/falha de cobrança, então isso é 100% mock. Dois jeitos de ligar o estado de falha pra
-// testar o card "Não conseguimos cobrar" no Para Você Agora, sem precisar do webhook:
-//   1) ?assinaturaCobranca=falhou na URL (DESIGN ONLY) — sozinho já é suficiente pra
-//      pré-visualizar o card, mesmo sem ter passado pelo fluxo de compra antes (mesmo padrão de
-//      ?erro=/?status= no resto do app: o parâmetro nunca depende de outro estado pra funcionar)
-//   2) trocar a constante COBRANCA_FALHOU_MOCK abaixo pra true — nesse caso sim, só conta se
-//      já existir uma assinatura ativa (comportamento "realista", sem bypass)
-const COBRANCA_FALHOU_MOCK = false; // troque pra true pra simular falha sem usar o query param
+// sucesso/falha de cobrança, então isso é 100% mock, persistido (pra sobreviver à navegação
+// entre telas: card → pagamento → confirmação, que resolve a falha de verdade).
+// Dois jeitos de ligar o estado de falha pra testar sem precisar do webhook:
+//   1) ?assinaturaCobranca=falhou na URL (DESIGN ONLY) — funciona sozinho, mesmo sem assinatura
+//      ativa (bypass só de preview), e também persiste — não precisa ficar repetindo o
+//      parâmetro nas próximas telas do fluxo de regularização.
+//   2) window.localStorage.setItem("podeja_benemed_cobranca_falhou", "true") no console —
+//      nesse caso só conta se já existir uma assinatura ativa (comportamento "realista").
+const COBRANCA_FALHOU_KEY = "podeja_benemed_cobranca_falhou";
 
 export function cobrancaBenemedFalhou(): boolean {
-  if (typeof window !== "undefined") {
-    const forcado = new URLSearchParams(window.location.search).get("assinaturaCobranca");
-    if (forcado === "falhou") return true; // DESIGN ONLY — bypassa a checagem de assinatura ativa
-    if (forcado === "em_dia") return false;
+  if (typeof window === "undefined") return false;
+  const forcado = new URLSearchParams(window.location.search).get("assinaturaCobranca");
+  if (forcado === "falhou") {
+    window.localStorage.setItem(COBRANCA_FALHOU_KEY, "true");
+    return true; // DESIGN ONLY — bypassa a checagem de assinatura ativa
   }
-  return temAssinaturaBenemedAtiva() && COBRANCA_FALHOU_MOCK;
+  if (forcado === "em_dia") {
+    window.localStorage.removeItem(COBRANCA_FALHOU_KEY);
+    return false;
+  }
+  return temAssinaturaBenemedAtiva() && window.localStorage.getItem(COBRANCA_FALHOU_KEY) === "true";
+}
+
+// Chamado ao confirmar o pagamento de regularização (ConfirmacaoPage.tsx) — some com o card de
+// falha de cobrança e com o estado de "regularização" em PagamentoPage.tsx.
+export function resolverCobrancaBenemed(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(COBRANCA_FALHOU_KEY);
 }
