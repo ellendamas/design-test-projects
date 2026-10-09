@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import {
   CaretRight,
   FileX,
-  Heartbeat,
   Info,
   Vault,
   Wallet,
@@ -105,35 +104,44 @@ export default function ConsignadoCLTSemOfertaPage() {
           )}
         </div>
 
-        {/* ── Banner de descoberta — Assistências, mesma estrutura do card de produto do
-            dashboard (HomeScreen em App.tsx), com mais destaque que os cards de cross-sell
-            acima por ser recomendação, não uma alternativa direta ao crédito negado. ── */}
+        {/* ── Banner de descoberta — Assistências. Mesma estrutura do hero que já existe no
+            topo da própria página de Assistências (AssistenciasPage em App.tsx): imagem de
+            fundo inteira, não um recorte ao lado do texto — é pra parecer peça promocional,
+            não mais um card de lista como o de Crédito Pessoal acima. ── */}
         <button
           type="button"
           onClick={() => navigate("/assistencias/saude")}
-          className="w-full overflow-hidden rounded-2xl border border-[#DADADA] bg-white text-left shadow-sm"
+          className="relative block min-h-[200px] w-full overflow-hidden rounded-2xl text-left"
         >
-          <div className="flex min-h-[158px] items-stretch">
-            <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
-              <div>
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">
-                    <Heartbeat size={20} />
-                  </div>
-                  <p className="text-[16px] font-semibold leading-tight text-foreground">Assistências Pode Já.</p>
-                </div>
-                <p className="mb-2 text-[14px] font-semibold text-[#FD5F31]">Saúde com desconto, a partir de R$ 29,90/mês</p>
-                <p className="mb-3 text-[14px] leading-snug text-muted-foreground">
-                  Cuide de você e da sua família com descontos de até 85% em consultas e exames.
-                </p>
-              </div>
-              <span className="inline-flex w-fit items-center text-[16px] font-semibold text-[#FD5F31]">
-                Conhecer planos <CaretRight size={14} className="ml-1" />
-              </span>
-            </div>
-            <div className="w-32 shrink-0 overflow-hidden bg-transparent">
-              <img src="/images/card-dash-assistencias.png" alt="" className="h-full w-full object-contain object-bottom" />
-            </div>
+          <img
+            src="/images/banner-intro-assistencias.png"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-right"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+          <div className="absolute inset-0 bg-[#FD5F31]/75 md:hidden" />
+          <div className="absolute inset-0 bg-black/25 md:hidden" />
+          <div
+            className="absolute inset-0 hidden md:block"
+            style={{
+              background: "linear-gradient(90deg, #D94E28 0%, rgba(253, 95, 49, 0.70) 40%, rgba(253, 95, 49, 0.00) 85%)",
+            }}
+          />
+          <div className="relative z-10 flex min-h-[200px] max-w-full flex-col justify-end p-5 md:max-w-[60%]">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
+              Assistências Pode Já
+            </p>
+            <h3 className="mb-1 text-xl font-bold leading-snug text-white">
+              Saúde com desconto, a partir de R$ 29,90/mês
+            </h3>
+            <p className="mb-3 text-sm leading-relaxed text-white/85">
+              Cuide de você e da sua família com descontos de até 85% em consultas e exames.
+            </p>
+            <span className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-white">
+              Conhecer planos <CaretRight size={14} />
+            </span>
           </div>
         </button>
 

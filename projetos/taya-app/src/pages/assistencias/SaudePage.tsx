@@ -5,12 +5,12 @@ import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { PLANOS, telefoneJaValidado, type ModalidadePlano, type PlanoId } from "./shared";
+import { PLANOS, telefoneJaValidado, type PlanoId } from "./shared";
 
 // Rota: /assistencias/saude — primeira tela do fluxo de oferta BeneMed (vertical Saúde dentro
-// de Assistências). Alterna entre as 3 periodicidades do plano Individual (Mensal/Semestral/
-// Anual) e a única opção do Familiar por enquanto, sem pré-seleção em nenhum dos dois. Dado de
-// plano é mockado — ainda não integra com a API da BeneMed.
+// de Assistências). Todos os 4 planos numa lista só, sem abas — o Familiar se destaca pelo
+// próprio tratamento visual (fundo na cor da marca, maior que os individuais), não por estar
+// separado em outra aba. Dado de plano é mockado — ainda não integra com a API da BeneMed.
 //
 // Os dependentes do plano Familiar não são cadastrados nessa tela — isso acontece depois, do
 // lado da BeneMed, por isso o copy aqui só descreve a cobertura ("Você + 3 dependentes"), nunca
@@ -22,16 +22,7 @@ import { PLANOS, telefoneJaValidado, type ModalidadePlano, type PlanoId } from "
 
 export default function AssistenciasSaudePage() {
   const navigate = useNavigate();
-  const [modalidade, setModalidade] = useState<ModalidadePlano>("individual");
   const [planoSelecionado, setPlanoSelecionado] = useState<PlanoId | null>(null);
-
-  const trocarModalidade = (nova: ModalidadePlano) => {
-    if (nova === modalidade) return;
-    setModalidade(nova);
-    setPlanoSelecionado(null); // evita levar selecionado de uma modalidade pra outra
-  };
-
-  const planosVisiveis = PLANOS.filter((p) => p.modalidade === modalidade);
 
   const handleContinuar = () => {
     const plano = PLANOS.find((p) => p.id === planoSelecionado);
@@ -55,28 +46,55 @@ export default function AssistenciasSaudePage() {
           </div>
         </div>
 
-        <div className="flex rounded-full bg-muted p-1">
-          {([
-            { id: "individual" as const, label: "Individual" },
-            { id: "familiar" as const, label: "Familiar" },
-          ]).map((opcao) => (
-            <button
-              key={opcao.id}
-              type="button"
-              onClick={() => trocarModalidade(opcao.id)}
-              className={cn(
-                "flex-1 rounded-full py-2 text-sm font-semibold transition-colors",
-                modalidade === opcao.id ? "bg-white text-[#FD5F31] shadow-sm" : "text-muted-foreground",
-              )}
-            >
-              {opcao.label}
-            </button>
-          ))}
-        </div>
-
         <div className="space-y-3">
-          {planosVisiveis.map((plano) => {
+          {PLANOS.map((plano) => {
             const selecionado = planoSelecionado === plano.id;
+
+            if (plano.modalidade === "familiar") {
+              return (
+                <button
+                  key={plano.id}
+                  type="button"
+                  onClick={() => setPlanoSelecionado(plano.id)}
+                  className="w-full text-left"
+                >
+                  <div
+                    className={cn(
+                      "overflow-hidden rounded-2xl bg-gradient-to-br from-[#FD5F31] to-[#D94E28] p-5 text-white transition-shadow",
+                      selecionado ? "shadow-lg ring-2 ring-[#FD5F31] ring-offset-2" : "shadow-sm",
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-lg font-bold">{plano.nome}</p>
+                          {plano.destaque && (
+                            <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                              {plano.destaque}
+                            </span>
+                          )}
+                        </div>
+                        {plano.cobertura && <p className="mt-1 text-sm font-semibold text-white">{plano.cobertura}</p>}
+                        <p className="mt-0.5 text-xs text-white/75">{plano.cobranca}</p>
+                      </div>
+                      <div
+                        className={cn(
+                          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2",
+                          selecionado ? "border-white bg-white text-[#FD5F31]" : "border-white/50 bg-transparent text-transparent",
+                        )}
+                      >
+                        <CheckCircle size={18} weight="fill" />
+                      </div>
+                    </div>
+                    <p className="mt-4 text-3xl font-bold">
+                      {plano.precoMes}
+                      <span className="text-sm font-medium text-white/80"> /mês</span>
+                    </p>
+                  </div>
+                </button>
+              );
+            }
+
             return (
               <button
                 key={plano.id}
@@ -100,9 +118,6 @@ export default function AssistenciasSaudePage() {
                           </span>
                         )}
                       </div>
-                      {plano.cobertura && (
-                        <p className="mt-1 text-xs font-medium text-foreground">{plano.cobertura}</p>
-                      )}
                       <p className="mt-1 text-xs text-muted-foreground">{plano.cobranca}</p>
                     </div>
                     <div className="flex items-center gap-3">
