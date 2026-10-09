@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle, Info, Stethoscope } from "@phosphor-icons/react";
+import { CheckCircle, Stethoscope } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,15 +49,6 @@ export default function AssistenciasSaudePage() {
             </p>
             <h1 className="text-xl font-bold text-foreground">Escolha seu plano</h1>
           </div>
-        </div>
-
-        {/* Aviso obrigatório — não é plano de saúde regulamentado, não cobre urgência/emergência */}
-        <div className="flex gap-3 rounded-2xl border border-[#F6C5A9] bg-[#FEF0E9] p-4">
-          <Info size={18} className="mt-0.5 shrink-0 text-[#C84A1F]" />
-          <p className="text-xs leading-relaxed text-[#541A08]">
-            A BeneMed é um plano de assistência à saúde, <strong>não é um plano de saúde</strong> regulamentado
-            pela ANS. Não cobre atendimentos de urgência ou emergência.
-          </p>
         </div>
 
         <div className="space-y-3">

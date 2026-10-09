@@ -1600,7 +1600,6 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
 function AssistenciasPage() {
   const navigate = useNavigate();
   const { interesses, registrarInteresse } = useInteresse();
-  const assistencias = interesses.includes("assistencias");
   const categoriasRef = useRef<HTMLDivElement>(null);
   const [draggingCategorias, setDraggingCategorias] = useState(false);
   const [canCategoriasLeft, setCanCategoriasLeft] = useState(false);
@@ -1660,18 +1659,9 @@ function AssistenciasPage() {
     };
   }, []);
 
-  const handleInteresse = () => {
-    registrarInteresse("assistencias");
-    toast("Em breve!", {
-      duration: 5000,
-      icon: <Bell size={16} className="text-[#FD5F31]" />,
-      description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
-    });
-  };
-
   // Interesse por categoria "em breve" — chave composta (assistencias-<id>) no mesmo
   // InteresseContext genérico, sem mexer no provider. Cada categoria registra e exibe seu
-  // próprio estado, independente do CTA único do rodapé.
+  // próprio estado — não existe mais um CTA único de interesse geral nessa página.
   const handleInteresseCategoria = (categoriaId: string, categoriaNome: string) => {
     const chave = `assistencias-${categoriaId}`;
     if (interesses.includes(chave)) return;
@@ -1724,7 +1714,7 @@ function AssistenciasPage() {
           onClick={() => navigate(`/assistencias/${categoriaSaude.id}`)}
           className="w-full overflow-hidden rounded-2xl border border-border bg-white text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
         >
-          <div className="h-[100px] w-full overflow-hidden">
+          <div className="h-[300px] w-full overflow-hidden">
             {categoriaSaude.hero}
           </div>
           <div className="p-4">
@@ -1751,9 +1741,29 @@ function AssistenciasPage() {
           </div>
         </button>
 
+        <Card className="border-0 bg-[#FFF3EE] shadow-sm">
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Como vai funcionar</h3>
+            <div className="space-y-3">
+              {[
+                { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
+                { icon: <CreditCard size={32} className="text-[#FD5F31]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do Pode Já, simples e sem burocracia." },
+                { icon: <HandHeart size={32} className="text-[#FD5F31]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
+              ].map((item, idx, arr) => (
+                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#FD5F31]/15 pb-3" : ""}`}>
+                  <div className="shrink-0">{item.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="relative">
-          <h3 className="text-sm font-semibold text-foreground">O que está incluído</h3>
-          <p className="mt-1 text-xs text-muted-foreground">{categorias.length} categorias a caminho para você e sua família</p>
+          <h3 className="text-sm font-semibold text-foreground">Benefícios a caminho para você e sua família</h3>
           <div
             ref={categoriasRef}
             className={`mt-3 flex w-full gap-3 overflow-x-auto pb-1 touch-pan-x select-none [&::-webkit-scrollbar]:hidden ${draggingCategorias ? "cursor-grabbing" : "cursor-grab"}`}
@@ -1875,34 +1885,9 @@ function AssistenciasPage() {
           </div>
         </div>
 
-        <Card className="border-border bg-white shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Como vai funcionar</h3>
-            <div className="space-y-3">
-              {[
-                { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
-                { icon: <CreditCard size={32} className="text-[#FD5F31]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do Pode Já, simples e sem burocracia." },
-                { icon: <HandHeart size={32} className="text-[#FD5F31]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
-              ].map((item, idx, arr) => (
-                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
-                  <div className="shrink-0">{item.icon}</div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         <div>
           <h3 className="mb-2 text-sm font-semibold text-foreground">Dúvidas frequentes</h3>
           <FaqAcordeon items={faqItems} />
-        </div>
-
-        <div className="sticky bottom-20 z-40 pb-3 md:bottom-0">
-          <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
         </div>
       </div>
     </SubPageLayout>
