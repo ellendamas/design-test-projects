@@ -80,7 +80,7 @@ export const FAQ: Record<string, FaqItem[]> = {
     },
     {
       q: "Posso incluir minha família?",
-      a: "Por enquanto, a contratação é só individual. A modalidade família, com até 3 dependentes, ainda não está disponível nesta fase.",
+      a: "Sim. O plano Familiar cobre você e até 3 dependentes. O cadastro de cada dependente é feito depois, diretamente pelo app da BeneMed.",
     },
   ],
 

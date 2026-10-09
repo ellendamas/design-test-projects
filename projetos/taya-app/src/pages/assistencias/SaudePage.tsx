@@ -5,11 +5,16 @@ import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { PLANOS, telefoneJaValidado, type PlanoId } from "./shared";
+import { PLANOS, telefoneJaValidado, type ModalidadePlano, type PlanoId } from "./shared";
 
 // Rota: /assistencias/saude — primeira tela do fluxo de oferta BeneMed (vertical Saúde dentro
-// de Assistências). Mostra os 3 planos lado a lado, sem pré-seleção. Dado de plano é mockado —
-// ainda não integra com a API da BeneMed.
+// de Assistências). Alterna entre as 3 periodicidades do plano Individual (Mensal/Semestral/
+// Anual) e a única opção do Familiar por enquanto, sem pré-seleção em nenhum dos dois. Dado de
+// plano é mockado — ainda não integra com a API da BeneMed.
+//
+// Os dependentes do plano Familiar não são cadastrados nessa tela — isso acontece depois, do
+// lado da BeneMed, por isso o copy aqui só descreve a cobertura ("Você + 3 dependentes"), nunca
+// promete um passo de cadastro dentro desse fluxo.
 //
 // Ao continuar: se o telefone do usuário ainda não foi validado (mesma flag usada no resto do
 // app), intercala a etapa de verificação por SMS antes da confirmação de dados; senão, pula
@@ -17,7 +22,16 @@ import { PLANOS, telefoneJaValidado, type PlanoId } from "./shared";
 
 export default function AssistenciasSaudePage() {
   const navigate = useNavigate();
+  const [modalidade, setModalidade] = useState<ModalidadePlano>("individual");
   const [planoSelecionado, setPlanoSelecionado] = useState<PlanoId | null>(null);
+
+  const trocarModalidade = (nova: ModalidadePlano) => {
+    if (nova === modalidade) return;
+    setModalidade(nova);
+    setPlanoSelecionado(null); // evita levar selecionado de uma modalidade pra outra
+  };
+
+  const planosVisiveis = PLANOS.filter((p) => p.modalidade === modalidade);
 
   const handleContinuar = () => {
     const plano = PLANOS.find((p) => p.id === planoSelecionado);
@@ -41,8 +55,27 @@ export default function AssistenciasSaudePage() {
           </div>
         </div>
 
+        <div className="flex rounded-full bg-muted p-1">
+          {([
+            { id: "individual" as const, label: "Individual" },
+            { id: "familiar" as const, label: "Familiar" },
+          ]).map((opcao) => (
+            <button
+              key={opcao.id}
+              type="button"
+              onClick={() => trocarModalidade(opcao.id)}
+              className={cn(
+                "flex-1 rounded-full py-2 text-sm font-semibold transition-colors",
+                modalidade === opcao.id ? "bg-white text-[#FD5F31] shadow-sm" : "text-muted-foreground",
+              )}
+            >
+              {opcao.label}
+            </button>
+          ))}
+        </div>
+
         <div className="space-y-3">
-          {PLANOS.map((plano) => {
+          {planosVisiveis.map((plano) => {
             const selecionado = planoSelecionado === plano.id;
             return (
               <button
@@ -67,6 +100,9 @@ export default function AssistenciasSaudePage() {
                           </span>
                         )}
                       </div>
+                      {plano.cobertura && (
+                        <p className="mt-1 text-xs font-medium text-foreground">{plano.cobertura}</p>
+                      )}
                       <p className="mt-1 text-xs text-muted-foreground">{plano.cobranca}</p>
                     </div>
                     <div className="flex items-center gap-3">

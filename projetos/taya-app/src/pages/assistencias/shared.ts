@@ -1,20 +1,29 @@
 // Dados e constantes compartilhados entre as telas do fluxo de oferta BeneMed
 // (Saúde dentro de Assistências) — plano escolhido, chave de telefone validado.
 
-export type PlanoId = "mensal" | "semestral" | "anual";
+export type PlanoId = "mensal" | "semestral" | "anual" | "familiar";
+export type ModalidadePlano = "individual" | "familiar";
 
 export type Plano = {
   id: PlanoId;
+  /** Código do plano no catálogo da BeneMed, quando fornecido pelo parceiro. Não aparece na UI. */
+  idExterno?: string;
+  modalidade: ModalidadePlano;
   nome: string;
   precoMes: string;
   cobranca: string;
+  /** Texto curto de coberta, ex: "Você + 3 dependentes" — só o plano Familiar usa por enquanto. */
+  cobertura?: string;
   destaque?: string;
 };
 
 export const PLANOS: Plano[] = [
-  { id: "mensal", nome: "Mensal", precoMes: "R$ 39,90", cobranca: "Cobrança mensal" },
-  { id: "semestral", nome: "Semestral", precoMes: "R$ 33,00", cobranca: "R$ 198,00 a cada 6 meses" },
-  { id: "anual", nome: "Anual", precoMes: "R$ 29,00", cobranca: "R$ 348,00 a cada 12 meses", destaque: "Mais econômico" },
+  { id: "mensal", modalidade: "individual", nome: "Mensal", precoMes: "R$ 39,90", cobranca: "Cobrança mensal" },
+  { id: "semestral", modalidade: "individual", nome: "Semestral", precoMes: "R$ 33,00", cobranca: "R$ 198,00 a cada 6 meses" },
+  { id: "anual", modalidade: "individual", nome: "Anual", precoMes: "R$ 29,00", cobranca: "R$ 348,00 a cada 12 meses", destaque: "Mais econômico" },
+  // Por enquanto só existe uma periodicidade pro Familiar (mensal) — se a BeneMed oferecer
+  // semestral/anual pra essa modalidade depois, entra como novo item aqui, mesmo padrão.
+  { id: "familiar", idExterno: "205", modalidade: "familiar", nome: "Familiar", precoMes: "R$ 53,90", cobranca: "Cobrança mensal", cobertura: "Você + 3 dependentes", destaque: "Mais econômico para a família" },
 ];
 
 // Mesma chave usada em leilao-clt/MfaPage.tsx e minha-conta/VerificarContato.tsx — o
