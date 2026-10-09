@@ -63,6 +63,10 @@ export const FAQ: Record<string, FaqItem[]> = {
 
   assistencias: [
     {
+      q: "A BeneMed é um plano de saúde?",
+      a: "A BeneMed é um plano de assistência à saúde, não é um plano de saúde regulamentado pela ANS. Não cobre atendimentos de urgência ou emergência.",
+    },
+    {
       q: "Quem pode contratar?",
       a: "Todos os clientes cadastrados no Pode Já com CPF validado.",
     },
@@ -76,7 +80,7 @@ export const FAQ: Record<string, FaqItem[]> = {
     },
     {
       q: "Posso incluir minha família?",
-      a: "No plano de Saúde você pode incluir até 3 dependentes. A modalidade familiar ainda não está disponível nesta fase — assim que outras categorias forem lançadas, essa informação é atualizada aqui.",
+      a: "No plano de assistência de saúde você pode incluir até 3 dependentes. A modalidade familiar ainda não está disponível nesta fase — assim que outras categorias forem lançadas, essa informação é atualizada aqui.",
     },
   ],
 
