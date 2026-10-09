@@ -76,7 +76,7 @@ export const FAQ: Record<string, FaqItem[]> = {
     },
     {
       q: "Posso incluir minha família?",
-      a: "Sim. Algumas categorias permitem até 8 dependentes sem necessidade de grau de parentesco.",
+      a: "No plano de Saúde você pode incluir até 3 dependentes. A modalidade familiar ainda não está disponível nesta fase — assim que outras categorias forem lançadas, essa informação é atualizada aqui.",
     },
   ],
 
