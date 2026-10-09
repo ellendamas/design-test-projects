@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Briefcase, Clock, Headset, IdentificationCard, PiggyBank, XCircle } from "@phosphor-icons/react";
+import { Briefcase, Clock, Headset, Heartbeat, IdentificationCard, PiggyBank, XCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 
 type LocationState = Record<string, unknown>;
@@ -20,6 +20,12 @@ const CROSS_SELL = [
     titulo: "Antecipação FGTS",
     sub: "Use seu saldo do FGTS",
     rota: "/fgts",
+  },
+  {
+    icon: Heartbeat,
+    titulo: "Assistências",
+    sub: "Saúde com desconto, a partir de R$ 29,90/mês",
+    rota: "/assistencias/saude",
   },
 ].filter((item) => item.rota !== "/fgts" || false);
 

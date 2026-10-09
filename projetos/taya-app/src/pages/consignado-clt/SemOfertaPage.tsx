@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import {
   FileX,
+  Heartbeat,
   Info,
   Vault,
   Wallet,
@@ -73,6 +74,27 @@ export default function ConsignadoCLTSemOfertaPage() {
                 <p className="mt-0.5 text-xs font-medium text-[#FD5F31]">Dinheiro na conta em minutos</p>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   Sem precisar de FGTS ou desconto em folha.
+                </p>
+              </div>
+              <ArrowRight size={16} className="mt-1 shrink-0 text-muted-foreground" />
+            </div>
+          </button>
+
+          {/* Card Assistências — vai direto pra oferta de planos BeneMed, não a página geral */}
+          <button
+            type="button"
+            onClick={() => navigate("/assistencias/saude")}
+            className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE]">
+                <Heartbeat size={20} className="text-[#FD5F31]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">Assistências</p>
+                <p className="mt-0.5 text-xs font-medium text-[#FD5F31]">Saúde com desconto, a partir de R$ 29,90/mês</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Consultas, exames e mais com a BeneMed.
                 </p>
               </div>
               <ArrowRight size={16} className="mt-1 shrink-0 text-muted-foreground" />

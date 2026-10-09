@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { DeviceMobile } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
@@ -8,14 +8,18 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { PLANOS, TELEFONE_VALIDADO_KEY, type Plano } from "./shared";
 
 const CODIGO_VALIDO = "123456"; // TODO: integrar com endpoint real de verificação
+const MAX_TENTATIVAS = 3;
 
 // Rota: /assistencias/saude/verificar-celular — intercalada antes da confirmação de dados
 // só quando o telefone do usuário ainda não foi validado (ver shared.ts, telefoneJaValidado).
-// Mesmo padrão visual/comportamento da verificação por SMS usada no resto do app (onboarding
-// e leilao-clt/MfaPage.tsx): código de 6 dígitos, erro inline, reenvio com contagem de 30s.
+// Mesmo padrão de leilao-clt/MfaPage.tsx: erro inline abaixo do campo (nunca troca de tela),
+// contagem de tentativas restantes, bloqueio após 3 erradas, e ?celularErro=expirado (DESIGN
+// ONLY) pra pré-visualizar o estado de código expirado sem esperar de verdade.
 export default function AssistenciasVerificarCelularPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const forcarExpirado = searchParams.get("celularErro") === "expirado"; // DESIGN ONLY
   const plano = (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
   const celularMascarado = (() => {
     const raw = localStorage.getItem("podeja_celular") ?? "";
@@ -25,6 +29,8 @@ export default function AssistenciasVerificarCelularPage() {
 
   const [codigo, setCodigo] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [tentativasRestantes, setTentativasRestantes] = useState(MAX_TENTATIVAS);
+  const [bloqueado, setBloqueado] = useState(false);
   const [countdown, setCountdown] = useState(30);
 
   useEffect(() => {
@@ -33,14 +39,28 @@ export default function AssistenciasVerificarCelularPage() {
     return () => window.clearTimeout(t);
   }, [countdown]);
 
+  // DESIGN ONLY — mostra o estado de código expirado direto, sem precisar digitar nada.
+  useEffect(() => {
+    if (forcarExpirado) setErro("Código expirou. Solicite um novo código para continuar.");
+  }, [forcarExpirado]);
+
   const verificar = () => {
+    if (forcarExpirado || bloqueado) return;
     if (codigo.length !== 6) {
       setErro("Digite o código de 6 dígitos.");
       return;
     }
     if (codigo !== CODIGO_VALIDO) {
-      setErro("Código inválido. Verifique e tente novamente.");
+      const restantes = tentativasRestantes - 1;
       setCodigo("");
+      if (restantes <= 0) {
+        setBloqueado(true);
+        setErro("Muitas tentativas. Aguarde 15 minutos antes de tentar de novo.");
+        return;
+      }
+      setTentativasRestantes(restantes);
+      const sufixo = restantes === 1 ? "Resta 1 tentativa." : `Restam ${restantes} tentativas.`;
+      setErro(`Código inválido. Verifique e tente novamente. ${sufixo}`);
       return;
     }
     localStorage.setItem(TELEFONE_VALIDADO_KEY, "true");
@@ -68,6 +88,7 @@ export default function AssistenciasVerificarCelularPage() {
               <InputOTP
                 maxLength={6}
                 value={codigo}
+                disabled={bloqueado || forcarExpirado}
                 onChange={(v) => {
                   setCodigo(v);
                   if (erro) setErro(null);
@@ -82,7 +103,7 @@ export default function AssistenciasVerificarCelularPage() {
             </div>
             {erro && <p className="text-center text-sm text-red-500">{erro}</p>}
             <div className="text-center">
-              {countdown > 0 ? (
+              {bloqueado ? null : countdown > 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Reenviar em <span className="font-semibold">{countdown}s</span>
                 </p>
@@ -93,6 +114,7 @@ export default function AssistenciasVerificarCelularPage() {
                     setCountdown(30);
                     setCodigo("");
                     setErro(null);
+                    setTentativasRestantes(MAX_TENTATIVAS);
                   }}
                   className="text-sm font-semibold text-primary underline"
                 >
@@ -105,7 +127,7 @@ export default function AssistenciasVerificarCelularPage() {
 
         <Button
           className="h-14 w-full rounded-full"
-          disabled={codigo.length !== 6}
+          disabled={codigo.length !== 6 || bloqueado || forcarExpirado}
           onClick={verificar}
         >
           Verificar e continuar

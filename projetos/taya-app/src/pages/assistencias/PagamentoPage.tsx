@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Clock, Copy, QrCode } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
@@ -10,6 +10,8 @@ import { PLANOS, type Plano } from "./shared";
 //
 // Sem webhook real de confirmação: copiar o código Pix dispara a simulação do pagamento
 // confirmado 10s depois (DESIGN ONLY), em vez de um botão manual de "simular pagamento".
+// ?pixErro=expirado (DESIGN ONLY) pula direto pra PixExpiradoPage.tsx, pra pré-visualizar esse
+// caminho alternativo sem esperar os 30 minutos reais de expiração.
 const PIX_COPIA_COLA =
   "00020126580014BR.GOV.BCB.PIX0136benemed-podeja-mock@exemplo.com.br5204000053039865406" +
   "0000.005802BR5913Pode Ja Pagto6009SAO PAULO62070503***6304ABCD";
@@ -17,10 +19,19 @@ const PIX_COPIA_COLA =
 export default function AssistenciasPagamentoPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const plano = (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
   const [copiado, setCopiado] = useState(false);
   const [qrFalhou, setQrFalhou] = useState(false);
   const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
+
+  const forcarExpirado = searchParams.get("pixErro") === "expirado"; // DESIGN ONLY
+
+  useEffect(() => {
+    if (!forcarExpirado) return;
+    navigate("/assistencias/saude/pagamento/expirado", { state: { plano }, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forcarExpirado]);
 
   useEffect(() => {
     if (!aguardandoConfirmacao) return;

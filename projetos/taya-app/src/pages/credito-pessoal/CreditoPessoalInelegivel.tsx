@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Briefcase, Headset, IdentificationCard, PiggyBank, WarningCircle, Warning } from "@phosphor-icons/react";
+import { Briefcase, Headset, Heartbeat, IdentificationCard, PiggyBank, WarningCircle, Warning } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 
 type LocationState = Record<string, unknown>;
@@ -73,6 +73,12 @@ export default function CreditoPessoalInelegivel() {
                 titulo: "Antecipação FGTS",
                 sub: "Use seu saldo do FGTS",
                 rota: "/fgts",
+              },
+              {
+                icon: Heartbeat,
+                titulo: "Assistências",
+                sub: "Saúde com desconto, a partir de R$ 29,90/mês",
+                rota: "/assistencias/saude",
               },
             ].filter((item) => item.rota !== "/fgts" || false).map(({ icon: Icon, titulo, sub, rota }) => (
               <button

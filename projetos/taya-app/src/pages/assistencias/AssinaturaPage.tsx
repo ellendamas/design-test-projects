@@ -3,16 +3,19 @@ import { ShieldCheck } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/context/ChatContext";
-import { PLANOS, type Plano } from "./shared";
+import { getAssinaturaBenemedAtiva, PLANOS, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/assinatura — "Meu plano" da assinatura BeneMed, mesmo padrão
 // visual das telas de contrato existentes (ver ContratoSeguroPage em App.tsx: selo de status +
 // grid de dados principais). O botão de cancelar NÃO chama nenhum endpoint de cancelamento
 // ainda — só direciona pro chat de suporte, igual ao padrão já usado em
 // minha-conta/VerificarContato.tsx (handleIniciarChatSuporte).
+//
+// Prioriza o estado persistido (quem contratou de verdade e veio pela ConfirmacaoPage) sobre o
+// location.state, pra funcionar também em acesso direto via URL/Contratos.
 export default function AssistenciasAssinaturaPage() {
   const location = useLocation();
-  const plano = (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
+  const plano = getAssinaturaBenemedAtiva() ?? (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
   const { abrirChat, enviarMensagemContexto } = useChat();
 
   const handleCancelar = () => {
