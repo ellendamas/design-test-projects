@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Briefcase, Clock, Headset, Heartbeat, IdentificationCard, PiggyBank, XCircle } from "@phosphor-icons/react";
+import { Briefcase, CaretRight, Clock, Headset, Heartbeat, IdentificationCard, PiggyBank, XCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 
 type LocationState = Record<string, unknown>;
@@ -21,13 +21,43 @@ const CROSS_SELL = [
     sub: "Use seu saldo do FGTS",
     rota: "/fgts",
   },
-  {
-    icon: Heartbeat,
-    titulo: "Assistências",
-    sub: "Saúde com desconto, a partir de R$ 29,90/mês",
-    rota: "/assistencias/saude",
-  },
 ].filter((item) => item.rota !== "/fgts" || false);
+
+// Banner de descoberta — Assistências, mesma estrutura do card de produto do dashboard
+// (HomeScreen em App.tsx), com mais destaque que o grid do CROSS_SELL acima. Usado nos dois
+// casos desta tela (simulação e formalização), por isso extraído em vez de duplicado.
+function AssistenciasBanner({ onNavegar }: { onNavegar: (rota: string) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onNavegar("/assistencias/saude")}
+      className="w-full overflow-hidden rounded-2xl border border-[#DADADA] bg-white text-left shadow-sm"
+    >
+      <div className="flex min-h-[158px] items-stretch">
+        <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">
+                <Heartbeat size={20} />
+              </div>
+              <p className="text-[16px] font-semibold leading-tight text-foreground">Assistências Pode Já.</p>
+            </div>
+            <p className="mb-2 text-[14px] font-semibold text-[#FD5F31]">Saúde com desconto, a partir de R$ 29,90/mês</p>
+            <p className="mb-3 text-[14px] leading-snug text-muted-foreground">
+              Cuide de você e da sua família com descontos de até 85% em consultas e exames.
+            </p>
+          </div>
+          <span className="inline-flex w-fit items-center text-[16px] font-semibold text-[#FD5F31]">
+            Conhecer planos <CaretRight size={14} className="ml-1" />
+          </span>
+        </div>
+        <div className="w-32 shrink-0 overflow-hidden bg-transparent">
+          <img src="/images/card-dash-assistencias.png" alt="" className="h-full w-full object-contain object-bottom" />
+        </div>
+      </div>
+    </button>
+  );
+}
 
 export default function CreditoPessoalReprovada() {
   const navigate = useNavigate();
@@ -99,6 +129,8 @@ export default function CreditoPessoalReprovada() {
             ))}
           </div>
 
+          <AssistenciasBanner onNavegar={navigate} />
+
           {/* Sem CTA de nova proposta — bloqueio de 7 dias */}
           <div className="sticky bottom-20 z-40 w-full bg-background pb-4 pt-2 md:bottom-0">
             <button
@@ -164,6 +196,8 @@ export default function CreditoPessoalReprovada() {
             </button>
           ))}
         </div>
+
+        <AssistenciasBanner onNavegar={navigate} />
 
         {/* CTA — nova proposta sem bloqueio */}
         <div className="sticky bottom-20 z-40 w-full bg-background pb-4 pt-2 md:bottom-0 flex flex-col gap-3">

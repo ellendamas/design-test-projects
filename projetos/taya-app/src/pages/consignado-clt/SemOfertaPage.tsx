@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import {
+  CaretRight,
   FileX,
   Heartbeat,
   Info,
@@ -80,27 +81,6 @@ export default function ConsignadoCLTSemOfertaPage() {
             </div>
           </button>
 
-          {/* Card Assistências — vai direto pra oferta de planos BeneMed, não a página geral */}
-          <button
-            type="button"
-            onClick={() => navigate("/assistencias/saude")}
-            className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE]">
-                <Heartbeat size={20} className="text-[#FD5F31]" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">Assistências</p>
-                <p className="mt-0.5 text-xs font-medium text-[#FD5F31]">Saúde com desconto, a partir de R$ 29,90/mês</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Consultas, exames e mais com a BeneMed.
-                </p>
-              </div>
-              <ArrowRight size={16} className="mt-1 shrink-0 text-muted-foreground" />
-            </div>
-          </button>
-
           {/* Card Antecipação FGTS — placeholder em breve */}
           {/* FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o false && para reativar. */}
           {false && (
@@ -124,6 +104,38 @@ export default function ConsignadoCLTSemOfertaPage() {
           </div>
           )}
         </div>
+
+        {/* ── Banner de descoberta — Assistências, mesma estrutura do card de produto do
+            dashboard (HomeScreen em App.tsx), com mais destaque que os cards de cross-sell
+            acima por ser recomendação, não uma alternativa direta ao crédito negado. ── */}
+        <button
+          type="button"
+          onClick={() => navigate("/assistencias/saude")}
+          className="w-full overflow-hidden rounded-2xl border border-[#DADADA] bg-white text-left shadow-sm"
+        >
+          <div className="flex min-h-[158px] items-stretch">
+            <div className="flex min-w-0 flex-1 flex-col justify-between px-4 py-4">
+              <div>
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">
+                    <Heartbeat size={20} />
+                  </div>
+                  <p className="text-[16px] font-semibold leading-tight text-foreground">Assistências Pode Já.</p>
+                </div>
+                <p className="mb-2 text-[14px] font-semibold text-[#FD5F31]">Saúde com desconto, a partir de R$ 29,90/mês</p>
+                <p className="mb-3 text-[14px] leading-snug text-muted-foreground">
+                  Cuide de você e da sua família com descontos de até 85% em consultas e exames.
+                </p>
+              </div>
+              <span className="inline-flex w-fit items-center text-[16px] font-semibold text-[#FD5F31]">
+                Conhecer planos <CaretRight size={14} className="ml-1" />
+              </span>
+            </div>
+            <div className="w-32 shrink-0 overflow-hidden bg-transparent">
+              <img src="/images/card-dash-assistencias.png" alt="" className="h-full w-full object-contain object-bottom" />
+            </div>
+          </div>
+        </button>
 
         {/* ── Rodapé ── */}
         <div className="space-y-1 pt-2">
