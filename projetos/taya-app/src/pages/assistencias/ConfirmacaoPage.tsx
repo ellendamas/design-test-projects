@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
-import { PLANOS, type Plano } from "./shared";
+import { ativarAssinaturaBenemed, PLANOS, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/confirmacao — tela final do fluxo de contratação. Texto genérico
 // sobre o acesso ao app/portal da BeneMed já que o canal exato (e-mail, SMS, dentro do próprio
@@ -11,6 +12,13 @@ export default function AssistenciasConfirmacaoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const plano = (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
+
+  // Marca a assinatura como ativa (mock, sem backend) — é o que faz o card "O2" do Para Você
+  // Agora sumir e a tela "Minha assinatura" ter o que mostrar.
+  useEffect(() => {
+    ativarAssinaturaBenemed(plano);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <SubPageLayout title="Assinatura confirmada" hideNav>

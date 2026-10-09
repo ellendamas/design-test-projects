@@ -117,8 +117,10 @@ import AssistenciasSaudePage from "@/pages/assistencias/SaudePage";
 import AssistenciasVerificarCelularPage from "@/pages/assistencias/VerificarCelularPage";
 import AssistenciasConfirmarDadosPage from "@/pages/assistencias/ConfirmarDadosPage";
 import AssistenciasPagamentoPage from "@/pages/assistencias/PagamentoPage";
+import AssistenciasPixExpiradoPage from "@/pages/assistencias/PixExpiradoPage";
 import AssistenciasConfirmacaoPage from "@/pages/assistencias/ConfirmacaoPage";
 import AssistenciasAssinaturaPage from "@/pages/assistencias/AssinaturaPage";
+import { getAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
 import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
 import FGTSLoadingPage from "@/pages/fgts/LoadingPage";
@@ -1170,6 +1172,10 @@ function AlterarSenhaPage() {
 function ContratosPage() {
   const navigate = useNavigate();
   const lista = contratos;
+  // Assinatura BeneMed não entra no array `contratos` — é modelado como mensalidade simples
+  // (sem parcelas/vigência), diferente do shape de crédito/seguro usado ali. Seção própria,
+  // só aparece pra quem já tem uma assinatura ativa (mock em localStorage, ver shared.ts).
+  const assinaturaBenemed = getAssinaturaBenemedAtiva();
   return (
     <SubPageLayout title="Meus contratos">
       <p className="mb-4 text-sm text-muted-foreground">{lista.length} contratos ativos</p>
@@ -1213,6 +1219,27 @@ function ContratosPage() {
               <div className="mt-3 flex items-center gap-1 border-t border-border pt-3 text-xs font-medium text-[#FD5F31]">Ver detalhes<CaretRight size={12} /></div>
             </button>
           ))}
+        </div>
+      )}
+
+      {assinaturaBenemed && (
+        <div className="mt-6">
+          <p className="mb-3 text-sm font-semibold text-foreground">Assinaturas</p>
+          <button
+            onClick={() => navigate("/assistencias/saude/assinatura")}
+            className="w-full rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#FD5F31]/40"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <span className="rounded-full bg-[#FFF3EE] px-2.5 py-1 text-xs font-semibold text-[#D94E28]">Assistência Saúde</span>
+              <span className="flex items-center gap-1.5 text-xs font-medium text-green-700"><div className="h-1.5 w-1.5 rounded-full bg-green-500" />Ativo</span>
+            </div>
+            <p className="mb-2 text-sm font-bold text-foreground">BeneMed</p>
+            <div className="flex items-center justify-between">
+              <div><p className="text-xs text-muted-foreground">Plano</p><p className="text-sm font-semibold text-foreground">{assinaturaBenemed.nome}</p></div>
+              <div className="text-right"><p className="text-xs text-muted-foreground">Valor</p><p className="text-sm font-semibold text-foreground">{assinaturaBenemed.precoMes} / mês</p></div>
+            </div>
+            <div className="mt-3 flex items-center gap-1 border-t border-border pt-3 text-xs font-medium text-[#FD5F31]">Ver detalhes<CaretRight size={12} /></div>
+          </button>
         </div>
       )}
     </SubPageLayout>
@@ -2388,7 +2415,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) {
@@ -4370,6 +4397,7 @@ function App() {
             <Route path="/assistencias/saude/verificar-celular" element={getStoredUser() ? <AssistenciasVerificarCelularPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/confirmar-dados" element={getStoredUser() ? <AssistenciasConfirmarDadosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/pagamento" element={getStoredUser() ? <AssistenciasPagamentoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/pagamento/expirado" element={getStoredUser() ? <AssistenciasPixExpiradoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/confirmacao" element={getStoredUser() ? <AssistenciasConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/assinatura" element={getStoredUser() ? <AssistenciasAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />

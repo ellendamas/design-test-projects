@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 import { useInteresse } from "@/context/InteresseContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
+import { temAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
 
 type GrupoCard = "P" | "O" | "G";
 
@@ -58,7 +59,12 @@ function getDispensadosStorage(): DispensadoPersistido[] {
 }
 
 export function RecomendacoesProvider({ children }: { children: ReactNode }) {
-  const { assistencias, energia } = useInteresse();
+  // `assistencias`/`energia` não existem em useInteresse() — bug antigo corrigido: O2 some com
+  // assinatura BeneMed ativa (não só "interesse"), O3 volta a checar o interesse de energia de
+  // verdade via `interesses.includes(...)`.
+  const { interesses } = useInteresse();
+  const assinaturaBenemedAtiva = temAssinaturaBenemedAtiva();
+  const interesseEnergia = interesses.includes("energia");
   const { streak, saldo } = useSeubolso();
 
   // DESIGN ONLY — ?recomendacoes=vazio força zero cards, para visualizar o painel sem "Para você agora"
@@ -182,8 +188,8 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     let ativos = cardsBase.filter((card) => !isDispensadoPersistido(card));
 
     ativos = ativos.filter((card) => {
-      if (card.id === "O2" && assistencias) return false;
-      if (card.id === "O3" && energia) return false;
+      if (card.id === "O2" && assinaturaBenemedAtiva) return false;
+      if (card.id === "O3" && interesseEnergia) return false;
       if (card.id === "G1" && streak === 0) return false;
       if (card.id === "G2" && saldo < 500) return false;
       if (dispensadosSessao.includes(card.id)) return false;
@@ -196,7 +202,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     }
 
     return ativos.sort((a, b) => a.prioridade - b.prioridade);
-  }, [assistencias, cardsBase, dispensados, dispensadosSessao, energia, saldo, streak, forcarRecomendacoesVazias]);
+  }, [assinaturaBenemedAtiva, cardsBase, dispensados, dispensadosSessao, interesseEnergia, saldo, streak, forcarRecomendacoesVazias]);
 
   const dispensar = (id: string) => {
     const card = cardsBase.find((item) => item.id === id);

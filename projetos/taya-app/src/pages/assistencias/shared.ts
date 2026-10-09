@@ -29,3 +29,25 @@ export function telefoneJaValidado(): boolean {
 export type AssistenciaSaudeState = {
   plano: Plano;
 };
+
+// Estado mockado de "tem assinatura BeneMed ativa" — sem backend real ainda, igual ao resto
+// do fluxo. Setado em ConfirmacaoPage.tsx (pagamento confirmado) e lido tanto em
+// AssinaturaPage.tsx (Minha assinatura) quanto no card "O2" do Para Você Agora
+// (RecomendacoesContext.tsx), que deve sumir quando isso for true.
+const ASSINATURA_ATIVA_KEY = "podeja_benemed_assinatura_ativa";
+
+export function temAssinaturaBenemedAtiva(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(ASSINATURA_ATIVA_KEY) !== null;
+}
+
+export function getAssinaturaBenemedAtiva(): Plano | null {
+  if (typeof window === "undefined") return null;
+  const planoId = window.localStorage.getItem(ASSINATURA_ATIVA_KEY) as PlanoId | null;
+  return PLANOS.find((p) => p.id === planoId) ?? null;
+}
+
+export function ativarAssinaturaBenemed(plano: Plano): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(ASSINATURA_ATIVA_KEY, plano.id);
+}
