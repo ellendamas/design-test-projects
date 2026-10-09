@@ -61,15 +61,14 @@ export default function AssistenciasConfirmacaoPage() {
             </div>
 
             <div className="w-full rounded-2xl bg-[#FFF3EE] p-4 text-left">
-              <p className="text-sm font-semibold text-[#D94E28]">Acesso ao app da BeneMed</p>
+              <p className="text-sm font-semibold text-[#D94E28]">Baixe o app da BeneMed</p>
               <p className="mt-1 text-xs leading-relaxed text-[#D94E28]">
-                Você receberá as informações de acesso em breve.
+                É por lá que você agenda consultas, exames e acompanha tudo do seu plano. As
+                informações de acesso chegam em breve.
               </p>
-            </div>
-
-            <div className="w-full">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">Baixe o app Pode Já para acompanhar sua assinatura</p>
-              <AppStoreBadges />
+              <div className="mt-3">
+                <AppStoreBadges />
+              </div>
             </div>
           </>
         )}
