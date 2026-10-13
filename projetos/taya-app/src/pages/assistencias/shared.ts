@@ -35,9 +35,37 @@ export function telefoneJaValidado(): boolean {
   return window.localStorage.getItem(TELEFONE_VALIDADO_KEY) === "true";
 }
 
+// Mesma chave usada em minha-conta/VerificarContato.tsx (tipo="email") — o único outro lugar
+// do app com verificação de e-mail hoje.
+export const EMAIL_VALIDADO_KEY = "podeja_email_validado";
+
+export function emailJaValidado(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(EMAIL_VALIDADO_KEY) === "true";
+}
+
+// Telefone e e-mail são sempre exigidos agora, não só em planos com Pix recorrente — decide a
+// próxima etapa do fluxo verificando os dois em ordem fixa (celular primeiro, depois e-mail).
+// Usado em SaudePage.tsx (ao continuar) e nas duas telas de verificação (ao concluir uma,
+// verifica se falta a outra antes de ir pra confirmação de dados).
+export function proximaEtapaAposVerificacao():
+  | "/assistencias/saude/verificar-celular"
+  | "/assistencias/saude/verificar-email"
+  | "/assistencias/saude/confirmar-dados" {
+  if (!telefoneJaValidado()) return "/assistencias/saude/verificar-celular";
+  if (!emailJaValidado()) return "/assistencias/saude/verificar-email";
+  return "/assistencias/saude/confirmar-dados";
+}
+
 export type AssistenciaSaudeState = {
   plano: Plano;
 };
+
+// Dias disponíveis pra cobrança do plano Mensal — único plano com Pix recorrente mês a mês
+// (Semestral/Anual são recorrentes também, mas em ciclos mais longos; Familiar ainda não tem
+// essa etapa por decisão de produto). Lista fixa por enquanto, sem vir de nenhuma API.
+export const DIAS_COBRANCA = [5, 10, 15, 20, 25] as const;
+export type DiaCobranca = (typeof DIAS_COBRANCA)[number];
 
 // Estado mockado de "tem assinatura BeneMed ativa" — sem backend real ainda, igual ao resto
 // do fluxo. Setado em ConfirmacaoPage.tsx (pagamento confirmado) e lido tanto em

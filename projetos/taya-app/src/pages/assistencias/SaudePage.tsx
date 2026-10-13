@@ -5,7 +5,7 @@ import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { PLANOS, telefoneJaValidado, type PlanoId } from "./shared";
+import { PLANOS, proximaEtapaAposVerificacao, type PlanoId } from "./shared";
 
 // Rota: /assistencias/saude — primeira tela do fluxo de oferta BeneMed (vertical Saúde dentro
 // de Assistências). Todos os 4 planos numa lista só, sem abas — o Familiar se destaca pelo
@@ -16,9 +16,9 @@ import { PLANOS, telefoneJaValidado, type PlanoId } from "./shared";
 // lado da BeneMed, por isso o copy aqui só descreve a cobertura ("Você + 3 dependentes"), nunca
 // promete um passo de cadastro dentro desse fluxo.
 //
-// Ao continuar: se o telefone do usuário ainda não foi validado (mesma flag usada no resto do
-// app), intercala a etapa de verificação por SMS antes da confirmação de dados; senão, pula
-// direto pra ela.
+// Ao continuar: telefone e e-mail são sempre exigidos agora, em qualquer plano — não só quando
+// a cobrança é recorrente. proximaEtapaAposVerificacao() intercala a verificação do que estiver
+// faltando (celular primeiro, depois e-mail) antes da confirmação de dados.
 
 export default function AssistenciasSaudePage() {
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ export default function AssistenciasSaudePage() {
   const handleContinuar = () => {
     const plano = PLANOS.find((p) => p.id === planoSelecionado);
     if (!plano) return;
-    const destino = telefoneJaValidado() ? "/assistencias/saude/confirmar-dados" : "/assistencias/saude/verificar-celular";
+    const destino = proximaEtapaAposVerificacao();
     navigate(destino, { state: { plano } });
   };
 

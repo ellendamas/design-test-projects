@@ -5,13 +5,15 @@ import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { PLANOS, TELEFONE_VALIDADO_KEY, type Plano } from "./shared";
+import { PLANOS, proximaEtapaAposVerificacao, TELEFONE_VALIDADO_KEY, type Plano } from "./shared";
 
 const CODIGO_VALIDO = "123456"; // TODO: integrar com endpoint real de verificação
 const MAX_TENTATIVAS = 3;
 
-// Rota: /assistencias/saude/verificar-celular — intercalada antes da confirmação de dados
-// só quando o telefone do usuário ainda não foi validado (ver shared.ts, telefoneJaValidado).
+// Rota: /assistencias/saude/verificar-celular — intercalada antes da confirmação de dados só
+// quando o telefone do usuário ainda não foi validado (ver shared.ts, proximaEtapaAposVerificacao).
+// Ao concluir, verifica se falta e-mail também antes de seguir pra confirmação de dados — telefone
+// e e-mail são sempre exigidos agora, não só em planos com cobrança recorrente.
 // Mesmo padrão de leilao-clt/MfaPage.tsx: erro inline abaixo do campo (nunca troca de tela),
 // contagem de tentativas restantes, bloqueio após 3 erradas, e ?celularErro=expirado (DESIGN
 // ONLY) pra pré-visualizar o estado de código expirado sem esperar de verdade.
@@ -64,7 +66,7 @@ export default function AssistenciasVerificarCelularPage() {
       return;
     }
     localStorage.setItem(TELEFONE_VALIDADO_KEY, "true");
-    navigate("/assistencias/saude/confirmar-dados", { state: { plano } });
+    navigate(proximaEtapaAposVerificacao(), { state: { plano } });
   };
 
   return (
