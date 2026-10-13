@@ -1881,14 +1881,14 @@ function AssistenciasPage() {
               const interesseRegistrado = interesses.includes(chaveInteresse);
 
               return (
-                <Card key={item.id} className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
-                  <div className="relative h-[120px] overflow-hidden rounded-t-2xl">
+                <Card key={item.id} className="flex h-[260px] w-[200px] min-w-[200px] shrink-0 flex-col overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
+                  <div className="relative h-[120px] shrink-0 overflow-hidden rounded-t-2xl">
                     {item.hero}
                     <span className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground shadow">
                       Em breve
                     </span>
                   </div>
-                  <CardContent className="p-3">
+                  <CardContent className="flex flex-1 flex-col p-3">
                     <div className="mb-2 flex items-center gap-2">
                       {item.icon}
                       <p className="text-sm font-semibold text-foreground">{item.nome}</p>
@@ -1898,7 +1898,7 @@ function AssistenciasPage() {
                       type="button"
                       onClick={() => handleInteresseCategoria(item.id, item.nome)}
                       disabled={interesseRegistrado}
-                      className={`mt-2 flex items-center gap-1.5 text-xs font-semibold ${interesseRegistrado ? "text-green-600" : "text-[#FD5F31]"}`}
+                      className={`mt-auto flex items-center gap-1.5 pt-2 text-xs font-semibold ${interesseRegistrado ? "text-green-600" : "text-[#FD5F31]"}`}
                     >
                       {interesseRegistrado ? (
                         <>
