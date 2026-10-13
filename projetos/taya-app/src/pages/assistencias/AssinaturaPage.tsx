@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Bell, CaretRight, CheckCircle, ShieldCheck } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
@@ -17,9 +17,12 @@ import { getAssinaturaBenemedAtiva, getDiaCobrancaAtivo, PLANOS, type Plano } fr
 //
 // Prioriza o estado persistido (quem contratou de verdade e veio pela ConfirmacaoPage) sobre o
 // location.state, pra funcionar também em acesso direto via URL/Contratos.
+// ?assinaturaPlano=mensal|semestral|anual|familiar na URL (DESIGN ONLY, ver shared.ts) simula
+// ter essa assinatura ativa sem precisar completar o fluxo de contratação de verdade.
 export default function AssistenciasAssinaturaPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const plano = getAssinaturaBenemedAtiva() ?? (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
   const diaCobranca = getDiaCobrancaAtivo();
   const { interesses, registrarInteresse } = useInteresse();
@@ -28,9 +31,13 @@ export default function AssistenciasAssinaturaPage() {
   // (ver DIAS_COBRANCA em shared.ts). Não troca nada de verdade, só registra interesse no mesmo
   // InteresseContext genérico usado em outros fake doors do app (ex: categorias "em breve" de
   // AssistenciasPage em App.tsx).
+  // ?trocaDiaCobranca=solicitado na URL (DESIGN ONLY) simula o estado "pedido já registrado"
+  // sem precisar clicar — só pra pré-visualização, não persiste (basta tirar o parâmetro pra
+  // voltar ao estado real).
   const temDiaCobranca = plano.id === "mensal";
   const CHAVE_INTERESSE_TROCAR_DIA = "assistencias-saude-trocar-dia-cobranca";
-  const jaSolicitouTrocaDia = interesses.includes(CHAVE_INTERESSE_TROCAR_DIA);
+  const forcarTrocaSolicitada = searchParams.get("trocaDiaCobranca") === "solicitado"; // DESIGN ONLY
+  const jaSolicitouTrocaDia = forcarTrocaSolicitada || interesses.includes(CHAVE_INTERESSE_TROCAR_DIA);
 
   const handleTrocarDiaCobranca = () => {
     if (jaSolicitouTrocaDia) return;
