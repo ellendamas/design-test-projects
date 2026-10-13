@@ -1,72 +1,41 @@
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Briefcase, CaretRight, Clock, Headset, IdentificationCard, PiggyBank, XCircle } from "@phosphor-icons/react";
+import { Headset, IdentificationCard, Clock, XCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
+import { CrossSellCarousel, type CrossSellBannerItem } from "@/components/CrossSellCarousel";
 
 type LocationState = Record<string, unknown>;
 
 // DESIGN ONLY — mock state para acesso direto via URL de design
 const MOCK_STATE: LocationState = {}; // TODO: receber da API
 
+// Cross-sell em formato de carrossel de banners (mesmo padrão de peek/scroll do carrossel de
+// categorias de AssistenciasPage, via PeekCarousel). Texto e destino de cada item são os mesmos
+// que já existiam antes, só a estrutura visual virou banner com foto de fundo.
 // FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o "|| false" do .filter abaixo para reativar.
-const CROSS_SELL = [
+const CROSS_SELL: CrossSellBannerItem[] = [
   {
-    icon: Briefcase,
+    key: "consignado-clt",
+    imagem: "/images/cross-sell-clt.png",
     titulo: "Crédito Consignado CLT",
-    sub: "Para quem tem carteira assinada",
+    descricao: "Para quem tem carteira assinada",
     rota: "/consignado-clt",
   },
   {
-    icon: PiggyBank,
+    key: "fgts",
+    imagem: "/images/cross-sell-fgts.png",
     titulo: "Antecipação FGTS",
-    sub: "Use seu saldo do FGTS",
+    descricao: "Use seu saldo do FGTS",
     rota: "/fgts",
   },
-].filter((item) => item.rota !== "/fgts" || false);
-
-// Banner de descoberta — Assistências. Mesma estrutura do hero que já existe no topo da
-// própria página de Assistências (AssistenciasPage em App.tsx), com bem mais destaque visual
-// que o grid do CROSS_SELL acima. Usado nos dois casos desta tela (simulação e formalização),
-// por isso extraído em vez de duplicado.
-function AssistenciasBanner({ onNavegar }: { onNavegar: (rota: string) => void }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onNavegar("/assistencias/saude")}
-      className="relative block min-h-[200px] w-full overflow-hidden rounded-2xl text-left"
-    >
-      <img
-        src="/images/banner-intro-assistencias.png"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover object-right"
-        onError={(e) => {
-          (e.target as HTMLImageElement).style.display = "none";
-        }}
-      />
-      <div className="absolute inset-0 bg-[#FD5F31]/75 md:hidden" />
-      <div className="absolute inset-0 bg-black/25 md:hidden" />
-      <div
-        className="absolute inset-0 hidden md:block"
-        style={{
-          background: "linear-gradient(90deg, #D94E28 0%, rgba(253, 95, 49, 0.70) 40%, rgba(253, 95, 49, 0.00) 85%)",
-        }}
-      />
-      <div className="relative z-10 flex min-h-[200px] max-w-full flex-col justify-end p-5 md:max-w-[60%]">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
-          Assistências Pode Já
-        </p>
-        <h3 className="mb-1 text-xl font-bold leading-snug text-white">
-          Saúde com desconto, a partir de R$ 29,90/mês
-        </h3>
-        <p className="mb-3 text-sm leading-relaxed text-white/85">
-          Cuide de você e da sua família com descontos de até 85% em consultas e exames.
-        </p>
-        <span className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-white">
-          Conhecer planos <CaretRight size={14} />
-        </span>
-      </div>
-    </button>
-  );
-}
+  {
+    key: "assistencias-saude",
+    imagem: "/images/cross-sell-assistencias-saude.png",
+    titulo: "Saúde com desconto",
+    descricao: "Descontos reais em consultas, exames, medicamentos e muito mais",
+    preco: "a partir de R$39,90/mês",
+    rota: "/assistencias/saude",
+  },
+].filter((item) => item.key !== "fgts" || false);
 
 export default function CreditoPessoalReprovada() {
   const navigate = useNavigate();
@@ -127,26 +96,10 @@ export default function CreditoPessoalReprovada() {
             Outros produtos disponíveis para você
           </p>
 
-          {/* Cross-sell */}
-          <div className="grid w-full grid-cols-2 gap-3">
-            {CROSS_SELL.map(({ icon: Icon, titulo, sub, rota }) => (
-              <button
-                key={titulo}
-                type="button"
-                onClick={() => navigate(rota)}
-                className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#FD5F31]/40"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF3EE]">
-                  <Icon size={18} className="text-[#FD5F31]" />
-                </div>
-                <p className="text-sm font-semibold text-foreground">{titulo}</p>
-                <p className="text-xs text-muted-foreground">{sub}</p>
-                <p className="text-xs font-medium text-[#FD5F31]">Conhecer</p>
-              </button>
-            ))}
+          {/* Cross-sell — carrossel de banners com peek (ver CrossSellCarousel) */}
+          <div className="w-full">
+            <CrossSellCarousel items={CROSS_SELL} onNavegar={navigate} />
           </div>
-
-          <AssistenciasBanner onNavegar={navigate} />
 
           {/* Sem CTA de nova proposta — bloqueio de 7 dias */}
           <div className="sticky bottom-20 z-40 w-full bg-background pb-4 pt-2 md:bottom-0">
@@ -195,26 +148,10 @@ export default function CreditoPessoalReprovada() {
           Outros produtos disponíveis para você
         </p>
 
-        {/* Cross-sell */}
-        <div className="grid w-full grid-cols-2 gap-3">
-          {CROSS_SELL.map(({ icon: Icon, titulo, sub, rota }) => (
-            <button
-              key={titulo}
-              type="button"
-              onClick={() => navigate(rota)}
-              className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#FD5F31]/40"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF3EE]">
-                <Icon size={18} className="text-[#FD5F31]" />
-              </div>
-              <p className="text-sm font-semibold text-foreground">{titulo}</p>
-              <p className="text-xs text-muted-foreground">{sub}</p>
-              <p className="text-xs font-medium text-[#FD5F31]">Conhecer</p>
-            </button>
-          ))}
+        {/* Cross-sell — carrossel de banners com peek (ver CrossSellCarousel) */}
+        <div className="w-full">
+          <CrossSellCarousel items={CROSS_SELL} onNavegar={navigate} />
         </div>
-
-        <AssistenciasBanner onNavegar={navigate} />
 
         {/* CTA — nova proposta sem bloqueio */}
         <div className="sticky bottom-20 z-40 w-full bg-background pb-4 pt-2 md:bottom-0 flex flex-col gap-3">
