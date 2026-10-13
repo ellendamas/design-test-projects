@@ -73,13 +73,30 @@ export type DiaCobranca = (typeof DIAS_COBRANCA)[number];
 // (RecomendacoesContext.tsx), que deve sumir quando isso for true.
 const ASSINATURA_ATIVA_KEY = "podeja_benemed_assinatura_ativa";
 
+// ?assinaturaPlano=mensal|semestral|anual|familiar na URL (DESIGN ONLY) simula ter essa
+// assinatura ativa sem precisar completar o fluxo de contratação de verdade — funciona sozinho
+// (persiste, mesmo padrão de ?assinaturaCobranca=falhou/?assinaturaVigencia=proxima) e é lido
+// direto por temAssinaturaBenemedAtiva() e getAssinaturaBenemedAtiva(), independente da ordem
+// em que são chamadas (cada uma resolve o forçado por conta própria).
+function planoForcadoViaUrl(): Plano | null {
+  if (typeof window === "undefined") return null;
+  const forcado = new URLSearchParams(window.location.search).get("assinaturaPlano");
+  if (!forcado) return null;
+  const plano = PLANOS.find((p) => p.id === forcado) ?? null;
+  if (plano) window.localStorage.setItem(ASSINATURA_ATIVA_KEY, plano.id);
+  return plano;
+}
+
 export function temAssinaturaBenemedAtiva(): boolean {
   if (typeof window === "undefined") return false;
+  if (planoForcadoViaUrl()) return true;
   return window.localStorage.getItem(ASSINATURA_ATIVA_KEY) !== null;
 }
 
 export function getAssinaturaBenemedAtiva(): Plano | null {
   if (typeof window === "undefined") return null;
+  const forcado = planoForcadoViaUrl();
+  if (forcado) return forcado;
   const planoId = window.localStorage.getItem(ASSINATURA_ATIVA_KEY) as PlanoId | null;
   return PLANOS.find((p) => p.id === planoId) ?? null;
 }
