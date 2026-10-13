@@ -63,6 +63,10 @@ export const FAQ: Record<string, FaqItem[]> = {
 
   assistencias: [
     {
+      q: "A BeneMed é um plano de saúde?",
+      a: "Não. A BeneMed é uma assinatura de assistência e benefícios — não é um plano de saúde, não tem registro na ANS e não cobre atendimentos de urgência ou emergência.",
+    },
+    {
       q: "Quem pode contratar?",
       a: "Todos os clientes cadastrados no Pode Já com CPF validado.",
     },
@@ -76,7 +80,7 @@ export const FAQ: Record<string, FaqItem[]> = {
     },
     {
       q: "Posso incluir minha família?",
-      a: "Sim. Algumas categorias permitem até 8 dependentes sem necessidade de grau de parentesco.",
+      a: "Sim. O plano Familiar cobre você e até 3 dependentes. O cadastro de cada dependente é feito depois, diretamente pelo app da BeneMed.",
     },
   ],
 

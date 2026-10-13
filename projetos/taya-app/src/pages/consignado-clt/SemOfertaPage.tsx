@@ -1,12 +1,38 @@
 import { useNavigate } from "react-router-dom";
-import {
-  FileX,
-  Info,
-  Vault,
-  Wallet,
-  ArrowRight,
-} from "@phosphor-icons/react";
+import { FileX, Info } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
+import { CrossSellCarousel, type CrossSellBannerItem } from "@/components/CrossSellCarousel";
+
+// Cross-sell em formato de carrossel de banners (mesmo padrão de peek/scroll do carrossel de
+// categorias de AssistenciasPage, via PeekCarousel). Texto e destino de cada item são os mesmos
+// que já existiam antes (card de Crédito Pessoal + banner de Assistências), só a estrutura
+// visual virou banner com foto de fundo pra todos.
+// FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o "|| false" do .filter abaixo para reativar.
+const CROSS_SELL: CrossSellBannerItem[] = [
+  // Assistências sempre primeiro — é recorrência, prioridade de venda sobre os outros produtos.
+  {
+    key: "assistencias-saude",
+    imagem: "/images/cross-sell-assistencias-saude.png",
+    titulo: "Saúde com desconto",
+    descricao: "Descontos reais em consultas, exames, medicamentos e muito mais",
+    preco: "a partir de R$39,90/mês",
+    rota: "/assistencias/saude",
+  },
+  {
+    key: "credito-pessoal",
+    imagem: "/images/cross-sell-credito-pessoal.png",
+    titulo: "Crédito Pessoal",
+    descricao: "Dinheiro na conta em minutos, sem precisar de FGTS ou desconto em folha",
+    rota: "/credito-pessoal",
+  },
+  {
+    key: "fgts",
+    imagem: "/images/cross-sell-fgts.png",
+    titulo: "Antecipação FGTS",
+    descricao: "Antecipe seu saldo do FGTS sem afetar a margem do salário",
+    rota: "/fgts",
+  },
+].filter((item) => item.key !== "fgts" || false);
 
 // ---------------------------------------------------------------------------
 // Componente
@@ -49,7 +75,7 @@ export default function ConsignadoCLTSemOfertaPage() {
           </div>
         </div>
 
-        {/* ── Cross-sell ── */}
+        {/* ── Cross-sell — carrossel de banners com peek (ver CrossSellCarousel) ── */}
         <div className="space-y-3">
           <div>
             <p className="text-base font-semibold text-foreground">Não fique sem dinheiro</p>
@@ -58,49 +84,7 @@ export default function ConsignadoCLTSemOfertaPage() {
             </p>
           </div>
 
-          {/* Card Crédito Pessoal — clicável */}
-          <button
-            type="button"
-            onClick={() => navigate("/credito-pessoal")}
-            className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF3EE]">
-                <Wallet size={20} className="text-[#FD5F31]" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">Crédito Pessoal</p>
-                <p className="mt-0.5 text-xs font-medium text-[#FD5F31]">Dinheiro na conta em minutos</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Sem precisar de FGTS ou desconto em folha.
-                </p>
-              </div>
-              <ArrowRight size={16} className="mt-1 shrink-0 text-muted-foreground" />
-            </div>
-          </button>
-
-          {/* Card Antecipação FGTS — placeholder em breve */}
-          {/* FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o false && para reativar. */}
-          {false && (
-          <div className="w-full rounded-2xl border border-border bg-white p-4 opacity-60 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-                <Vault size={20} className="text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">Antecipação FGTS</p>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                    Em breve
-                  </span>
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Antecipe seu saldo do FGTS sem afetar a margem do salário.
-                </p>
-              </div>
-            </div>
-          </div>
-          )}
+          <CrossSellCarousel items={CROSS_SELL} onNavegar={navigate} />
         </div>
 
         {/* ── Rodapé ── */}

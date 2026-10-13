@@ -1,27 +1,42 @@
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Briefcase, Clock, Headset, IdentificationCard, PiggyBank, XCircle } from "@phosphor-icons/react";
+import { Headset, IdentificationCard, Clock, XCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
+import { CrossSellCarousel, type CrossSellBannerItem } from "@/components/CrossSellCarousel";
 
 type LocationState = Record<string, unknown>;
 
 // DESIGN ONLY — mock state para acesso direto via URL de design
 const MOCK_STATE: LocationState = {}; // TODO: receber da API
 
+// Cross-sell em formato de carrossel de banners (mesmo padrão de peek/scroll do carrossel de
+// categorias de AssistenciasPage, via PeekCarousel). Texto e destino de cada item são os mesmos
+// que já existiam antes, só a estrutura visual virou banner com foto de fundo.
 // FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o "|| false" do .filter abaixo para reativar.
-const CROSS_SELL = [
+const CROSS_SELL: CrossSellBannerItem[] = [
+  // Assistências sempre primeiro — é recorrência, prioridade de venda sobre os outros produtos.
   {
-    icon: Briefcase,
+    key: "assistencias-saude",
+    imagem: "/images/cross-sell-assistencias-saude.png",
+    titulo: "Saúde com desconto",
+    descricao: "Descontos reais em consultas, exames, medicamentos e muito mais",
+    preco: "a partir de R$39,90/mês",
+    rota: "/assistencias/saude",
+  },
+  {
+    key: "consignado-clt",
+    imagem: "/images/cross-sell-clt.png",
     titulo: "Crédito Consignado CLT",
-    sub: "Para quem tem carteira assinada",
+    descricao: "Para quem tem carteira assinada",
     rota: "/consignado-clt",
   },
   {
-    icon: PiggyBank,
+    key: "fgts",
+    imagem: "/images/cross-sell-fgts.png",
     titulo: "Antecipação FGTS",
-    sub: "Use seu saldo do FGTS",
+    descricao: "Use seu saldo do FGTS",
     rota: "/fgts",
   },
-].filter((item) => item.rota !== "/fgts" || false);
+].filter((item) => item.key !== "fgts" || false);
 
 export default function CreditoPessoalReprovada() {
   const navigate = useNavigate();
@@ -74,23 +89,9 @@ export default function CreditoPessoalReprovada() {
             Outros produtos disponíveis para você
           </p>
 
-          {/* Cross-sell */}
-          <div className="grid w-full grid-cols-2 gap-3">
-            {CROSS_SELL.map(({ icon: Icon, titulo, sub, rota }) => (
-              <button
-                key={titulo}
-                type="button"
-                onClick={() => navigate(rota)}
-                className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#FD5F31]/40"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF3EE]">
-                  <Icon size={18} className="text-[#FD5F31]" />
-                </div>
-                <p className="text-sm font-semibold text-foreground">{titulo}</p>
-                <p className="text-xs text-muted-foreground">{sub}</p>
-                <p className="text-xs font-medium text-[#FD5F31]">Conhecer</p>
-              </button>
-            ))}
+          {/* Cross-sell — carrossel de banners com peek (ver CrossSellCarousel) */}
+          <div className="w-full">
+            <CrossSellCarousel items={CROSS_SELL} onNavegar={navigate} />
           </div>
 
           {/* Sem CTA de nova proposta — bloqueio de 7 dias */}
@@ -140,23 +141,9 @@ export default function CreditoPessoalReprovada() {
           Outros produtos disponíveis para você
         </p>
 
-        {/* Cross-sell */}
-        <div className="grid w-full grid-cols-2 gap-3">
-          {CROSS_SELL.map(({ icon: Icon, titulo, sub, rota }) => (
-            <button
-              key={titulo}
-              type="button"
-              onClick={() => navigate(rota)}
-              className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-white p-4 text-left shadow-sm hover:border-[#FD5F31]/40"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF3EE]">
-                <Icon size={18} className="text-[#FD5F31]" />
-              </div>
-              <p className="text-sm font-semibold text-foreground">{titulo}</p>
-              <p className="text-xs text-muted-foreground">{sub}</p>
-              <p className="text-xs font-medium text-[#FD5F31]">Conhecer</p>
-            </button>
-          ))}
+        {/* Cross-sell — carrossel de banners com peek (ver CrossSellCarousel) */}
+        <div className="w-full">
+          <CrossSellCarousel items={CROSS_SELL} onNavegar={navigate} />
         </div>
 
         {/* CTA — nova proposta sem bloqueio */}

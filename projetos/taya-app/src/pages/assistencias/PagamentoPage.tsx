@@ -1,0 +1,139 @@
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Check, Clock, Copy, QrCode } from "@phosphor-icons/react";
+import { toast } from "sonner";
+import { SubPageLayout } from "@/App";
+import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, PLANOS, temAssinaturaBenemedAtiva, type DiaCobranca, type Plano } from "./shared";
+
+// Rota: /assistencias/saude/pagamento — Pix mockado (QR + copia e cola), sem chamada real de
+// API ainda. O payload do QR e o código copia-e-cola abaixo são só texto de exemplo.
+//
+// Mesma tela serve dois contextos: primeira contratação (vindo de SaudePage.tsx) e
+// regularização de cobrança que falhou (vindo do card "P5" do Para Você Agora) — detectado
+// sozinho (assinatura ativa + cobrança marcada como falhada), sem precisar passar flag nenhuma
+// via navegação. Só muda o texto do header; QR/copia-cola/confirmação são idênticos.
+//
+// Sem webhook real de confirmação: copiar o código Pix dispara a simulação do pagamento
+// confirmado 10s depois (DESIGN ONLY), em vez de um botão manual de "simular pagamento".
+// ?pixErro=expirado (DESIGN ONLY) pula direto pra PixExpiradoPage.tsx, pra pré-visualizar esse
+// caminho alternativo sem esperar o prazo real de expiração do Pix (30min no Mensal/Familiar,
+// confirmado pela BeneMed; 24h no Semestral/Anual).
+const PIX_COPIA_COLA =
+  "00020126580014BR.GOV.BCB.PIX0136benemed-podeja-mock@exemplo.com.br5204000053039865406" +
+  "0000.005802BR5913Pode Ja Pagto6009SAO PAULO62070503***6304ABCD";
+
+export default function AssistenciasPagamentoPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  // Prioriza o plano vindo da navegação (seleção explícita do usuário em SaudePage.tsx/
+  // ConfirmarDadosPage.tsx) sobre o persistido — senão, quem já tem assinatura ativa e refaz o
+  // fluxo escolhendo outro plano continuaria vendo o Pix do plano antigo aqui.
+  // getAssinaturaBenemedAtiva() só entra como fallback pra acesso direto via URL ou pra
+  // regularização de cobrança (card "P5", que navega sem state).
+  const plano = (location.state as { plano?: Plano } | null)?.plano ?? getAssinaturaBenemedAtiva() ?? PLANOS[0];
+  const diaCobranca = (location.state as { diaCobranca?: DiaCobranca | null } | null)?.diaCobranca ?? null;
+  const modoRegularizacao = temAssinaturaBenemedAtiva() && cobrancaBenemedFalhou();
+  const [copiado, setCopiado] = useState(false);
+  const [qrFalhou, setQrFalhou] = useState(false);
+  const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
+
+  const forcarExpirado = searchParams.get("pixErro") === "expirado"; // DESIGN ONLY
+
+  // Prazo de expiração do Pix — só confirmado pra Semestral/Anual (24h). Mensal e Familiar
+  // seguem com o valor anterior (30min) até a BeneMed confirmar o prazo real deles.
+  const prazoExpiracaoPix = plano.id === "semestral" || plano.id === "anual" ? "24 horas" : "30 minutos";
+
+  useEffect(() => {
+    if (!forcarExpirado) return;
+    navigate("/assistencias/saude/pagamento/expirado", { state: { plano, diaCobranca }, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forcarExpirado]);
+
+  useEffect(() => {
+    if (!aguardandoConfirmacao) return;
+    const t = window.setTimeout(() => {
+      navigate("/assistencias/saude/confirmacao", { state: { plano, diaCobranca }, replace: true });
+    }, 10000);
+    return () => window.clearTimeout(t);
+  }, [aguardandoConfirmacao, navigate, plano, diaCobranca]);
+
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(PIX_COPIA_COLA);
+    } catch {
+      // ambiente sem permissão de clipboard — segue sem quebrar a tela
+    }
+    setCopiado(true);
+    setAguardandoConfirmacao(true);
+    toast.success("Código Pix copiado!");
+    window.setTimeout(() => setCopiado(false), 2500);
+  };
+
+  return (
+    <SubPageLayout title="Pagamento" hideNav>
+      <div className="space-y-5 pb-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+            <QrCode size={28} className="text-[#FD5F31]" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">
+              {modoRegularizacao ? "Pague com Pix para regularizar" : "Pague com Pix para ativar"}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Plano {plano.nome} · {plano.cobranca}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-white p-6 shadow-sm">
+          {!qrFalhou ? (
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(PIX_COPIA_COLA)}`}
+              alt="QR Code Pix"
+              className="h-[220px] w-[220px] rounded-xl"
+              onError={() => setQrFalhou(true)}
+            />
+          ) : (
+            <div className="flex h-[220px] w-[220px] flex-col items-center justify-center gap-2 rounded-xl bg-[#F3F4F6]">
+              <QrCode size={48} className="text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">QR Code indisponível</p>
+            </div>
+          )}
+          <p className="text-2xl font-bold text-[#FD5F31]">{plano.precoMes}</p>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+          <p className="mb-2 text-xs font-semibold text-foreground">Pix copia e cola</p>
+          <div className="flex items-center gap-2 rounded-xl bg-[#F3F4F6] p-3">
+            <p className="flex-1 truncate font-mono text-xs text-muted-foreground">{PIX_COPIA_COLA}</p>
+          </div>
+          <button
+            type="button"
+            onClick={copiar}
+            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#FD5F31] text-sm font-semibold text-[#FD5F31]"
+          >
+            {copiado ? <Check size={16} /> : <Copy size={16} />}
+            {copiado ? "Copiado" : "Copiar código"}
+          </button>
+        </div>
+
+        <div className="flex items-start gap-2 rounded-xl bg-[#F3F4F6] p-3">
+          <Clock size={16} className="mt-0.5 shrink-0 text-muted-foreground" />
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Esse código expira em {prazoExpiracaoPix}. Após o pagamento, a confirmação pode levar
+            alguns instantes.
+          </p>
+        </div>
+
+        {aguardandoConfirmacao && (
+          <div className="flex items-center justify-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#FD5F31] border-t-transparent" />
+            <p className="text-sm font-medium text-foreground">Aguardando confirmação do pagamento...</p>
+          </div>
+        )}
+      </div>
+    </SubPageLayout>
+  );
+}

@@ -110,6 +110,18 @@ import ConsignadoCLTAssinaturaPage from "@/pages/consignado-clt/AssinaturaPage";
 import ConsignadoCLTConfirmacaoPage from "@/pages/consignado-clt/ConfirmacaoPage";
 import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
 import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
+import AssistenciasSaudePage from "@/pages/assistencias/SaudePage";
+import AssistenciasVerificarCelularPage from "@/pages/assistencias/VerificarCelularPage";
+import AssistenciasVerificarEmailPage from "@/pages/assistencias/VerificarEmailPage";
+import AssistenciasConfirmarDadosPage from "@/pages/assistencias/ConfirmarDadosPage";
+import AssistenciasPagamentoPage from "@/pages/assistencias/PagamentoPage";
+import AssistenciasPixExpiradoPage from "@/pages/assistencias/PixExpiradoPage";
+import AssistenciasConfirmacaoPage from "@/pages/assistencias/ConfirmacaoPage";
+import AssistenciasAssinaturaPage from "@/pages/assistencias/AssinaturaPage";
+import AssistenciasCancelarMotivoPage from "@/pages/assistencias/CancelarMotivoPage";
+import AssistenciasCancelarRetencaoPage from "@/pages/assistencias/CancelarRetencaoPage";
+import AssistenciasRedirecionandoBenemedPage from "@/pages/assistencias/RedirecionandoBenemedPage";
+import { getAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
 import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
 import FGTSLoadingPage from "@/pages/fgts/LoadingPage";
@@ -1148,6 +1160,10 @@ function AlterarSenhaPage() {
 function ContratosPage() {
   const navigate = useNavigate();
   const lista = contratos;
+  // Assinatura BeneMed não entra no array `contratos` — é modelado como mensalidade simples
+  // (sem parcelas/vigência), diferente do shape de crédito/seguro usado ali. Seção própria,
+  // só aparece pra quem já tem uma assinatura ativa (mock em localStorage, ver shared.ts).
+  const assinaturaBenemed = getAssinaturaBenemedAtiva();
   return (
     <SubPageLayout title="Meus contratos">
       <p className="mb-4 text-sm text-muted-foreground">{lista.length} contratos ativos</p>
@@ -1191,6 +1207,27 @@ function ContratosPage() {
               <div className="mt-3 flex items-center gap-1 border-t border-border pt-3 text-xs font-medium text-[#FD5F31]">Ver detalhes<CaretRight size={12} /></div>
             </button>
           ))}
+        </div>
+      )}
+
+      {assinaturaBenemed && (
+        <div className="mt-6">
+          <p className="mb-3 text-sm font-semibold text-foreground">Assinaturas</p>
+          <button
+            onClick={() => navigate("/assistencias/saude/assinatura")}
+            className="w-full rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#FD5F31]/40"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <span className="rounded-full bg-[#FFF3EE] px-2.5 py-1 text-xs font-semibold text-[#D94E28]">Assistência Saúde</span>
+              <span className="flex items-center gap-1.5 text-xs font-medium text-green-700"><div className="h-1.5 w-1.5 rounded-full bg-green-500" />Ativo</span>
+            </div>
+            <p className="mb-2 text-sm font-bold text-foreground">BeneMed</p>
+            <div className="flex items-center justify-between">
+              <div><p className="text-xs text-muted-foreground">Plano</p><p className="text-sm font-semibold text-foreground">{assinaturaBenemed.nome}</p></div>
+              <div className="text-right"><p className="text-xs text-muted-foreground">Valor</p><p className="text-sm font-semibold text-foreground">{assinaturaBenemed.precoMes} / mês</p></div>
+            </div>
+            <div className="mt-3 flex items-center gap-1 border-t border-border pt-3 text-xs font-medium text-[#FD5F31]">Ver detalhes<CaretRight size={12} /></div>
+          </button>
         </div>
       )}
     </SubPageLayout>
@@ -1519,7 +1556,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
               key={card.id}
               animate={exiting === card.id ? { x: -20, opacity: 0 } : { x: 0, opacity: 1 }}
               transition={{ duration: 0.2 }}
-              className={`${variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] rounded-xl shadow-sm ${variant === "light" ? "" : "border"}`}
+              className={`${card.atencao ? "border-0 bg-amber-50" : variant === "light" ? "border-0 bg-white/95" : "border-border bg-white"} min-h-[120px] w-[200px] min-w-[200px] max-w-[200px] rounded-xl shadow-sm ${!card.atencao && variant !== "light" ? "border" : ""}`}
             >
               <div className="relative flex h-full flex-col justify-between p-3">
                 {card.dispensavel && (
@@ -1534,7 +1571,7 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
                   </button>
                 )}
                 <div className="mb-2">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">{iconMap[card.icone]}</div>
+                  <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full ${card.atencao ? "bg-amber-100 text-amber-600" : "bg-[#FFF3EE] text-[#FD5F31]"}`}>{iconMap[card.icone]}</div>
                   <p className="text-sm font-semibold text-foreground">{card.texto}</p>
                 </div>
                 {card.cta && (
@@ -1581,8 +1618,8 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
 }
 
 function AssistenciasPage() {
+  const navigate = useNavigate();
   const { interesses, registrarInteresse } = useInteresse();
-  const assistencias = interesses.includes("assistencias");
   const categoriasRef = useRef<HTMLDivElement>(null);
   const [draggingCategorias, setDraggingCategorias] = useState(false);
   const [canCategoriasLeft, setCanCategoriasLeft] = useState(false);
@@ -1590,20 +1627,34 @@ function AssistenciasPage() {
   const dragStartX = useRef(0);
   const dragStartScroll = useRef(0);
 
+  // Saúde (BeneMed) saiu do carrossel — tem seção de destaque própria, renderizada à parte
+  // logo abaixo do hero (ver `categoriaSaude` + bloco "Destaque — Saúde (BeneMed)").
+  const categoriaSaude = {
+    id: "saude",
+    nome: "Saúde",
+    icon: <Stethoscope size={20} className="text-[#FD5F31]" />,
+    hero: <img src="/images/assistencia-saude-disponivel.png" alt="Saúde" className="h-full w-full object-cover" />,
+    beneficio: "Consultas a partir de R$ 39,90",
+    tag: "Clínico geral e 5 especialidades",
+  };
+
+  // `id` é a chave estável usada no identificador de interesse por categoria (ver
+  // InteresseContext.tsx). `disponivel` marca quem já tem oferta real de parceiro — hoje
+  // nenhuma destas (Saúde foi pra fora do carrossel, ver `categoriaSaude` acima) — ficam
+  // "em breve" até ganharem parceiro próprio.
   const categorias = [
-    { nome: "Saúde", icon: <Stethoscope size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80&fit=crop&crop=center" alt="Saúde" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a partir de R$ 39,90", tag: "Clínico geral e 5 especialidades" },
-    { nome: "Odonto", icon: <Tooth size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=80&fit=crop&crop=center" alt="Odonto" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
-    { nome: "Pet", icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80&fit=crop&crop=center" alt="Pet" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
-    { nome: "Psicologia", icon: <Brain size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80&fit=crop&crop=faces" alt="Psicologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
-    { nome: "Previdência", icon: <Umbrella size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80&fit=crop&crop=center" alt="Previdência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
-    { nome: "Bem-estar", icon: <Heartbeat size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80&fit=crop&crop=center" alt="Bem-estar" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
-    { nome: "Educação", icon: <BookOpen size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80&fit=crop&crop=center" alt="Educação" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
-    { nome: "Tecnologia", icon: <DeviceMobile size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&fit=crop&crop=center" alt="Tecnologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
-    { nome: "Residência", icon: <House size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop&crop=center" alt="Residência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
-    { nome: "Prevenção", icon: <FirstAid size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=80&fit=crop&crop=center" alt="Prevenção" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
-    { nome: "Notícias", icon: <Newspaper size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80&fit=crop&crop=center" alt="Notícias" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
-    { nome: "Recompensa", icon: <Gift size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400&q=80&fit=crop&crop=center" alt="Recompensa" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
-    { nome: "Sorteio", icon: <Trophy size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&q=80&fit=crop&crop=center" alt="Sorteio" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
+    { id: "odonto", nome: "Odonto", disponivel: false, icon: <Tooth size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=80&fit=crop&crop=center" alt="Odonto" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
+    { id: "pet", nome: "Pet", disponivel: false, icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80&fit=crop&crop=center" alt="Pet" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
+    { id: "psicologia", nome: "Psicologia", disponivel: false, icon: <Brain size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80&fit=crop&crop=faces" alt="Psicologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
+    { id: "previdencia", nome: "Previdência", disponivel: false, icon: <Umbrella size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80&fit=crop&crop=center" alt="Previdência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
+    { id: "bem-estar", nome: "Bem-estar", disponivel: false, icon: <Heartbeat size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80&fit=crop&crop=center" alt="Bem-estar" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
+    { id: "educacao", nome: "Educação", disponivel: false, icon: <BookOpen size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80&fit=crop&crop=center" alt="Educação" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
+    { id: "tecnologia", nome: "Tecnologia", disponivel: false, icon: <DeviceMobile size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&fit=crop&crop=center" alt="Tecnologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
+    { id: "residencia", nome: "Residência", disponivel: false, icon: <House size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop&crop=center" alt="Residência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
+    { id: "prevencao", nome: "Prevenção", disponivel: false, icon: <FirstAid size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=80&fit=crop&crop=center" alt="Prevenção" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
+    { id: "noticias", nome: "Notícias", disponivel: false, icon: <Newspaper size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80&fit=crop&crop=center" alt="Notícias" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
+    { id: "recompensa", nome: "Recompensa", disponivel: false, icon: <Gift size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400&q=80&fit=crop&crop=center" alt="Recompensa" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
+    { id: "sorteio", nome: "Sorteio", disponivel: false, icon: <Trophy size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&q=80&fit=crop&crop=center" alt="Sorteio" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
   ];
 
   const faqItems = FAQ["assistencias"];
@@ -1628,12 +1679,17 @@ function AssistenciasPage() {
     };
   }, []);
 
-  const handleInteresse = () => {
-    registrarInteresse("assistencias");
+  // Interesse por categoria "em breve" — chave composta (assistencias-<id>) no mesmo
+  // InteresseContext genérico, sem mexer no provider. Cada categoria registra e exibe seu
+  // próprio estado — não existe mais um CTA único de interesse geral nessa página.
+  const handleInteresseCategoria = (categoriaId: string, categoriaNome: string) => {
+    const chave = `assistencias-${categoriaId}`;
+    if (interesses.includes(chave)) return;
+    registrarInteresse(chave);
     toast("Em breve!", {
       duration: 5000,
       icon: <Bell size={16} className="text-[#FD5F31]" />,
-      description: "Você será um dos primeiros a saber quando lançarmos. Fique de olho nas suas notificações.",
+      description: `Você será um dos primeiros a saber quando ${categoriaNome} chegar.`,
     });
   };
 
@@ -1672,17 +1728,59 @@ function AssistenciasPage() {
           </div>
         </div>
 
+        {/* Destaque — Saúde (BeneMed), fora do carrossel: é a única categoria com oferta real hoje */}
+        <button
+          type="button"
+          onClick={() => navigate(`/assistencias/${categoriaSaude.id}`)}
+          className="w-full overflow-hidden rounded-2xl border border-border bg-white text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
+        >
+          <div className="h-[300px] w-full overflow-hidden">
+            {categoriaSaude.hero}
+          </div>
+          <div className="p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <img src="/images/logo-benemed.png" alt="BeneMed" className="h-5 w-auto object-contain" />
+              <span className="rounded-full bg-[#E9F7EF] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1A7A4C]">
+                Disponível
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  {categoriaSaude.icon}
+                  <p className="text-sm font-semibold text-foreground">{categoriaSaude.nome}</p>
+                </div>
+                <p className="mt-1 text-xs font-semibold text-[#FD5F31]">{categoriaSaude.beneficio}</p>
+                <p className="mt-0.5 text-xs text-[#374151]">{categoriaSaude.tag}</p>
+              </div>
+              <ArrowRight size={18} className="shrink-0 text-[#FD5F31]" />
+            </div>
+          </div>
+        </button>
+
         <Card className="border-0 bg-[#FFF3EE] shadow-sm">
-          <CardContent className="p-6 text-center">
-            <p className="text-4xl font-bold text-[#FD5F31]">R$ 4.600</p>
-            <p className="mt-2 text-sm font-semibold text-foreground">de economia média por ano em saúde e bem-estar</p>
-            <p className="mt-1 text-xs text-muted-foreground">Comparado à contratação individual dos serviços no mercado</p>
+          <CardContent className="p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Como funciona</h3>
+            <div className="space-y-3">
+              {[
+                { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
+                { icon: <CreditCard size={32} className="text-[#FD5F31]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do Pode Já, simples e sem burocracia." },
+                { icon: <HandHeart size={32} className="text-[#FD5F31]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
+              ].map((item, idx, arr) => (
+                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#FD5F31]/15 pb-3" : ""}`}>
+                  <div className="shrink-0">{item.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
         <div className="relative">
-          <h3 className="text-sm font-semibold text-foreground">O que está incluído</h3>
-          <p className="mt-1 text-xs text-muted-foreground">13 categorias de assistência para você e sua família</p>
+          <h3 className="text-sm font-semibold text-foreground">Benefícios a caminho para você e sua família</h3>
           <div
             ref={categoriasRef}
             className={`mt-3 flex w-full gap-3 overflow-x-auto pb-1 touch-pan-x select-none [&::-webkit-scrollbar]:hidden ${draggingCategorias ? "cursor-grabbing" : "cursor-grab"}`}
@@ -1714,21 +1812,70 @@ function AssistenciasPage() {
               if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
             }}
           >
-            {categorias.map((item) => (
-              <Card key={item.nome} className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
-                <div className="h-[120px] overflow-hidden rounded-t-2xl">
-                  {item.hero}
-                </div>
-                <CardContent className="p-3">
-                  <div className="mb-2 flex items-center gap-2">
-                    {item.icon}
-                    <p className="text-sm font-semibold text-foreground">{item.nome}</p>
+            {categorias.map((item) => {
+              if (item.disponivel) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => navigate(`/assistencias/${item.id}`)}
+                    className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border border-border bg-white text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
+                    style={{ scrollSnapAlign: "start" }}
+                  >
+                    <div className="relative h-[120px] overflow-hidden">
+                      {item.hero}
+                      <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-[#FD5F31] shadow">
+                        <ArrowRight size={14} />
+                      </span>
+                    </div>
+                    <div className="p-3">
+                      <div className="mb-2 flex items-center gap-2">
+                        {item.icon}
+                        <p className="text-sm font-semibold text-foreground">{item.nome}</p>
+                      </div>
+                      <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
+                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#374151]">{item.tag}</p>
+                    </div>
+                  </button>
+                );
+              }
+
+              const chaveInteresse = `assistencias-${item.id}`;
+              const interesseRegistrado = interesses.includes(chaveInteresse);
+
+              return (
+                <Card key={item.id} className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
+                  <div className="relative h-[120px] overflow-hidden rounded-t-2xl">
+                    {item.hero}
+                    <span className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground shadow">
+                      Em breve
+                    </span>
                   </div>
-                  <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
-                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#374151]">{item.tag}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      {item.icon}
+                      <p className="text-sm font-semibold text-foreground">{item.nome}</p>
+                    </div>
+                    <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleInteresseCategoria(item.id, item.nome)}
+                      disabled={interesseRegistrado}
+                      className={`mt-1 flex items-center gap-1 text-xs font-semibold ${interesseRegistrado ? "text-muted-foreground" : "text-[#FD5F31]"}`}
+                    >
+                      {interesseRegistrado ? (
+                        <>
+                          <CheckCircle size={14} weight="fill" />
+                          Avisado
+                        </>
+                      ) : (
+                        "Avisar quando chegar"
+                      )}
+                    </button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           <div className="pointer-events-none absolute left-0 top-[58%] hidden -translate-y-1/2 md:flex">
@@ -1755,34 +1902,9 @@ function AssistenciasPage() {
           </div>
         </div>
 
-        <Card className="border-border bg-white shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Como vai funcionar</h3>
-            <div className="space-y-3">
-              {[
-                { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
-                { icon: <CreditCard size={32} className="text-[#FD5F31]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do Pode Já, simples e sem burocracia." },
-                { icon: <HandHeart size={32} className="text-[#FD5F31]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
-              ].map((item, idx, arr) => (
-                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#F3F4F6] pb-3" : ""}`}>
-                  <div className="shrink-0">{item.icon}</div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         <div>
           <h3 className="mb-2 text-sm font-semibold text-foreground">Dúvidas frequentes</h3>
           <FaqAcordeon items={faqItems} />
-        </div>
-
-        <div className="sticky bottom-20 z-40 pb-3 md:bottom-0">
-          <FakeDoorCTA registrado={assistencias} onRegister={handleInteresse} label="Conhecer planos" />
         </div>
       </div>
     </SubPageLayout>
@@ -2281,7 +2403,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/assistencias/saude/cancelar/motivo", "/assistencias/saude/cancelar/retencao", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -4233,6 +4355,17 @@ function App() {
             <Route path="/seubolso/historico" element={getStoredUser() ? <SeubolsoHistoricoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias" element={getStoredUser() ? <AssistenciasPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude" element={getStoredUser() ? <AssistenciasSaudePage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/verificar-celular" element={getStoredUser() ? <AssistenciasVerificarCelularPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/verificar-email" element={getStoredUser() ? <AssistenciasVerificarEmailPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/confirmar-dados" element={getStoredUser() ? <AssistenciasConfirmarDadosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/pagamento" element={getStoredUser() ? <AssistenciasPagamentoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/pagamento/expirado" element={getStoredUser() ? <AssistenciasPixExpiradoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/confirmacao" element={getStoredUser() ? <AssistenciasConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/assinatura" element={getStoredUser() ? <AssistenciasAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/assinatura/benemed" element={getStoredUser() ? <AssistenciasRedirecionandoBenemedPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/cancelar/motivo" element={getStoredUser() ? <AssistenciasCancelarMotivoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/cancelar/retencao" element={getStoredUser() ? <AssistenciasCancelarRetencaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal" element={getStoredUser() ? <CreditoPessoalLanding /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/dados" element={getStoredUser() ? <CreditoPessoalDados /> : <Navigate to="/boas-vindas" replace />} />

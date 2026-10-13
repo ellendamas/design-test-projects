@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 import { useInteresse } from "@/context/InteresseContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
+import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, temAssinaturaBenemedAtiva, vigenciaBenemedProximaDoFim } from "@/pages/assistencias/shared";
 
 type GrupoCard = "P" | "O" | "G";
 
@@ -27,6 +28,10 @@ export type RecomendacaoCard = {
   dispensavel: boolean;
   reexibirApos?: number;
   persistirDispensa?: boolean;
+  /** true dá destaque de atenção redobrada (fundo amarelo) — mesmo tratamento visual dos cards
+   * de verificação pendente de e-mail/celular. Usar só pra algo que bloqueia/ameaça o que o
+   * usuário já tem, não pra oportunidades comuns. */
+  atencao?: boolean;
 };
 
 type DispensadoPersistido = {
@@ -58,8 +63,31 @@ function getDispensadosStorage(): DispensadoPersistido[] {
 }
 
 export function RecomendacoesProvider({ children }: { children: ReactNode }) {
-  const { assistencias, energia } = useInteresse();
+  // `assistencias`/`energia` não existem em useInteresse() — bug antigo corrigido: O2 some com
+  // assinatura BeneMed ativa (não só "interesse"), O3 volta a checar o interesse de energia de
+  // verdade via `interesses.includes(...)`.
+  const { interesses } = useInteresse();
+  const assinaturaBenemedAtiva = temAssinaturaBenemedAtiva();
+  const interesseEnergia = interesses.includes("energia");
   const { streak, saldo } = useSeubolso();
+
+  // A checagem de assinatura ativa já está embutida em cobrancaBenemedFalhou() (exceto no
+  // bypass via ?assinaturaCobranca=falhou, que funciona sozinho pra pré-visualização — ver
+  // shared.ts). Em uso real (sem o bypass), nunca compete com o "O2", que já some pra assinantes.
+  const cobrancaBenemedFalha = cobrancaBenemedFalhou();
+
+  // Card "P6" (aviso de renovação manual) — pra quem tem assinatura Semestral ou Anual ativa e
+  // o mock de vigência perto do fim ligado (ver vigenciaBenemedProximaDoFim em shared.ts).
+  // ?assinaturaVigencia=proxima na URL (DESIGN ONLY) funciona sozinho pra pré-visualização,
+  // igual ao ?assinaturaCobranca=falhou do P5 — bypassa a checagem de assinatura Semestral/Anual
+  // real. Provider fica fora do <BrowserRouter>, por isso lê a URL direto (mesmo motivo de
+  // forcarRecomendacoesVazias logo abaixo).
+  const planoBenemedAtivo = getAssinaturaBenemedAtiva();
+  const vigenciaForcada =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("assinaturaVigencia") === "proxima";
+  const vigenciaProximaDoFim =
+    vigenciaForcada ||
+    (vigenciaBenemedProximaDoFim() && (planoBenemedAtivo?.id === "semestral" || planoBenemedAtivo?.id === "anual"));
 
   // DESIGN ONLY — ?recomendacoes=vazio força zero cards, para visualizar o painel sem "Para você agora"
   // Provider fica fora do <BrowserRouter> (main.tsx), por isso lê a URL direto em vez de useSearchParams()
@@ -91,6 +119,28 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         cta: "Adicionar",
         destino: "/minha-conta/dados-bancarios",
         dispensavel: false,
+      },
+      {
+        id: "P5",
+        grupo: "P",
+        prioridade: 1,
+        icone: "Heartbeat",
+        texto: "Não conseguimos cobrar sua mensalidade BeneMed.",
+        cta: "Regularizar",
+        destino: "/assistencias/saude/pagamento",
+        dispensavel: false,
+        atencao: true,
+      },
+      {
+        id: "P6",
+        grupo: "P",
+        prioridade: 1,
+        icone: "CalendarCheck",
+        texto: "Seu plano BeneMed está perto de vencer. A renovação não é automática.",
+        cta: "Renovar",
+        destino: "/assistencias/saude",
+        dispensavel: false,
+        atencao: true,
       },
       {
         id: "O1",
@@ -182,8 +232,10 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     let ativos = cardsBase.filter((card) => !isDispensadoPersistido(card));
 
     ativos = ativos.filter((card) => {
-      if (card.id === "O2" && assistencias) return false;
-      if (card.id === "O3" && energia) return false;
+      if (card.id === "P5" && !cobrancaBenemedFalha) return false;
+      if (card.id === "P6" && !vigenciaProximaDoFim) return false;
+      if (card.id === "O2" && assinaturaBenemedAtiva) return false;
+      if (card.id === "O3" && interesseEnergia) return false;
       if (card.id === "G1" && streak === 0) return false;
       if (card.id === "G2" && saldo < 500) return false;
       if (dispensadosSessao.includes(card.id)) return false;
@@ -196,7 +248,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     }
 
     return ativos.sort((a, b) => a.prioridade - b.prioridade);
-  }, [assistencias, cardsBase, dispensados, dispensadosSessao, energia, saldo, streak, forcarRecomendacoesVazias]);
+  }, [assinaturaBenemedAtiva, cardsBase, cobrancaBenemedFalha, dispensados, dispensadosSessao, interesseEnergia, saldo, streak, forcarRecomendacoesVazias, vigenciaProximaDoFim]);
 
   const dispensar = (id: string) => {
     const card = cardsBase.find((item) => item.id === id);
