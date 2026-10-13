@@ -9,6 +9,15 @@ import { CrossSellCarousel, type CrossSellBannerItem } from "@/components/CrossS
 // visual virou banner com foto de fundo pra todos.
 // FGTS OCULTO TEMPORARIAMENTE — produto em pausa. Remover o "|| false" do .filter abaixo para reativar.
 const CROSS_SELL: CrossSellBannerItem[] = [
+  // Assistências sempre primeiro — é recorrência, prioridade de venda sobre os outros produtos.
+  {
+    key: "assistencias-saude",
+    imagem: "/images/cross-sell-assistencias-saude.png",
+    titulo: "Saúde com desconto",
+    descricao: "Descontos reais em consultas, exames, medicamentos e muito mais",
+    preco: "a partir de R$39,90/mês",
+    rota: "/assistencias/saude",
+  },
   {
     key: "credito-pessoal",
     imagem: "/images/cross-sell-credito-pessoal.png",
@@ -22,14 +31,6 @@ const CROSS_SELL: CrossSellBannerItem[] = [
     titulo: "Antecipação FGTS",
     descricao: "Antecipe seu saldo do FGTS sem afetar a margem do salário",
     rota: "/fgts",
-  },
-  {
-    key: "assistencias-saude",
-    imagem: "/images/cross-sell-assistencias-saude.png",
-    titulo: "Saúde com desconto",
-    descricao: "Descontos reais em consultas, exames, medicamentos e muito mais",
-    preco: "a partir de R$39,90/mês",
-    rota: "/assistencias/saude",
   },
 ].filter((item) => item.key !== "fgts" || false);
 
