@@ -1819,12 +1819,21 @@ function AssistenciasPage() {
               setDraggingCategorias(true);
               dragStartX.current = e.clientX;
               dragStartScroll.current = el.scrollLeft;
-              el.setPointerCapture(e.pointerId);
+              // Não captura o pointer aqui — só depois de confirmar arraste de verdade em
+              // onPointerMove (ver comentário lá). Capturar direto no pointerdown faz o clique
+              // sintetizado em botões/cards dentro do carrossel (ex: "Me avise quando chegar")
+              // ser retargetado pro container, que não tem onClick, e o clique nunca acontece.
             }}
             onPointerMove={(e) => {
               const el = categoriasRef.current;
               if (!el || !draggingCategorias) return;
               const deltaX = e.clientX - dragStartX.current;
+              // Só captura o pointer a partir de um arraste de verdade (>4px) — um toque/clique
+              // simples solta o pointer sem nunca ter sido capturado, então o clique no elemento
+              // tocado dispara normalmente.
+              if (!el.hasPointerCapture(e.pointerId) && Math.abs(deltaX) > 4) {
+                el.setPointerCapture(e.pointerId);
+              }
               el.scrollLeft = dragStartScroll.current - deltaX;
             }}
             onPointerUp={(e) => {
@@ -1889,7 +1898,7 @@ function AssistenciasPage() {
                       type="button"
                       onClick={() => handleInteresseCategoria(item.id, item.nome)}
                       disabled={interesseRegistrado}
-                      className={`mt-1 flex items-center gap-1 text-xs font-semibold ${interesseRegistrado ? "text-green-600" : "text-[#FD5F31]"}`}
+                      className={`mt-2 flex items-center gap-1.5 text-xs font-semibold ${interesseRegistrado ? "text-green-600" : "text-[#FD5F31]"}`}
                     >
                       {interesseRegistrado ? (
                         <>
@@ -1897,7 +1906,10 @@ function AssistenciasPage() {
                           Vamos te avisar
                         </>
                       ) : (
-                        "Me avise quando chegar"
+                        <>
+                          <Bell size={14} />
+                          Me avise quando chegar
+                        </>
                       )}
                     </button>
                   </CardContent>
