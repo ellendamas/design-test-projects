@@ -112,6 +112,7 @@ import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
 import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
 import AssistenciasSaudePage from "@/pages/assistencias/SaudePage";
 import AssistenciasVerificarCelularPage from "@/pages/assistencias/VerificarCelularPage";
+import AssistenciasVerificarEmailPage from "@/pages/assistencias/VerificarEmailPage";
 import AssistenciasConfirmarDadosPage from "@/pages/assistencias/ConfirmarDadosPage";
 import AssistenciasPagamentoPage from "@/pages/assistencias/PagamentoPage";
 import AssistenciasPixExpiradoPage from "@/pages/assistencias/PixExpiradoPage";
@@ -1630,7 +1631,7 @@ function AssistenciasPage() {
     id: "saude",
     nome: "Saúde",
     icon: <Stethoscope size={20} className="text-[#FD5F31]" />,
-    hero: <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80&fit=crop&crop=center" alt="Saúde" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />,
+    hero: <img src="/images/assistencia-saude-disponivel.png" alt="Saúde" className="h-full w-full object-cover" />,
     beneficio: "Consultas a partir de R$ 39,90",
     tag: "Clínico geral e 5 especialidades",
   };
@@ -1736,10 +1737,7 @@ function AssistenciasPage() {
           </div>
           <div className="p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
-              {/* Placeholder do logo do parceiro — trocar pelo asset final da BeneMed quando chegar */}
-              <div className="flex h-7 items-center rounded-md bg-[#F3F4F6] px-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Logo BeneMed
-              </div>
+              <img src="/images/logo-benemed.png" alt="BeneMed" className="h-7 w-auto object-contain" />
               <span className="rounded-full bg-[#E9F7EF] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1A7A4C]">
                 Disponível
               </span>
@@ -2403,7 +2401,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -4357,6 +4355,7 @@ function App() {
             <Route path="/assistencias" element={getStoredUser() ? <AssistenciasPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude" element={getStoredUser() ? <AssistenciasSaudePage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/verificar-celular" element={getStoredUser() ? <AssistenciasVerificarCelularPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/verificar-email" element={getStoredUser() ? <AssistenciasVerificarEmailPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/confirmar-dados" element={getStoredUser() ? <AssistenciasConfirmarDadosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/pagamento" element={getStoredUser() ? <AssistenciasPagamentoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/pagamento/expirado" element={getStoredUser() ? <AssistenciasPixExpiradoPage /> : <Navigate to="/boas-vindas" replace />} />
