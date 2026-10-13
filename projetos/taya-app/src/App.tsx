@@ -1673,6 +1673,18 @@ function AssistenciasPage() {
     { id: "sorteio", nome: "Sorteio", disponivel: false, icon: <Trophy size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&q=80&fit=crop&crop=center" alt="Sorteio" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
   ];
 
+  // Ordem embaralhada uma vez por visita (não a cada render) — evita viés de sempre mostrar a
+  // mesma categoria primeiro nesse carrossel de "em breve". Deps vazias é intencional.
+  const categoriasEmBreve = useMemo(() => {
+    const embaralhado = [...categorias];
+    for (let i = embaralhado.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+    }
+    return embaralhado;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const faqItems = FAQ["assistencias"];
 
   const updateCategoriasControls = () => {
@@ -1702,7 +1714,7 @@ function AssistenciasPage() {
     const chave = `assistencias-${categoriaId}`;
     if (interesses.includes(chave)) return;
     registrarInteresse(chave);
-    toast("Em breve!", {
+    toast("Vamos te avisar!", {
       duration: 5000,
       icon: <Bell size={16} className="text-[#FD5F31]" />,
       description: `Você será um dos primeiros a saber quando ${categoriaNome} chegar.`,
@@ -1828,7 +1840,7 @@ function AssistenciasPage() {
               if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
             }}
           >
-            {categorias.map((item) => {
+            {categoriasEmBreve.map((item) => {
               if (item.disponivel) {
                 return (
                   <button
@@ -1877,15 +1889,15 @@ function AssistenciasPage() {
                       type="button"
                       onClick={() => handleInteresseCategoria(item.id, item.nome)}
                       disabled={interesseRegistrado}
-                      className={`mt-1 flex items-center gap-1 text-xs font-semibold ${interesseRegistrado ? "text-muted-foreground" : "text-[#FD5F31]"}`}
+                      className={`mt-1 flex items-center gap-1 text-xs font-semibold ${interesseRegistrado ? "text-green-600" : "text-[#FD5F31]"}`}
                     >
                       {interesseRegistrado ? (
                         <>
                           <CheckCircle size={14} weight="fill" />
-                          Avisado
+                          Vamos te avisar
                         </>
                       ) : (
-                        "Avisar quando chegar"
+                        "Me avise quando chegar"
                       )}
                     </button>
                   </CardContent>
