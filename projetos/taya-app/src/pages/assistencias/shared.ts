@@ -140,12 +140,13 @@ export function resolverCobrancaBenemed(): void {
 
 // Mock de "vigência perto de vencer" pro card de aviso de renovação manual dos planos
 // Semestral/Anual (ver card "P6" em RecomendacoesContext.tsx) — ainda não existe data real de
-// vigência vinda da BeneMed. Diferente de cobrancaBenemedFalhou(), não bypassa a checagem de
-// assinatura ativa: o aviso só faz sentido com uma assinatura Semestral/Anual de verdade, então
-// pra testar primeiro contrata um desses planos e depois liga o toggle:
-//   1) ?assinaturaVigencia=proxima na URL (DESIGN ONLY) — liga e persiste.
+// vigência vinda da BeneMed. Essa função só guarda o toggle; o bypass "funciona sozinho" (sem
+// precisar de uma assinatura Semestral/Anual real) fica em RecomendacoesContext.tsx, igual ao
+// ?assinaturaCobranca=falhou do P5. Formas de ligar/desligar pra testar:
+//   1) ?assinaturaVigencia=proxima na URL (DESIGN ONLY) — liga, mostra o P6 direto e persiste.
 //   2) ?assinaturaVigencia=em_dia na URL — desliga e persiste.
-//   3) window.localStorage.setItem("podeja_benemed_vigencia_proxima", "true") no console.
+//   3) window.localStorage.setItem("podeja_benemed_vigencia_proxima", "true") no console —
+//      nesse caso só conta se já existir uma assinatura Semestral/Anual ativa.
 const VIGENCIA_PROXIMA_KEY = "podeja_benemed_vigencia_proxima";
 
 export function vigenciaBenemedProximaDoFim(): boolean {

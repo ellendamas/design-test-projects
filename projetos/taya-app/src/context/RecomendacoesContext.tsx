@@ -76,14 +76,18 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
   // shared.ts). Em uso real (sem o bypass), nunca compete com o "O2", que já some pra assinantes.
   const cobrancaBenemedFalha = cobrancaBenemedFalhou();
 
-  // Card "P6" (aviso de renovação manual) — só pra quem tem assinatura Semestral ou Anual ativa
-  // e o mock de vigência perto do fim ligado (ver vigenciaBenemedProximaDoFim em shared.ts).
-  // Diferente de cobrancaBenemedFalhou(), essa checagem não tem bypass sozinho: precisa de uma
-  // assinatura Semestral/Anual real pra fazer sentido mostrar o aviso.
+  // Card "P6" (aviso de renovação manual) — pra quem tem assinatura Semestral ou Anual ativa e
+  // o mock de vigência perto do fim ligado (ver vigenciaBenemedProximaDoFim em shared.ts).
+  // ?assinaturaVigencia=proxima na URL (DESIGN ONLY) funciona sozinho pra pré-visualização,
+  // igual ao ?assinaturaCobranca=falhou do P5 — bypassa a checagem de assinatura Semestral/Anual
+  // real. Provider fica fora do <BrowserRouter>, por isso lê a URL direto (mesmo motivo de
+  // forcarRecomendacoesVazias logo abaixo).
   const planoBenemedAtivo = getAssinaturaBenemedAtiva();
+  const vigenciaForcada =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("assinaturaVigencia") === "proxima";
   const vigenciaProximaDoFim =
-    vigenciaBenemedProximaDoFim() &&
-    (planoBenemedAtivo?.id === "semestral" || planoBenemedAtivo?.id === "anual");
+    vigenciaForcada ||
+    (vigenciaBenemedProximaDoFim() && (planoBenemedAtivo?.id === "semestral" || planoBenemedAtivo?.id === "anual"));
 
   // DESIGN ONLY — ?recomendacoes=vazio força zero cards, para visualizar o painel sem "Para você agora"
   // Provider fica fora do <BrowserRouter> (main.tsx), por isso lê a URL direto em vez de useSearchParams()

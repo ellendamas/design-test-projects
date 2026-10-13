@@ -26,7 +26,12 @@ export default function AssistenciasPagamentoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const plano = getAssinaturaBenemedAtiva() ?? (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
+  // Prioriza o plano vindo da navegação (seleção explícita do usuário em SaudePage.tsx/
+  // ConfirmarDadosPage.tsx) sobre o persistido — senão, quem já tem assinatura ativa e refaz o
+  // fluxo escolhendo outro plano continuaria vendo o Pix do plano antigo aqui.
+  // getAssinaturaBenemedAtiva() só entra como fallback pra acesso direto via URL ou pra
+  // regularização de cobrança (card "P5", que navega sem state).
+  const plano = (location.state as { plano?: Plano } | null)?.plano ?? getAssinaturaBenemedAtiva() ?? PLANOS[0];
   const diaCobranca = (location.state as { diaCobranca?: DiaCobranca | null } | null)?.diaCobranca ?? null;
   const modoRegularizacao = temAssinaturaBenemedAtiva() && cobrancaBenemedFalhou();
   const [copiado, setCopiado] = useState(false);
