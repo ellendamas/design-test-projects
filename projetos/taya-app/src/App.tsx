@@ -118,6 +118,8 @@ import AssistenciasPagamentoPage from "@/pages/assistencias/PagamentoPage";
 import AssistenciasPixExpiradoPage from "@/pages/assistencias/PixExpiradoPage";
 import AssistenciasConfirmacaoPage from "@/pages/assistencias/ConfirmacaoPage";
 import AssistenciasAssinaturaPage from "@/pages/assistencias/AssinaturaPage";
+import AssistenciasCancelarMotivoPage from "@/pages/assistencias/CancelarMotivoPage";
+import AssistenciasCancelarRetencaoPage from "@/pages/assistencias/CancelarRetencaoPage";
 import AssistenciasRedirecionandoBenemedPage from "@/pages/assistencias/RedirecionandoBenemedPage";
 import { getAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
@@ -2401,7 +2403,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/assistencias/saude/cancelar/motivo", "/assistencias/saude/cancelar/retencao", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -4362,6 +4364,8 @@ function App() {
             <Route path="/assistencias/saude/confirmacao" element={getStoredUser() ? <AssistenciasConfirmacaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/assinatura" element={getStoredUser() ? <AssistenciasAssinaturaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/assinatura/benemed" element={getStoredUser() ? <AssistenciasRedirecionandoBenemedPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/cancelar/motivo" element={getStoredUser() ? <AssistenciasCancelarMotivoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/cancelar/retencao" element={getStoredUser() ? <AssistenciasCancelarRetencaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal" element={getStoredUser() ? <CreditoPessoalLanding /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/dados" element={getStoredUser() ? <CreditoPessoalDados /> : <Navigate to="/boas-vindas" replace />} />

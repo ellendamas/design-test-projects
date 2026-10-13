@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Clock, Copy, QrCode } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
-import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, PLANOS, temAssinaturaBenemedAtiva, type Plano } from "./shared";
+import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, PLANOS, temAssinaturaBenemedAtiva, type DiaCobranca, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/pagamento — Pix mockado (QR + copia e cola), sem chamada real de
 // API ainda. O payload do QR e o código copia-e-cola abaixo são só texto de exemplo.
@@ -16,7 +16,8 @@ import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, PLANOS, temAssinatura
 // Sem webhook real de confirmação: copiar o código Pix dispara a simulação do pagamento
 // confirmado 10s depois (DESIGN ONLY), em vez de um botão manual de "simular pagamento".
 // ?pixErro=expirado (DESIGN ONLY) pula direto pra PixExpiradoPage.tsx, pra pré-visualizar esse
-// caminho alternativo sem esperar os 30 minutos reais de expiração.
+// caminho alternativo sem esperar o prazo real de expiração do Pix (30min no Mensal/Familiar,
+// confirmado pela BeneMed; 24h no Semestral/Anual).
 const PIX_COPIA_COLA =
   "00020126580014BR.GOV.BCB.PIX0136benemed-podeja-mock@exemplo.com.br5204000053039865406" +
   "0000.005802BR5913Pode Ja Pagto6009SAO PAULO62070503***6304ABCD";
@@ -26,6 +27,7 @@ export default function AssistenciasPagamentoPage() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const plano = getAssinaturaBenemedAtiva() ?? (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
+  const diaCobranca = (location.state as { diaCobranca?: DiaCobranca | null } | null)?.diaCobranca ?? null;
   const modoRegularizacao = temAssinaturaBenemedAtiva() && cobrancaBenemedFalhou();
   const [copiado, setCopiado] = useState(false);
   const [qrFalhou, setQrFalhou] = useState(false);
@@ -33,19 +35,23 @@ export default function AssistenciasPagamentoPage() {
 
   const forcarExpirado = searchParams.get("pixErro") === "expirado"; // DESIGN ONLY
 
+  // Prazo de expiração do Pix — só confirmado pra Semestral/Anual (24h). Mensal e Familiar
+  // seguem com o valor anterior (30min) até a BeneMed confirmar o prazo real deles.
+  const prazoExpiracaoPix = plano.id === "semestral" || plano.id === "anual" ? "24 horas" : "30 minutos";
+
   useEffect(() => {
     if (!forcarExpirado) return;
-    navigate("/assistencias/saude/pagamento/expirado", { state: { plano }, replace: true });
+    navigate("/assistencias/saude/pagamento/expirado", { state: { plano, diaCobranca }, replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forcarExpirado]);
 
   useEffect(() => {
     if (!aguardandoConfirmacao) return;
     const t = window.setTimeout(() => {
-      navigate("/assistencias/saude/confirmacao", { state: { plano }, replace: true });
+      navigate("/assistencias/saude/confirmacao", { state: { plano, diaCobranca }, replace: true });
     }, 10000);
     return () => window.clearTimeout(t);
-  }, [aguardandoConfirmacao, navigate, plano]);
+  }, [aguardandoConfirmacao, navigate, plano, diaCobranca]);
 
   const copiar = async () => {
     try {
@@ -111,8 +117,8 @@ export default function AssistenciasPagamentoPage() {
         <div className="flex items-start gap-2 rounded-xl bg-[#F3F4F6] p-3">
           <Clock size={16} className="mt-0.5 shrink-0 text-muted-foreground" />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Esse código expira em 30 minutos. Após o pagamento, a confirmação pode levar alguns
-            instantes.
+            Esse código expira em {prazoExpiracaoPix}. Após o pagamento, a confirmação pode levar
+            alguns instantes.
           </p>
         </div>
 

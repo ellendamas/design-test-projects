@@ -4,7 +4,7 @@ import { CheckCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { Button } from "@/components/ui/button";
-import { ativarAssinaturaBenemed, cobrancaBenemedFalhou, PLANOS, resolverCobrancaBenemed, temAssinaturaBenemedAtiva, type Plano } from "./shared";
+import { ativarAssinaturaBenemed, cobrancaBenemedFalhou, PLANOS, resolverCobrancaBenemed, temAssinaturaBenemedAtiva, type DiaCobranca, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/confirmacao — tela final tanto da primeira contratação quanto da
 // regularização de cobrança (ver PagamentoPage.tsx). O modo é capturado uma vez, no mount —
@@ -14,6 +14,7 @@ export default function AssistenciasConfirmacaoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const plano = (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
+  const diaCobranca = (location.state as { diaCobranca?: DiaCobranca | null } | null)?.diaCobranca ?? null;
   const [modoRegularizacao] = useState(() => temAssinaturaBenemedAtiva() && cobrancaBenemedFalhou());
 
   useEffect(() => {
@@ -21,8 +22,10 @@ export default function AssistenciasConfirmacaoPage() {
       resolverCobrancaBenemed();
     } else {
       // Marca a assinatura como ativa (mock, sem backend) — é o que faz o card "O2" do Para
-      // Você Agora sumir e a tela "Minha assinatura" ter o que mostrar.
-      ativarAssinaturaBenemed(plano);
+      // Você Agora sumir e a tela "Minha assinatura" ter o que mostrar. diaCobranca só existe
+      // pro plano Mensal (ver DIAS_COBRANCA em shared.ts) — persistido pra "Minha assinatura"
+      // poder mostrar a data real da próxima cobrança.
+      ativarAssinaturaBenemed(plano, diaCobranca);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
