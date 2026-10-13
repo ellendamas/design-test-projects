@@ -45,12 +45,21 @@ export function PeekCarousel({ children, scrollStep = 220 }: { children: ReactNo
           setDragging(true);
           dragStartX.current = e.clientX;
           dragStartScroll.current = el.scrollLeft;
-          el.setPointerCapture(e.pointerId);
+          // Não captura o pointer aqui — só depois de confirmar arraste de verdade em
+          // onPointerMove (ver comentário lá). Capturar direto no pointerdown faz o clique
+          // sintetizado nos cards/banners dentro do carrossel ser retargetado pro container,
+          // que não tem onClick, e o clique nunca acontece.
         }}
         onPointerMove={(e) => {
           const el = ref.current;
           if (!el || !dragging) return;
           const deltaX = e.clientX - dragStartX.current;
+          // Só captura o pointer a partir de um arraste de verdade (>4px) — um toque/clique
+          // simples solta o pointer sem nunca ter sido capturado, então o clique no elemento
+          // tocado dispara normalmente.
+          if (!el.hasPointerCapture(e.pointerId) && Math.abs(deltaX) > 4) {
+            el.setPointerCapture(e.pointerId);
+          }
           el.scrollLeft = dragStartScroll.current - deltaX;
         }}
         onPointerUp={(e) => {
