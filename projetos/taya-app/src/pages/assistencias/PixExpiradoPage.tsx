@@ -2,9 +2,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Clock } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
-import { PLANOS, type Plano } from "./shared";
+import { PLANOS, type DiaCobranca, type Plano } from "./shared";
 
-type LocationState = { plano?: Plano };
+type LocationState = { plano?: Plano; diaCobranca?: DiaCobranca | null };
 
 // DESIGN ONLY — mock state para acesso direto via URL de design, mesmo padrão usado em
 // credito-pessoal/CreditoPessoalReprovada.tsx e CreditoPessoalInelegivel.tsx.
@@ -16,7 +16,9 @@ const MOCK_STATE: LocationState = {};
 export default function AssistenciasPixExpiradoPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const plano = ((location.state as LocationState | null) ?? MOCK_STATE).plano ?? PLANOS[0];
+  const state = (location.state as LocationState | null) ?? MOCK_STATE;
+  const plano = state.plano ?? PLANOS[0];
+  const diaCobranca = state.diaCobranca ?? null;
 
   return (
     <SubPageLayout title="Pagamento" hideNav>
@@ -36,7 +38,7 @@ export default function AssistenciasPixExpiradoPage() {
         <div className="mt-2 w-full space-y-2">
           <Button
             className="h-14 w-full rounded-full"
-            onClick={() => navigate("/assistencias/saude/pagamento", { state: { plano } })}
+            onClick={() => navigate("/assistencias/saude/pagamento", { state: { plano, diaCobranca } })}
           >
             Gerar novo código
           </Button>

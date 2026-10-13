@@ -1,16 +1,16 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { CaretRight, ShieldCheck } from "@phosphor-icons/react";
+import { Bell, CalendarCheck, CaretRight, CheckCircle, ShieldCheck } from "@phosphor-icons/react";
+import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
-import { useChat } from "@/context/ChatContext";
-import { getAssinaturaBenemedAtiva, PLANOS, type Plano } from "./shared";
+import { useInteresse } from "@/context/InteresseContext";
+import { getAssinaturaBenemedAtiva, getDiaCobrancaAtivo, PLANOS, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/assinatura — "Meu plano" da assinatura BeneMed, mesmo padrão
 // visual das telas de contrato existentes (ver ContratoSeguroPage em App.tsx: selo de status +
-// grid de dados principais). "Cancelar assinatura" é só um item de lista simples, no mesmo
-// padrão dos botões de Minha Conta (AccountScreen em App.tsx) — NÃO chama nenhum endpoint de
-// cancelamento ainda, só direciona pro chat de suporte, igual ao padrão já usado em
-// minha-conta/VerificarContato.tsx (handleIniciarChatSuporte).
+// grid de dados principais). "Cancelar assinatura" agora passa por uma etapa de motivo +
+// retenção antes de chegar no suporte (ver CancelarMotivoPage.tsx/CancelarRetencaoPage.tsx) —
+// não direciona mais direto pro chat.
 //
 // Prioriza o estado persistido (quem contratou de verdade e veio pela ConfirmacaoPage) sobre o
 // location.state, pra funcionar também em acesso direto via URL/Contratos.
@@ -18,13 +18,25 @@ export default function AssistenciasAssinaturaPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const plano = getAssinaturaBenemedAtiva() ?? (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
-  const { abrirChat, enviarMensagemContexto } = useChat();
+  const diaCobranca = getDiaCobrancaAtivo();
+  const { interesses, registrarInteresse } = useInteresse();
 
-  const handleCancelar = () => {
-    abrirChat();
-    enviarMensagemContexto(
-      "[SISTEMA] Usuário solicitou cancelamento da assinatura de Assistência Saúde (BeneMed). Encaminhar para suporte humano."
-    );
+  // Fake door — só existe pro plano Mensal, único com data de cobrança recorrente mês a mês
+  // (ver DIAS_COBRANCA em shared.ts). Não troca nada de verdade, só registra interesse no mesmo
+  // InteresseContext genérico usado em outros fake doors do app (ex: categorias "em breve" de
+  // AssistenciasPage em App.tsx).
+  const temDiaCobranca = plano.id === "mensal";
+  const CHAVE_INTERESSE_TROCAR_DIA = "assistencias-saude-trocar-dia-cobranca";
+  const jaSolicitouTrocaDia = interesses.includes(CHAVE_INTERESSE_TROCAR_DIA);
+
+  const handleTrocarDiaCobranca = () => {
+    if (jaSolicitouTrocaDia) return;
+    registrarInteresse(CHAVE_INTERESSE_TROCAR_DIA);
+    toast("Pedido registrado!", {
+      duration: 5000,
+      icon: <Bell size={16} className="text-[#FD5F31]" />,
+      description: "Em breve você vai poder escolher um novo dia de cobrança direto por aqui.",
+    });
   };
 
   return (
@@ -54,7 +66,32 @@ export default function AssistenciasAssinaturaPage() {
           <p className="text-xs text-muted-foreground">Parceiro</p>
           <p className="text-sm font-semibold text-foreground">BeneMed</p>
         </div>
+        {temDiaCobranca && diaCobranca && (
+          <div>
+            <p className="text-xs text-muted-foreground">Próxima cobrança</p>
+            <p className="text-sm font-semibold text-foreground">Dia {diaCobranca}</p>
+          </div>
+        )}
       </div>
+
+      {temDiaCobranca && (
+        <button
+          type="button"
+          onClick={handleTrocarDiaCobranca}
+          disabled={jaSolicitouTrocaDia}
+          className="mb-3 flex w-full items-center justify-between rounded-2xl border border-border bg-white px-4 py-3.5 text-left text-sm text-foreground disabled:opacity-70"
+        >
+          <span className="flex items-center gap-2">
+            {jaSolicitouTrocaDia ? (
+              <CheckCircle size={16} className="text-green-600" weight="fill" />
+            ) : (
+              <CalendarCheck size={16} className="text-[#FD5F31]" />
+            )}
+            {jaSolicitouTrocaDia ? "Pedido de troca registrado" : "Trocar dia de cobrança"}
+          </span>
+          {!jaSolicitouTrocaDia && <CaretRight size={16} className="text-muted-foreground" />}
+        </button>
+      )}
 
       <Button
         className="mb-6 h-14 w-full rounded-full"
@@ -76,7 +113,7 @@ export default function AssistenciasAssinaturaPage() {
 
       <button
         type="button"
-        onClick={handleCancelar}
+        onClick={() => navigate("/assistencias/saude/cancelar/motivo", { state: { plano } })}
         className="w-full rounded-2xl border border-border bg-white px-4 py-3.5 text-left text-sm text-foreground"
       >
         <div className="flex items-center justify-between">

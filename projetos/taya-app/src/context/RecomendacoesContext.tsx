@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 import { useInteresse } from "@/context/InteresseContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
-import { cobrancaBenemedFalhou, temAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
+import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, temAssinaturaBenemedAtiva, vigenciaBenemedProximaDoFim } from "@/pages/assistencias/shared";
 
 type GrupoCard = "P" | "O" | "G";
 
@@ -76,6 +76,15 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
   // shared.ts). Em uso real (sem o bypass), nunca compete com o "O2", que já some pra assinantes.
   const cobrancaBenemedFalha = cobrancaBenemedFalhou();
 
+  // Card "P6" (aviso de renovação manual) — só pra quem tem assinatura Semestral ou Anual ativa
+  // e o mock de vigência perto do fim ligado (ver vigenciaBenemedProximaDoFim em shared.ts).
+  // Diferente de cobrancaBenemedFalhou(), essa checagem não tem bypass sozinho: precisa de uma
+  // assinatura Semestral/Anual real pra fazer sentido mostrar o aviso.
+  const planoBenemedAtivo = getAssinaturaBenemedAtiva();
+  const vigenciaProximaDoFim =
+    vigenciaBenemedProximaDoFim() &&
+    (planoBenemedAtivo?.id === "semestral" || planoBenemedAtivo?.id === "anual");
+
   // DESIGN ONLY — ?recomendacoes=vazio força zero cards, para visualizar o painel sem "Para você agora"
   // Provider fica fora do <BrowserRouter> (main.tsx), por isso lê a URL direto em vez de useSearchParams()
   // TODO: remover quando P2/P4 estiverem ligados a uma condição real (endereço/conta cadastrados)
@@ -115,6 +124,17 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         texto: "Não conseguimos cobrar sua mensalidade BeneMed.",
         cta: "Regularizar",
         destino: "/assistencias/saude/pagamento",
+        dispensavel: false,
+        atencao: true,
+      },
+      {
+        id: "P6",
+        grupo: "P",
+        prioridade: 1,
+        icone: "CalendarCheck",
+        texto: "Seu plano BeneMed está perto de vencer. A renovação não é automática.",
+        cta: "Renovar",
+        destino: "/assistencias/saude",
         dispensavel: false,
         atencao: true,
       },
@@ -209,6 +229,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
 
     ativos = ativos.filter((card) => {
       if (card.id === "P5" && !cobrancaBenemedFalha) return false;
+      if (card.id === "P6" && !vigenciaProximaDoFim) return false;
       if (card.id === "O2" && assinaturaBenemedAtiva) return false;
       if (card.id === "O3" && interesseEnergia) return false;
       if (card.id === "G1" && streak === 0) return false;
@@ -223,7 +244,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     }
 
     return ativos.sort((a, b) => a.prioridade - b.prioridade);
-  }, [assinaturaBenemedAtiva, cardsBase, cobrancaBenemedFalha, dispensados, dispensadosSessao, interesseEnergia, saldo, streak, forcarRecomendacoesVazias]);
+  }, [assinaturaBenemedAtiva, cardsBase, cobrancaBenemedFalha, dispensados, dispensadosSessao, interesseEnergia, saldo, streak, forcarRecomendacoesVazias, vigenciaProximaDoFim]);
 
   const dispensar = (id: string) => {
     const card = cardsBase.find((item) => item.id === id);

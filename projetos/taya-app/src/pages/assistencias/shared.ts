@@ -84,9 +84,26 @@ export function getAssinaturaBenemedAtiva(): Plano | null {
   return PLANOS.find((p) => p.id === planoId) ?? null;
 }
 
-export function ativarAssinaturaBenemed(plano: Plano): void {
+export function ativarAssinaturaBenemed(plano: Plano, diaCobranca?: DiaCobranca | null): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(ASSINATURA_ATIVA_KEY, plano.id);
+  if (diaCobranca) {
+    window.localStorage.setItem(DIA_COBRANCA_ATIVO_KEY, String(diaCobranca));
+  } else {
+    window.localStorage.removeItem(DIA_COBRANCA_ATIVO_KEY);
+  }
+}
+
+// Dia de cobrança escolhido em ConfirmarDadosPage.tsx (só existe pro plano Mensal) —
+// persistido na ativação pra Minha Assinatura (AssinaturaPage.tsx) poder mostrar a data real
+// da próxima cobrança, em vez de só o texto genérico "Cobrança mensal".
+const DIA_COBRANCA_ATIVO_KEY = "podeja_benemed_dia_cobranca";
+
+export function getDiaCobrancaAtivo(): DiaCobranca | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.localStorage.getItem(DIA_COBRANCA_ATIVO_KEY);
+  const dia = Number(raw);
+  return (DIAS_COBRANCA as readonly number[]).includes(dia) ? (dia as DiaCobranca) : null;
 }
 
 // Status de cobrança da assinatura — ainda não existe webhook real da BeneMed avisando
@@ -120,3 +137,38 @@ export function resolverCobrancaBenemed(): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(COBRANCA_FALHOU_KEY);
 }
+
+// Mock de "vigência perto de vencer" pro card de aviso de renovação manual dos planos
+// Semestral/Anual (ver card "P6" em RecomendacoesContext.tsx) — ainda não existe data real de
+// vigência vinda da BeneMed. Diferente de cobrancaBenemedFalhou(), não bypassa a checagem de
+// assinatura ativa: o aviso só faz sentido com uma assinatura Semestral/Anual de verdade, então
+// pra testar primeiro contrata um desses planos e depois liga o toggle:
+//   1) ?assinaturaVigencia=proxima na URL (DESIGN ONLY) — liga e persiste.
+//   2) ?assinaturaVigencia=em_dia na URL — desliga e persiste.
+//   3) window.localStorage.setItem("podeja_benemed_vigencia_proxima", "true") no console.
+const VIGENCIA_PROXIMA_KEY = "podeja_benemed_vigencia_proxima";
+
+export function vigenciaBenemedProximaDoFim(): boolean {
+  if (typeof window === "undefined") return false;
+  const forcado = new URLSearchParams(window.location.search).get("assinaturaVigencia");
+  if (forcado === "proxima") {
+    window.localStorage.setItem(VIGENCIA_PROXIMA_KEY, "true");
+    return true;
+  }
+  if (forcado === "em_dia") {
+    window.localStorage.removeItem(VIGENCIA_PROXIMA_KEY);
+    return false;
+  }
+  return window.localStorage.getItem(VIGENCIA_PROXIMA_KEY) === "true";
+}
+
+// Motivos de cancelamento — etapa intermediária antes de confirmar (ver
+// CancelarMotivoPage.tsx). Lista simples e fixa, sem vir de API.
+export type MotivoCancelamentoId = "preco" | "nao_uso" | "nao_atendeu" | "outro";
+
+export const MOTIVOS_CANCELAMENTO: { id: MotivoCancelamentoId; label: string }[] = [
+  { id: "preco", label: "Preço" },
+  { id: "nao_uso", label: "Não uso" },
+  { id: "nao_atendeu", label: "Não atendeu minhas expectativas" },
+  { id: "outro", label: "Outro motivo" },
+];
