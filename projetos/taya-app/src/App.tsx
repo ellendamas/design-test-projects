@@ -1737,7 +1737,7 @@ function AssistenciasPage() {
           </div>
           <div className="p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
-              <img src="/images/logo-benemed.png" alt="BeneMed" className="h-7 w-auto object-contain" />
+              <img src="/images/logo-benemed.png" alt="BeneMed" className="h-5 w-auto object-contain" />
               <span className="rounded-full bg-[#E9F7EF] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1A7A4C]">
                 Disponível
               </span>
@@ -1758,7 +1758,7 @@ function AssistenciasPage() {
 
         <Card className="border-0 bg-[#FFF3EE] shadow-sm">
           <CardContent className="p-4">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Como vai funcionar</h3>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Como funciona</h3>
             <div className="space-y-3">
               {[
                 { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
