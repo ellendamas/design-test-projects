@@ -21,7 +21,7 @@ export default function B3Pontos() {
           <p className="text-sm font-semibold text-foreground">Jade</p>
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto p-4">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
           <div className="flex items-end gap-2">
             <JadeAvatar size={24} />
             <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-white px-3.5 py-2.5 text-xs leading-relaxed text-foreground shadow-card">

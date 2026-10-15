@@ -19,7 +19,7 @@ export default function B2Servicos() {
           <p className="text-sm font-semibold text-foreground">Jade</p>
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto p-4">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
           {CONVERSA_B2.map((item, i) => {
             if (item.autor === "usuario") {
               return (
