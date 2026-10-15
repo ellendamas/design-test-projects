@@ -85,9 +85,18 @@ export const SUGESTOES_CHAT = [
   "Contratar assistência",
 ];
 
-export const CARDS_CONTEXTUAIS_B = [
-  { id: "c1", titulo: "Você tem R$2.400 disponíveis no FGTS", cta: "Simular agora" },
-  { id: "c2", titulo: "Sua parcela CLT vence em 3 dias", cta: "Ver detalhes" },
+// Saudação contextual do B1 — o cerne da proposta de valor dessa tela: não é "bom dia"
+// genérico, é a Jade mostrando que já sabe a situação financeira da usuária.
+export const SAUDACAO_CONTEXTUAL_B1 = {
+  destaque: "Sua parcela do CLT vence em 3 dias.",
+  complemento: "Quer que eu já prepare o pagamento, ou prefere ver outras opções primeiro?",
+};
+
+// Cards contextuais do B1 — icone/valor/texto separados (em vez de um título único) pra dar
+// hierarquia visual: o valor financeiro é o foco, não o texto ao redor.
+export const CARDS_CONTEXTUAIS_B1 = [
+  { id: "c1", icone: "PiggyBank" as const, valor: "R$ 2.400", texto: "disponíveis no seu FGTS", cta: "Simular agora" },
+  { id: "c2", icone: "Briefcase" as const, valor: "3 dias", texto: "até o vencimento da parcela CLT", cta: "Ver detalhes" },
 ];
 
 export const CONVERSA_B2 = [

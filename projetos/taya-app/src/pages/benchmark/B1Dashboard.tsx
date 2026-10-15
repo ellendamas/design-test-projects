@@ -3,7 +3,8 @@ import { ArrowRight, Briefcase, CaretRight, Heartbeat, PaperPlaneTilt, PiggyBank
 import { Shell } from "./components/Shell";
 import { BottomNavB } from "./components/BottomNavB";
 import { JadeAvatar } from "./components/JadeAvatar";
-import { CARDS_CONTEXTUAIS_B, SUGESTOES_CHAT, USUARIO } from "./mockData";
+import { ICON_MAP } from "./components/iconMap";
+import { CARDS_CONTEXTUAIS_B1, SAUDACAO_CONTEXTUAL_B1, SUGESTOES_CHAT, USUARIO } from "./mockData";
 
 const ACOES_RAPIDAS = [
   { label: "CLT", icon: Briefcase },
@@ -22,10 +23,13 @@ export default function B1Dashboard() {
     <Shell navBar={<BottomNavB ativo="Início" />}>
       <div className="space-y-5 p-4 pb-6">
         <div className="flex items-center gap-3">
-          <JadeAvatar size={44} />
+          <JadeAvatar size={48} glow />
           <div>
-            <p className="text-sm font-bold text-foreground">Bom dia, {USUARIO.nome}.</p>
-            <p className="text-xs text-muted-foreground">Como posso te ajudar hoje?</p>
+            <p className="text-lg font-bold leading-tight text-foreground">{USUARIO.nome}</p>
+            <p className="mt-0.5 text-sm font-medium leading-snug text-foreground">
+              {SAUDACAO_CONTEXTUAL_B1.destaque}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{SAUDACAO_CONTEXTUAL_B1.complemento}</p>
           </div>
         </div>
 
@@ -56,14 +60,30 @@ export default function B1Dashboard() {
         </div>
 
         <div className="space-y-2">
-          {CARDS_CONTEXTUAIS_B.map((card) => (
-            <div key={card.id} className="rounded-2xl border border-border bg-white p-3.5 shadow-card">
-              <p className="text-xs font-medium leading-snug text-foreground">{card.titulo}</p>
-              <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
-                {card.cta} <ArrowRight size={12} />
-              </span>
-            </div>
-          ))}
+          {CARDS_CONTEXTUAIS_B1.map((card) => {
+            const Icon = ICON_MAP[card.icone];
+            return (
+              <div
+                key={card.id}
+                className="rounded-2xl bg-gradient-to-br from-[#FFF3EE] to-[#FFE0D1] p-3.5 shadow-card"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 text-primary">
+                    <Icon size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xl font-bold leading-tight text-[#D94E28]">{card.valor}</p>
+                    <p className="mt-0.5 text-xs leading-snug text-foreground/80">{card.texto}</p>
+                  </div>
+                </div>
+                <div className="mt-2 flex justify-end">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
+                    {card.cta} <ArrowRight size={11} />
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <div>
