@@ -80,24 +80,18 @@ export const HISTORICO_PONTOS = [
 ];
 
 export const SUGESTOES_CHAT = [
-  "Ver meu saldo CLT",
-  "Simular FGTS",
+  "Ver saldo FGTS",
+  "Simular CLT",
   "Contratar assistência",
 ];
 
-// Saudação contextual do B1 — o cerne da proposta de valor dessa tela: não é "bom dia"
-// genérico, é a Jade mostrando que já sabe a situação financeira da usuária.
+// Saudação do B1 — tela inicial estática (sem conversa em andamento ainda), input como
+// elemento hero (ref: Claude.ai/Perplexity/ChatGPT). O nome vem de USUARIO.nome; aqui só a
+// pergunta central e a linha de contexto discreta abaixo dela.
 export const SAUDACAO_CONTEXTUAL_B1 = {
-  destaque: "Sua parcela do CLT vence em 3 dias.",
-  complemento: "Quer que eu já prepare o pagamento, ou prefere ver outras opções primeiro?",
+  pergunta: "O que você quer resolver hoje?",
+  contexto: "Sua parcela do CLT vence em 3 dias.",
 };
-
-// Cards contextuais do B1 — icone/valor/texto separados (em vez de um título único) pra dar
-// hierarquia visual: o valor financeiro é o foco, não o texto ao redor.
-export const CARDS_CONTEXTUAIS_B1 = [
-  { id: "c1", icone: "PiggyBank" as const, valor: "R$ 2.400", texto: "disponíveis no seu FGTS", cta: "Simular agora" },
-  { id: "c2", icone: "Briefcase" as const, valor: "3 dias", texto: "até o vencimento da parcela CLT", cta: "Ver detalhes" },
-];
 
 export const CONVERSA_B2 = [
   { autor: "usuario" as const, texto: "quero contratar uma assistência de saúde" },
