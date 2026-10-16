@@ -1,80 +1,62 @@
 import { useState } from "react";
-import { PaperPlaneTilt } from "@phosphor-icons/react";
+import { Briefcase, CaretDown, Heartbeat, PiggyBank } from "@phosphor-icons/react";
 import { Shell } from "./components/Shell";
 import { BottomNavB } from "./components/BottomNavB";
-import { JadeAvatar } from "./components/JadeAvatar";
-import { CONVERSA_B2 } from "./mockData";
+import { ChatThread } from "./components/ChatThread";
+import { CONVERSAS_SUGESTAO, HISTORICO_CONVERSAS } from "./mockData";
 
-// B2 — "Hub de serviços" do Grupo B: não existe hub separado — tudo flui pela conversa com a
-// Jade. Sem grid, sem lista de parceiros; as opções de produto aparecem como cards embutidos
-// dentro da própria mensagem da IA.
+const ICONES = { Heartbeat, PiggyBank, Briefcase };
+
+// B2 — Agora é "Histórico de conversas" (antes era a própria conversa ao vivo, que se mudou
+// pra B1 — ver B1Dashboard.tsx). Lista de resumos das conversas que já existem nesse mock
+// (uma por roteiro de CONVERSAS_SUGESTAO); tocar num item expande a transcrição completa,
+// somente leitura (ChatThread em variant="embedded": sem scroll/auto-scroll próprios, sem
+// input — é histórico, não uma conversa ativa).
 export default function B2Servicos() {
-  const [mensagem, setMensagem] = useState("");
+  const [aberto, setAberto] = useState<string | null>(null);
 
   return (
-    <Shell navBar={<BottomNavB ativo="Conversar" />}>
-      <div className="flex h-full flex-col">
-        <div className="flex items-center gap-2 border-b border-border bg-white px-4 py-3">
-          <JadeAvatar size={32} />
-          <p className="text-sm font-semibold text-foreground">Jade</p>
+    <Shell navBar={<BottomNavB ativo="Histórico" />}>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+        <div>
+          <h1 className="text-lg font-bold text-foreground">Histórico de conversas</h1>
+          <p className="mt-0.5 text-xs text-muted-foreground">Tudo que você já resolveu com a Jade.</p>
         </div>
 
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
-          {CONVERSA_B2.map((item, i) => {
-            if (item.autor === "usuario") {
-              return (
-                <div key={i} className="flex justify-end">
-                  <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-primary px-3.5 py-2.5 text-xs text-white">
-                    {item.texto}
-                  </div>
-                </div>
-              );
-            }
-            if (item.autor === "jade") {
-              return (
-                <div key={i} className="flex items-end gap-2">
-                  <JadeAvatar size={24} />
-                  <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-white px-3.5 py-2.5 text-xs text-foreground shadow-card">
-                    {item.texto}
-                  </div>
-                </div>
-              );
-            }
+        <div className="space-y-2">
+          {HISTORICO_CONVERSAS.map((item) => {
+            const Icon = ICONES[item.icone];
+            const estaAberto = aberto === item.id;
+            const thread = CONVERSAS_SUGESTAO[item.topico];
             return (
-              <div key={i} className="flex items-start gap-2">
-                <JadeAvatar size={24} />
-                <div className="flex max-w-[85%] flex-col gap-2">
-                  {item.opcoes.map((op) => (
-                    <button
-                      key={op.nome}
-                      type="button"
-                      className="rounded-2xl border border-border bg-white p-3 text-left shadow-card transition-colors hover:border-primary/40"
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-foreground">{op.nome}</p>
-                        <p className="text-xs font-bold text-primary">{op.preco}</p>
-                      </div>
-                      <p className="mt-1 text-[11px] text-muted-foreground">{op.desc}</p>
-                    </button>
-                  ))}
-                </div>
+              <div key={item.id} className="overflow-hidden rounded-2xl border border-border bg-white shadow-card">
+                <button
+                  type="button"
+                  onClick={() => setAberto(estaAberto ? null : item.id)}
+                  className="flex w-full items-start gap-3 p-3.5 text-left"
+                  aria-expanded={estaAberto}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary">
+                    <Icon size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-foreground">{item.topico}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.resumo}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.quando}</p>
+                  </div>
+                  <CaretDown
+                    size={16}
+                    className={`mt-1 shrink-0 text-muted-foreground transition-transform ${estaAberto ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {estaAberto && thread && (
+                  <div className="border-t border-border bg-background">
+                    <ChatThread mensagens={thread} novosAPartirDe={0} variant="embedded" />
+                  </div>
+                )}
               </div>
             );
           })}
-        </div>
-
-        <div className="shrink-0 border-t border-border bg-white p-3">
-          <div className="flex items-center gap-2 rounded-2xl border border-border bg-background px-3 py-2.5">
-            <input
-              value={mensagem}
-              onChange={(e) => setMensagem(e.target.value)}
-              placeholder="Converse com a Jade..."
-              className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
-            />
-            <button type="button" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white">
-              <PaperPlaneTilt size={13} weight="fill" />
-            </button>
-          </div>
         </div>
       </div>
     </Shell>

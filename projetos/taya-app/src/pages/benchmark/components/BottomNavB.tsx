@@ -1,19 +1,23 @@
 import { useNavigate } from "react-router-dom";
-import { Bank, ChatCircleDots, House, UserCircle } from "@phosphor-icons/react";
+import { Bank, ClockCounterClockwise, House, UserCircle } from "@phosphor-icons/react";
 
 // `path: null` — Carteira/Conta não têm tela construída nesse benchmark; ficam visíveis com
 // aparência desabilitada em vez de navegar pra um 404. Não existe item "Pontos" aqui de
 // propósito (ver briefing original: nav enxuta de 4 itens) — B3 (Pontos conversacional) é
 // alcançado só pelo índice /benchmark nesse mock, não pela nav bar, já que na ideia de
 // produto a gamificação aparece por contexto dentro da conversa, não como aba fixa.
+//
+// "Conversar" virou "Histórico": a conversa ao vivo se mudou pra B1 (dashboard), então essa
+// aba agora abre a lista de conversas passadas (B2) — manter o rótulo antigo ia confundir
+// quem esperasse um chat ativo aqui.
 const ITEMS = [
   { label: "Início", icon: House, path: "/benchmark/b/dashboard" },
-  { label: "Conversar", icon: ChatCircleDots, path: "/benchmark/b/servicos" },
+  { label: "Histórico", icon: ClockCounterClockwise, path: "/benchmark/b/servicos" },
   { label: "Carteira", icon: Bank, path: null },
   { label: "Conta", icon: UserCircle, path: null },
 ];
 
-// Nav bar enxuta do Grupo B — 4 itens, "Conversar" é o acesso universal a tudo o resto.
+// Nav bar enxuta do Grupo B — 4 itens.
 export function BottomNavB({ ativo }: { ativo: string }) {
   const navigate = useNavigate();
 

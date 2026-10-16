@@ -1,5 +1,6 @@
 // Dados 100% mockados do benchmark visual — sem nenhuma importação de contexto/estado real do
-// app. Cada tela deste módulo lê só daqui, nunca de src/context/* ou src/pages/assistencias/*.
+// app. Compartilhado só entre B1/B2/B3 (a Versão A tem seu próprio mock em a/mock.ts desde a
+// reescrita densa pedida por Ellen — ver src/pages/benchmark/a/).
 
 export const USUARIO = {
   nome: "Marina",
@@ -7,101 +8,10 @@ export const USUARIO = {
   saldoScoreLabel: "Score financeiro",
 };
 
-export const ATALHOS_A = [
-  { id: "clt", label: "CLT", icone: "Briefcase" as const },
-  { id: "fgts", label: "FGTS", icone: "PiggyBank" as const },
-  { id: "credito-pessoal", label: "Crédito Pessoal", icone: "Wallet" as const },
-  { id: "assistencias", label: "Assistências", icone: "Heartbeat" as const },
-  { id: "energia", label: "Energia", icone: "Lightning" as const },
-  { id: "pontos", label: "Pontos", icone: "Coins" as const },
-  { id: "open-finance", label: "Open Finance", icone: "Bank" as const },
-  { id: "mais", label: "Mais", icone: "SquaresFour" as const },
-];
-
-// Banners de cross-sell do A1 — mesmos assets reais usados no carrossel de cross-sell do
-// app de verdade (public/images/cross-sell-*.png, ver src/components/CrossSellCarousel.tsx),
-// não placeholders em gradiente. Saúde primeiro, mesma priorização de venda do app real.
-export const CROSS_SELL_A1 = [
-  {
-    id: "saude",
-    imagem: "/images/cross-sell-assistencias-saude.png",
-    titulo: "Saúde com desconto",
-    descricao: "Descontos reais em consultas, exames e muito mais",
-    preco: "a partir de R$39,90/mês",
-  },
-  {
-    id: "clt",
-    imagem: "/images/cross-sell-clt.png",
-    titulo: "Crédito Consignado CLT",
-    descricao: "Parcelas fixas direto na folha de pagamento",
-  },
-  {
-    id: "credito-pessoal",
-    imagem: "/images/cross-sell-credito-pessoal.png",
-    titulo: "Crédito Pessoal",
-    descricao: "Dinheiro na conta em minutos",
-  },
-  {
-    id: "fgts",
-    imagem: "/images/cross-sell-fgts.png",
-    titulo: "Antecipação FGTS",
-    descricao: "Use seu saldo do FGTS sem afetar a margem",
-  },
-];
-
-export const PARA_VOCE_AGORA_A = [
-  { id: "p1", titulo: "Fatura do seu cartão de crédito vence em 3 dias", cta: "Ver fatura" },
-  { id: "p2", titulo: "Você tem R$2.400 disponíveis no FGTS", cta: "Simular" },
-  { id: "p3", titulo: "Complete seu cadastro e ganhe 50 pontos", cta: "Completar" },
-];
-
-export const PRODUTOS_ATIVOS = [
-  { id: "a1", nome: "Crédito Pessoal", detalhe: "6ª de 12 parcelas", valor: "R$ 318,00" },
-  { id: "a2", nome: "Consignado CLT", detalhe: "Ativo desde Jan/2026", valor: "R$ 210,00" },
-];
-
-export const CATEGORIAS_SERVICOS = [
-  { id: "saude", nome: "Saúde", icone: "Stethoscope" as const },
-  { id: "educacao", nome: "Educação", icone: "Student" as const },
-  { id: "mobilidade", nome: "Mobilidade", icone: "Car" as const },
-  { id: "energia", nome: "Energia", icone: "Lightning" as const },
-  { id: "seguros", nome: "Seguros", icone: "ShieldCheck" as const },
-  { id: "lazer", nome: "Lazer", icone: "Confetti" as const },
-];
-
-export const PARCEIROS = [
-  { id: "p1", nome: "BeneMed", categoria: "saude", oferta: "Até 85% off" },
-  { id: "p2", nome: "Zema Financeira", categoria: "mobilidade", oferta: "Taxas reduzidas" },
-  { id: "p3", nome: "Lotus Mais", categoria: "educacao", oferta: "Novo parceiro" },
-  { id: "p4", nome: "Unico Seguros", categoria: "seguros", oferta: "1º mês grátis" },
-  { id: "p5", nome: "C6 Energia", categoria: "energia", oferta: "20% de desconto" },
-  { id: "p6", nome: "VIVA Lazer", categoria: "lazer", oferta: "Exclusivo app" },
-];
-
-export const RANKING_SEMANAL = [
-  { posicao: 1, nome: "Camila S.", pontos: 1280, voce: false },
-  { posicao: 2, nome: "Marina (você)", pontos: 1140, voce: true },
-  { posicao: 3, nome: "Diego A.", pontos: 980, voce: false },
-  { posicao: 4, nome: "Paulo H.", pontos: 860, voce: false },
-];
-
 export const MISSOES = [
   { id: "m1", titulo: "Abra o app 5 dias seguidos", progresso: 80, meta: "4/5 dias" },
   { id: "m2", titulo: "Simule um crédito", progresso: 0, meta: "0/1" },
   { id: "m3", titulo: "Indique um amigo", progresso: 50, meta: "1/2 indicações" },
-];
-
-export const RESGATES = [
-  { id: "r1", nome: "R$10 de desconto Crédito Pessoal", pontos: 500 },
-  { id: "r2", nome: "1 mês grátis BeneMed", pontos: 1200 },
-  { id: "r3", nome: "Vale-compras R$25", pontos: 900 },
-  { id: "r4", nome: "Cashback 2% extra", pontos: 700 },
-];
-
-export const HISTORICO_PONTOS = [
-  { id: "h1", texto: "Login diário", pontos: 10, data: "Hoje" },
-  { id: "h2", texto: "Simulação de FGTS", pontos: 30, data: "Ontem" },
-  { id: "h3", texto: "Indicação aprovada", pontos: 150, data: "12/10" },
 ];
 
 export const SUGESTOES_CHAT = [
@@ -110,26 +20,93 @@ export const SUGESTOES_CHAT = [
   "Contratar assistência",
 ];
 
-// Saudação do B1 — tela inicial estática (sem conversa em andamento ainda), input como
-// elemento hero (ref: Claude.ai/Perplexity/ChatGPT). O nome vem de USUARIO.nome; aqui só a
-// pergunta central e a linha de contexto discreta abaixo dela.
+export type MensagemConversa =
+  | { autor: "usuario"; texto: string }
+  | { autor: "jade"; texto: string }
+  | { autor: "jade-cards"; opcoes: { nome: string; preco: string; desc: string }[] };
+
+// Saudação estática da B1 — tela de apresentação (saudação grande centralizada + chips),
+// visível só antes da primeira interação. Some assim que o usuário clica numa sugestão ou
+// manda uma mensagem, dando lugar à thread de chat com os balões (ver B1Dashboard.tsx).
 export const SAUDACAO_CONTEXTUAL_B1 = {
   pergunta: "O que você quer resolver hoje?",
   contexto: "Fatura do seu cartão de crédito vence em 3 dias.",
 };
 
-export const CONVERSA_B2 = [
-  { autor: "usuario" as const, texto: "quero contratar uma assistência de saúde" },
-  { autor: "jade" as const, texto: "Encontrei 2 opções boas pra você. Qual combina mais?" },
+// Uma conversa mockada por sugestão da B1 — o texto do botão é a própria chave, pra B1 só
+// precisar passar a sugestão clicada/digitada e encontrar o roteiro certo. Cada roteiro tem
+// uma fala curta de "consultando outro especialista" antes da revelação da oferta — sabor
+// leve de orquestração multiagente (Jade nunca expõe uma UI separada pra isso, é só texto
+// dentro da própria fala dela).
+export const CONVERSAS_SUGESTAO: Record<string, MensagemConversa[]> = {
+  "Ver saldo FGTS": [
+    { autor: "usuario", texto: "quero ver meu saldo do FGTS" },
+    { autor: "jade", texto: "Só um segundo, vou confirmar com o time de FGTS..." },
+    { autor: "jade", texto: "Você tem R$ 2.400,00 disponíveis para antecipação. Quer simular as condições?" },
+    {
+      autor: "jade-cards",
+      opcoes: [
+        { nome: "Antecipação total", preco: "R$ 2.400,00", desc: "Recebe o valor disponível agora" },
+        { nome: "Antecipação parcial", preco: "R$ 1.200,00", desc: "Metade do saldo, desconto menor" },
+      ],
+    },
+    { autor: "usuario", texto: "quero a antecipação total" },
+    { autor: "jade", texto: "Combinado! Deixei a antecipação total de R$ 2.400,00 pronta pra você confirmar." },
+  ],
+  "Simular CLT": [
+    { autor: "usuario", texto: "quero simular o crédito consignado CLT" },
+    { autor: "jade", texto: "Deixa eu checar com o time de crédito consignado..." },
+    { autor: "jade", texto: "Encontrei uma oferta pra você. Olha as condições:" },
+    {
+      autor: "jade-cards",
+      opcoes: [
+        { nome: "12x", preco: "R$ 210,00/mês", desc: "Consignado CLT · desconto em folha" },
+        { nome: "24x", preco: "R$ 118,00/mês", desc: "Consignado CLT · desconto em folha" },
+      ],
+    },
+    { autor: "usuario", texto: "quero em 12x" },
+    { autor: "jade", texto: "Perfeito! Já deixei a simulação de 12x pronta pra você revisar e confirmar." },
+  ],
+  "Contratar assistência": [
+    { autor: "usuario", texto: "quero contratar uma assistência de saúde" },
+    { autor: "jade", texto: "Vou confirmar com o time de Assistências quais planos estão com desconto..." },
+    { autor: "jade", texto: "Encontrei 2 opções boas pra você. Qual combina mais?" },
+    {
+      autor: "jade-cards",
+      opcoes: [
+        { nome: "BeneMed Mensal", preco: "R$ 39,90/mês", desc: "Consultas, exames e descontos" },
+        { nome: "BeneMed Anual", preco: "R$ 29,00/mês", desc: "Mesmo plano, mais econômico" },
+      ],
+    },
+    { autor: "usuario", texto: "quero o anual" },
+    { autor: "jade", texto: "Perfeito! Já deixei tudo pronto pra você confirmar o plano Anual." },
+  ],
+};
+
+// Resumos de conversas passadas pro histórico (B2) — um item por roteiro de CONVERSAS_SUGESTAO,
+// já que são as únicas conversas que de fato existem nesse mock.
+export const HISTORICO_CONVERSAS = [
   {
-    autor: "jade-cards" as const,
-    opcoes: [
-      { nome: "BeneMed Mensal", preco: "R$ 39,90/mês", desc: "Consultas, exames e descontos" },
-      { nome: "BeneMed Anual", preco: "R$ 29,00/mês", desc: "Mesmo plano, mais econômico" },
-    ],
+    id: "h1",
+    topico: "Contratar assistência",
+    resumo: "Jade apresentou os planos BeneMed e deixou o Anual pronto pra confirmar.",
+    quando: "Hoje, 09:12",
+    icone: "Heartbeat" as const,
   },
-  { autor: "usuario" as const, texto: "quero o anual" },
-  { autor: "jade" as const, texto: "Perfeito! Já deixei tudo pronto pra você confirmar o plano Anual." },
+  {
+    id: "h2",
+    topico: "Ver saldo FGTS",
+    resumo: "Jade mostrou o saldo disponível e deixou a antecipação total pronta pra confirmar.",
+    quando: "Ontem, 18:47",
+    icone: "PiggyBank" as const,
+  },
+  {
+    id: "h3",
+    topico: "Simular CLT",
+    resumo: "Jade simulou o consignado CLT em 12x e 24x, com desconto em folha.",
+    quando: "12/10, 14:05",
+    icone: "Briefcase" as const,
+  },
 ];
 
 export const RESGATES_INLINE_B = [

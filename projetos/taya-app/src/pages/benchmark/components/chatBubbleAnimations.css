@@ -1,0 +1,17 @@
+/* Isolado pro benchmark — classe com prefixo "benchmark-" pra nunca colidir com nada do app
+   real. "both" congela o estado inicial (opacity:0) até o animation-delay (definido inline por
+   mensagem, pro efeito de stagger) começar a tocar. */
+@keyframes benchmark-chat-bubble-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.benchmark-chat-bubble-rise {
+  animation: benchmark-chat-bubble-rise 280ms ease-out both;
+}

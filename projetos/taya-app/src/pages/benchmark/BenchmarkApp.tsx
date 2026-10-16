@@ -1,8 +1,8 @@
 import { Link, Route, Routes } from "react-router-dom";
 import { Logo } from "@/components/Logo";
-import A1Dashboard from "./A1Dashboard";
-import A2Servicos from "./A2Servicos";
-import A3Pontos from "./A3Pontos";
+import A1Dashboard from "./a/A1Dashboard";
+import A2Servicos from "./a/A2Servicos";
+import A3Pontos from "./a/A3Pontos";
 import B1Dashboard from "./B1Dashboard";
 import B2Servicos from "./B2Servicos";
 import B3Pontos from "./B3Pontos";
