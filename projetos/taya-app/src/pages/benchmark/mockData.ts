@@ -18,14 +18,39 @@ export const ATALHOS_A = [
   { id: "mais", label: "Mais", icone: "SquaresFour" as const },
 ];
 
-export const BANNERS = [
-  { id: "b1", titulo: "Saúde com desconto", sub: "A partir de R$39,90/mês", cor: "from-[#FD5F31] to-[#D94E28]" },
-  { id: "b2", titulo: "Antecipe seu FGTS", sub: "Dinheiro na conta em minutos", cor: "from-[#0A4F73] to-[#67C7F0]" },
-  { id: "b3", titulo: "Indique e ganhe", sub: "R$50 por indicação aprovada", cor: "from-[#7C3AED] to-[#A78BFA]" },
+// Banners de cross-sell do A1 — mesmos assets reais usados no carrossel de cross-sell do
+// app de verdade (public/images/cross-sell-*.png, ver src/components/CrossSellCarousel.tsx),
+// não placeholders em gradiente. Saúde primeiro, mesma priorização de venda do app real.
+export const CROSS_SELL_A1 = [
+  {
+    id: "saude",
+    imagem: "/images/cross-sell-assistencias-saude.png",
+    titulo: "Saúde com desconto",
+    descricao: "Descontos reais em consultas, exames e muito mais",
+    preco: "a partir de R$39,90/mês",
+  },
+  {
+    id: "clt",
+    imagem: "/images/cross-sell-clt.png",
+    titulo: "Crédito Consignado CLT",
+    descricao: "Parcelas fixas direto na folha de pagamento",
+  },
+  {
+    id: "credito-pessoal",
+    imagem: "/images/cross-sell-credito-pessoal.png",
+    titulo: "Crédito Pessoal",
+    descricao: "Dinheiro na conta em minutos",
+  },
+  {
+    id: "fgts",
+    imagem: "/images/cross-sell-fgts.png",
+    titulo: "Antecipação FGTS",
+    descricao: "Use seu saldo do FGTS sem afetar a margem",
+  },
 ];
 
 export const PARA_VOCE_AGORA_A = [
-  { id: "p1", titulo: "Sua parcela do CLT vence em 3 dias", cta: "Ver detalhes" },
+  { id: "p1", titulo: "Fatura do seu cartão de crédito vence em 3 dias", cta: "Ver fatura" },
   { id: "p2", titulo: "Você tem R$2.400 disponíveis no FGTS", cta: "Simular" },
   { id: "p3", titulo: "Complete seu cadastro e ganhe 50 pontos", cta: "Completar" },
 ];
@@ -90,7 +115,7 @@ export const SUGESTOES_CHAT = [
 // pergunta central e a linha de contexto discreta abaixo dela.
 export const SAUDACAO_CONTEXTUAL_B1 = {
   pergunta: "O que você quer resolver hoje?",
-  contexto: "Sua parcela do CLT vence em 3 dias.",
+  contexto: "Fatura do seu cartão de crédito vence em 3 dias.",
 };
 
 export const CONVERSA_B2 = [

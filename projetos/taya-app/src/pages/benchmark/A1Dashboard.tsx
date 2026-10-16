@@ -3,7 +3,7 @@ import { Logo } from "@/components/Logo";
 import { Shell } from "./components/Shell";
 import { BottomNavA } from "./components/BottomNavA";
 import { ICON_MAP } from "./components/iconMap";
-import { ATALHOS_A, BANNERS, PARA_VOCE_AGORA_A, PRODUTOS_ATIVOS, USUARIO } from "./mockData";
+import { ATALHOS_A, CROSS_SELL_A1, PARA_VOCE_AGORA_A, PRODUTOS_ATIVOS, USUARIO } from "./mockData";
 
 // A1 — Dashboard do Grupo A (Alipay pré-2026): densidade máxima, tudo exposto sem scroll de
 // descoberta — grid de atalhos, carrossel de banners, recomendações e produtos ativos todos
@@ -45,15 +45,31 @@ export default function A1Dashboard() {
           })}
         </div>
 
+        {/* Carrossel de cross-sell — mesmo tratamento visual do CrossSellCarousel.tsx do app
+            real (foto de fundo + gradiente laranja + texto real), versão simplificada sem o
+            drag-to-scroll completo do PeekCarousel: scroll nativo com snap já é suficiente
+            pra esse mock. */}
         <div className="flex gap-3 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden" style={{ scrollSnapType: "x mandatory" }}>
-          {BANNERS.map((b) => (
+          {CROSS_SELL_A1.map((item) => (
             <div
-              key={b.id}
-              className={`h-[90px] w-[260px] shrink-0 rounded-2xl bg-gradient-to-br ${b.cor} p-4 text-white shadow-card`}
+              key={item.id}
+              className="relative aspect-[351/177] w-[240px] shrink-0 overflow-hidden rounded-2xl shadow-card"
               style={{ scrollSnapAlign: "start" }}
             >
-              <p className="text-sm font-bold">{b.titulo}</p>
-              <p className="mt-1 text-xs text-white/85">{b.sub}</p>
+              <img src={item.imagem} alt="" className="absolute inset-0 h-full w-full object-cover object-right" />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: "linear-gradient(90deg, #D94E28 0%, rgba(217, 78, 40, 0.55) 45%, rgba(217, 78, 40, 0.05) 75%)",
+                }}
+              />
+              <div className="relative z-10 flex h-full max-w-[75%] flex-col justify-center gap-1 p-3.5">
+                <h3 className="text-xs font-bold leading-snug text-white">{item.titulo}</h3>
+                <p className="line-clamp-2 text-[10px] leading-relaxed text-white/85">{item.descricao}</p>
+                <span className="mt-1 inline-flex w-fit items-center rounded-full bg-white/95 px-2 py-1 text-[10px] font-semibold text-[#D94E28]">
+                  {item.preco ?? "Conhecer"}
+                </span>
+              </div>
             </div>
           ))}
         </div>
