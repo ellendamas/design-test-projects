@@ -4,6 +4,21 @@
   publish = "dist"
 
 [[redirects]]
+  from = "/benchmark.html"
+  to = "/benchmark.html"
+  status = 200
+
+[[redirects]]
+  from = "/benchmark"
+  to = "/benchmark.html"
+  status = 200
+
+[[redirects]]
+  from = "/benchmark/*"
+  to = "/benchmark.html"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
