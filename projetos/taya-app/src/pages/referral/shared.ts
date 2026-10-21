@@ -56,12 +56,12 @@ export function getOrCreateReferralCode(): string {
   return novo;
 }
 
-// [A CONFIRMAR o domínio com o Bruno] — domínio como a spec já dava (seção 5, IG-02), mas o
-// caminho mudou de /benemed pra /assistencia-saude por pedido de revisão: se o parceiro de
-// assistência de saúde mudar no futuro, uma URL com o nome da BeneMed ficaria errada (e já
-// compartilhada por quem indicou antes da troca). Rota correspondente em App.tsx.
+// [A CONFIRMAR o domínio com o Bruno] — domínio como a spec já dava (seção 5, IG-02). Caminho
+// é /saude (Prompt 2 v3): /assistencia-saude, usado antes, agora só redireciona pra cá (ver
+// App.tsx) — mantido funcionando pra link já compartilhado antes da troca, mas não gera mais
+// link novo, pra não empilhar um redirecionamento a mais em cada acesso.
 export function linkDeIndicacao(codigo: string): string {
-  return `https://www.podeja.com.br/assistencia-saude?ref=${codigo}`;
+  return `https://www.podeja.com.br/saude?ref=${codigo}`;
 }
 
 export function formatoDeCodigoValido(codigo: string | null | undefined): boolean {
@@ -143,8 +143,9 @@ export const COMMISSION_SAFETY_WINDOW_DAYS = 7;
 
 // Grava o código recebido como cookie first-party (R3 — 70% das sessões abrem dentro do
 // Instagram/Facebook, onde cookie costuma não acompanhar a pessoa; por isso a spec também pede
-// o parâmetro de URL seguir até o cadastro/login, feito em BenemedLandingPage.tsx separadamente
-// desta função). Mantém a primeira atribuição vigente (R3 "disputa: primeiro toque vence").
+// o parâmetro de URL seguir até o cadastro/login, feito em PlanosPublico.tsx separadamente desta
+// função, mais a cópia em sessionStorage logo abaixo). Mantém a primeira atribuição vigente (R3
+// "disputa: primeiro toque vence").
 export function gravarAtribuicao(codigo: string): void {
   if (typeof document === "undefined") return;
   const existente = lerAtribuicaoCookie();
@@ -157,6 +158,32 @@ export function lerAtribuicaoCookie(): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(new RegExp(`(?:^|; )${REFERRAL_COOKIE_NAME}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Segunda cópia do `ref`, em sessionStorage — a LP pública (Prompt 2 v3) já repassa `ref` direto
+// na URL do CTA pro cadastro, e o cookie acima também cobre 30 dias independente de sessão; isso
+// aqui é defesa extra pro valor sobreviver dentro da mesma sessão mesmo se a pessoa navegar pra
+// longe do CTA (ex: abre o link, fecha o navegador do app, volta por outra rota). Com
+// try/catch porque sessionStorage pode falhar (modo anônimo, storage bloqueado por política).
+const REFERRAL_SESSION_KEY = "podeja_ref_sessao";
+
+export function gravarRefNaSessao(codigo: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(REFERRAL_SESSION_KEY, codigo);
+  } catch {
+    // sessionStorage indisponível — a atribuição ainda segue pelo cookie (gravarAtribuicao)
+    // e pelo parâmetro `ref` repassado direto na URL do CTA, então não é um erro fatal aqui.
+  }
+}
+
+export function lerRefDaSessao(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage.getItem(REFERRAL_SESSION_KEY);
+  } catch {
+    return null;
+  }
 }
 
 // R4 — autoindicação: permitida, só marcada. Aqui "self_referral" é true quando o código da URL
@@ -214,10 +241,10 @@ export function marcarCardIndicacaoComoMostrado(): void {
 // aparece uma vez por contratação, então dispensar e sumir já é suficiente)
 // ---------------------------------------------------------------------------
 
-// "assistencias" saiu (era a origem do card IG-01, removido de Assistências); "conta" entrou
-// no lugar — ponto de acesso fixo em Minha Conta, pra quem viu um banner mas não indicou na
-// hora conseguir achar o link depois, sem depender de ver o banner de novo.
-export type ReferralOrigin = "conta" | "banner_dashboard" | "banner_pos_contratacao";
+// "conta" é o ponto de acesso fixo em Minha Conta, pra quem viu um banner mas não indicou na
+// hora conseguir achar o link depois, sem depender de ver o banner de novo. "assistencias_hub" é
+// o card IG-01, de volta ao hub de Assistências (21/10, abaixo do card de destaque da Saúde).
+export type ReferralOrigin = "conta" | "banner_dashboard" | "banner_pos_contratacao" | "assistencias_hub";
 
 // ---------------------------------------------------------------------------
 // Estados de visibilidade (R2 — flag) compartilhados por IG-01 e IG-05: default, oculto,

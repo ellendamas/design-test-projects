@@ -110,7 +110,10 @@ import ConsignadoCLTAssinaturaPage from "@/pages/consignado-clt/AssinaturaPage";
 import ConsignadoCLTConfirmacaoPage from "@/pages/consignado-clt/ConfirmacaoPage";
 import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
 import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
-import AssistenciasSaudePage from "@/pages/assistencias/SaudePage";
+import SaudeProdutoPage from "@/pages/saude/SaudeProdutoPage";
+import SaudePlanosPage from "@/pages/saude/PlanosPage";
+import { ReferralCard } from "@/pages/referral/ReferralCard";
+import { PARCEIRO_LOGO_SRC, PARCEIRO_NOME } from "@/config/parceiro";
 import AssistenciasVerificarCelularPage from "@/pages/assistencias/VerificarCelularPage";
 import AssistenciasVerificarEmailPage from "@/pages/assistencias/VerificarEmailPage";
 import AssistenciasConfirmarDadosPage from "@/pages/assistencias/ConfirmarDadosPage";
@@ -1632,14 +1635,15 @@ function AssistenciasPage() {
   const dragStartScroll = useRef(0);
 
   // Saúde (BeneMed) saiu do carrossel — tem seção de destaque própria, renderizada à parte
-  // logo abaixo do hero (ver `categoriaSaude` + bloco "Destaque — Saúde (BeneMed)").
+  // logo abaixo do hero (ver `categoriaSaude` + bloco "Destaque — Saúde (BeneMed)"). Sem foto de
+  // telemedicina em public/images/ ainda — usa a ilustração como slot, trocável por foto depois.
   const categoriaSaude = {
     id: "saude",
     nome: "Saúde",
     icon: <Stethoscope size={20} className="text-[#FD5F31]" />,
-    hero: <img src="/images/assistencia-saude-disponivel.png" alt="Saúde" className="h-full w-full object-cover" />,
-    beneficio: "Consultas a partir de R$ 39,90",
-    tag: "Clínico geral e 5 especialidades",
+    hero: <img src="/images/assistencia-saude-nova.jpg" alt="Consulta médica por vídeo no celular" className="h-full w-full object-cover" />,
+    beneficio: "A partir de R$ 39,90 por mês",
+    tag: "Médico por vídeo e descontos em remédios, consultas, bem-estar e dentista",
   };
 
   // `id` é a chave estável usada no identificador de interesse por categoria (ver
@@ -1647,11 +1651,9 @@ function AssistenciasPage() {
   // nenhuma destas (Saúde foi pra fora do carrossel, ver `categoriaSaude` acima) — ficam
   // "em breve" até ganharem parceiro próprio.
   const categorias = [
-    { id: "odonto", nome: "Odonto", disponivel: false, icon: <Tooth size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=80&fit=crop&crop=center" alt="Odonto" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Até 85% de desconto", tag: "+150 procedimentos" },
-    { id: "pet", nome: "Pet", disponivel: false, icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80&fit=crop&crop=center" alt="Pet" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Consultas a R$ 39,90", tag: "Cães e gatos em todo o Brasil" },
+    { id: "pet", nome: "Pet", disponivel: false, icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80&fit=crop&crop=center" alt="Pet" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "", tag: "Cães e gatos em todo o Brasil" },
     { id: "psicologia", nome: "Psicologia", disponivel: false, icon: <Brain size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80&fit=crop&crop=faces" alt="Psicologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
     { id: "previdencia", nome: "Previdência", disponivel: false, icon: <Umbrella size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80&fit=crop&crop=center" alt="Previdência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
-    { id: "bem-estar", nome: "Bem-estar", disponivel: false, icon: <Heartbeat size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80&fit=crop&crop=center" alt="Bem-estar" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Monitoramento de saúde", tag: "Sinais vitais pela câmera do celular" },
     { id: "educacao", nome: "Educação", disponivel: false, icon: <BookOpen size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80&fit=crop&crop=center" alt="Educação" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
     { id: "tecnologia", nome: "Tecnologia", disponivel: false, icon: <DeviceMobile size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&fit=crop&crop=center" alt="Tecnologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
     { id: "residencia", nome: "Residência", disponivel: false, icon: <House size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop&crop=center" alt="Residência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
@@ -1690,6 +1692,7 @@ function AssistenciasPage() {
     const chave = `assistencias-${categoriaId}`;
     if (interesses.includes(chave)) return;
     registrarInteresse(chave);
+    trackStep("assistencias_interesse_registrado", { categoria_id: categoriaId, categoria_nome: categoriaNome });
     toast("Em breve!", {
       duration: 5000,
       icon: <Bell size={16} className="text-[#FD5F31]" />,
@@ -1727,7 +1730,7 @@ function AssistenciasPage() {
               Cuide de quem você ama sem pesar no bolso
             </h1>
             <p className="text-sm text-white/80">
-              Descontos reais em saúde, odonto, pet e muito mais
+              Saúde por assinatura a partir de R$ 39,90 por mês. Outras assistências a caminho.
             </p>
           </div>
         </div>
@@ -1743,7 +1746,7 @@ function AssistenciasPage() {
           </div>
           <div className="p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
-              <img src="/images/logo-benemed.png" alt="BeneMed" className="h-5 w-auto object-contain" />
+              <img src={PARCEIRO_LOGO_SRC} alt={PARCEIRO_NOME} className="h-5 w-auto object-contain" />
               <span className="rounded-full bg-[#E9F7EF] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1A7A4C]">
                 Disponível
               </span>
@@ -1762,14 +1765,19 @@ function AssistenciasPage() {
           </div>
         </button>
 
+        {/* IG-01 — card "Indique e ganhe", de volta ao hub (21/10): logo abaixo do card de
+            destaque da Saúde, antes de "Como funciona". Já se esconde sozinho quando a flag de
+            indicação está desligada (ver ReferralCard.tsx), sem espaço reservado. */}
+        <ReferralCard />
+
         <Card className="border-0 bg-[#FFF3EE] shadow-sm">
           <CardContent className="p-4">
             <h3 className="mb-3 text-sm font-semibold text-foreground">Como funciona</h3>
             <div className="space-y-3">
               {[
-                { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha as assistências que fazem sentido para você", sub: "Monte seu pacote com as categorias que mais combinam com a sua vida." },
-                { icon: <CreditCard size={32} className="text-[#FD5F31]" />, titulo: "Pague uma mensalidade acessível sem sair do app", sub: "Tudo dentro do Pode Já, simples e sem burocracia." },
-                { icon: <HandHeart size={32} className="text-[#FD5F31]" />, titulo: "Use quando precisar com descontos de até 85%", sub: "Rede credenciada em todo o Brasil, sem limite de utilizações." },
+                { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha a assistência", sub: "Hoje, Saúde por Assinatura. Outras chegam em breve." },
+                { icon: <CreditCard size={32} className="text-[#FD5F31]" />, titulo: "Pague uma mensalidade, sem sair do app", sub: "Tudo dentro da Pode Já, sem burocracia." },
+                { icon: <HandHeart size={32} className="text-[#FD5F31]" />, titulo: "Use quando precisar", sub: "Médico por vídeo, descontos em remédios, consultas e exames." },
               ].map((item, idx, arr) => (
                 <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#FD5F31]/15 pb-3" : ""}`}>
                   <div className="shrink-0">{item.icon}</div>
@@ -1860,7 +1868,9 @@ function AssistenciasPage() {
                       {item.icon}
                       <p className="text-sm font-semibold text-foreground">{item.nome}</p>
                     </div>
-                    <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
+                    {item.beneficio && (
+                      <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleInteresseCategoria(item.id, item.nome)}
@@ -2275,6 +2285,14 @@ function SeubolsoHistoricoPage() {
   );
 }
 
+// Redirecionamento de /assistencia-saude (rota antiga da LP pública de Saúde) pra /saude —
+// preserva a query string inteira (ref, plano, utm_*) porque <Navigate to="/saude"> sozinho
+// perderia esses parâmetros.
+function RedirecionarParaSaude() {
+  const location = useLocation();
+  return <Navigate to={`/saude${location.search}`} replace />;
+}
+
 function App() {
   const shouldReduce = useReducedMotion();
   const navigate = useNavigate();
@@ -2407,7 +2425,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/assistencias/saude/cancelar/motivo", "/assistencias/saude/cancelar/retencao", "/assistencias/saude/indique-e-ganhe", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/assistencias/saude/cancelar/motivo", "/assistencias/saude/cancelar/retencao", "/assistencias/saude/indique-e-ganhe", "/assistencias/saude/planos", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -4386,6 +4404,18 @@ function App() {
               }
             />
             <Route path="/boas-vindas" element={WelcomeScreen} />
+            {/* IG-04 — landing pública da Saúde por Assinatura, fora da área logada, sem exigir
+                login. Rota não leva o nome do parceiro (BeneMed) de propósito — se o parceiro
+                mudar no futuro, a URL continua válida (ver linkDeIndicacao em
+                pages/referral/shared.ts, mesma decisão). Mesmo componente da página do produto
+                dentro do app (SaudeProdutoPage), modo "publica" (Prompt 2 v3) — não existe mais
+                uma página separada pra essa LP. */}
+            <Route path="/saude" element={<SaudeProdutoPage modo="publica" />} />
+            {/* /assistencia-saude era a rota antiga dessa LP — mantida só como redirecionamento,
+                pra link já compartilhado antes da troca continuar funcionando, preservando
+                qualquer parâmetro (ref, plano, utm_*). Não gera mais link novo (linkDeIndicacao
+                já aponta direto pra /saude). */}
+            <Route path="/assistencia-saude" element={<RedirecionarParaSaude />} />
             <Route path="/acesso" element={LoginScreen} />
             <Route path="/recuperar-senha" element={RecoveryCpfScreen} />
             <Route path="/recuperar-senha/canal" element={RecoveryChannelScreen} />
@@ -4410,7 +4440,8 @@ function App() {
             <Route path="/seubolso/historico" element={getStoredUser() ? <SeubolsoHistoricoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias" element={getStoredUser() ? <AssistenciasPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/assistencias/saude" element={getStoredUser() ? <AssistenciasSaudePage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude" element={getStoredUser() ? <SaudeProdutoPage modo="app" /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/planos" element={getStoredUser() ? <SaudePlanosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/verificar-celular" element={getStoredUser() ? <AssistenciasVerificarCelularPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/verificar-email" element={getStoredUser() ? <AssistenciasVerificarEmailPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/confirmar-dados" element={getStoredUser() ? <AssistenciasConfirmarDadosPage /> : <Navigate to="/boas-vindas" replace />} />

@@ -1,4 +1,5 @@
 import { getStoredUser } from "@/App";
+import type { ReferralOrigin } from "./shared";
 
 // Taxonomia de eventos Amplitude do programa "Indique e ganhe" (BeneMed) — seção 7 da spec
 // (docs/journey-specs/indique-e-ganhe-benemed-journey-spec.md). Mesmo espírito de
@@ -98,7 +99,7 @@ export function trackReferralBannerDismissed(placement: "dashboard" | "pos_contr
 
 // --- IG-02 — tela de indicação ----------------------------------------------------------------
 
-export function trackReferralScreenViewed(origin: "conta" | "banner_dashboard" | "banner_pos_contratacao", hasExistingLink?: boolean) {
+export function trackReferralScreenViewed(origin: ReferralOrigin, hasExistingLink?: boolean) {
   track(
     "referral_screen_viewed",
     { screen_name: "indique_ganhe", step_name: "tela_indicacao" },
@@ -162,8 +163,9 @@ export function trackReferralLandingCtaClicked(planId: "individual" | "familiar"
 
 // Servidor (simulado): dispararia quando a conta é criada ou acessada com o cookie/parâmetro de
 // atribuição presente — aqui não existe esse passo de verdade (cadastro/login ficam fora desta
-// spec), então o call site fica comentado em BenemedLandingPage.tsx no exato ponto em que a
-// pessoa segue pro cadastro, como um registro do que o backend faria a seguir.
+// spec). O ponto em que a pessoa segue pro cadastro, com `ref` na URL, é PlanosPublico.tsx
+// (dentro da LP pública em SaudeProdutoPage.tsx, modo "publica") — é ali que o dev real vai
+// plugar este evento, como registro do que o backend faria a seguir.
 export function trackReferralSignupAttributed(
   referralCode: string,
   attributionMethod: "url_param" | "cookie" | "server_lookup",
