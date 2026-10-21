@@ -5,6 +5,7 @@ import { SubPageLayout } from "@/App";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { Button } from "@/components/ui/button";
 import { ativarAssinaturaBenemed, cobrancaBenemedFalhou, PLANOS, resolverCobrancaBenemed, temAssinaturaBenemedAtiva, type DiaCobranca, type Plano } from "./shared";
+import { ReferralBanner } from "@/pages/referral/ReferralBanner";
 
 // Rota: /assistencias/saude/confirmacao — tela final tanto da primeira contratação quanto da
 // regularização de cobrança (ver PagamentoPage.tsx). O modo é capturado uma vez, no mount —
@@ -73,6 +74,9 @@ export default function AssistenciasConfirmacaoPage() {
                 <AppStoreBadges />
               </div>
             </div>
+
+            {/* IG-06 — banner "Indique e ganhe", só na primeira contratação confirmada */}
+            <ReferralBanner variant="pos_contratacao" />
           </>
         )}
 

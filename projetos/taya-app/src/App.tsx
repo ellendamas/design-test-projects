@@ -122,6 +122,10 @@ import AssistenciasCancelarMotivoPage from "@/pages/assistencias/CancelarMotivoP
 import AssistenciasCancelarRetencaoPage from "@/pages/assistencias/CancelarRetencaoPage";
 import AssistenciasRedirecionandoBenemedPage from "@/pages/assistencias/RedirecionandoBenemedPage";
 import { getAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
+import IndiqueGanhePage from "@/pages/referral/IndiqueGanhePage";
+import { isReferralEligible } from "@/config/referral";
+import { deveMostrarCardIndicacaoHoje, marcarCardIndicacaoComoMostrado } from "@/pages/referral/shared";
+import { trackReferralBannerClicked, trackReferralBannerViewed } from "@/pages/referral/trackReferral";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
 import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
 import FGTSLoadingPage from "@/pages/fgts/LoadingPage";
@@ -2403,7 +2407,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/assistencias/saude/cancelar/motivo", "/assistencias/saude/cancelar/retencao", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/assistencias/saude/cancelar/motivo", "/assistencias/saude/cancelar/retencao", "/assistencias/saude/indique-e-ganhe", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -3546,6 +3550,22 @@ function App() {
     localStorage.getItem("podeja_email_validado") === "true" &&
     localStorage.getItem("podeja_telefone_validado") === "true";
 
+  // IG-05 — card "Indique a BeneMed" dentro de "Para você agora" (antes era um banner separado,
+  // fora do carrossel, com botão de fechar — ver ReferralBanner.tsx e shared.ts pra a regra de
+  // recorrência). A decisão trava no mount (useState com inicializador preguiçoso), não pode
+  // ser um `const` recalculado a cada render: o efeito abaixo grava "mostrado agora" assim que
+  // decide mostrar, e deveMostrarCardIndicacaoHoje() já leria isso no próximo render e viraria
+  // false — o card apareceria e sumiria sozinho no mesmo carregamento da tela.
+  const [mostrarCardIndicacao] = useState(() => isReferralEligible(storedUser?.email) && deveMostrarCardIndicacaoHoje());
+
+  useEffect(() => {
+    if (mostrarCardIndicacao) {
+      trackReferralBannerViewed("dashboard");
+      marcarCardIndicacaoComoMostrado();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Título "Para você agora" só aparece quando pelo menos 1 dos cards abaixo está ativo
   const temCardParaVoceAgora =
     mostrarLeilaoContratoAtivo ||
@@ -3562,7 +3582,8 @@ function App() {
     emailNaoVerificado ||
     celularNaoVerificado ||
     mostrarEmailNovo ||
-    mostrarCelularNovo;
+    mostrarCelularNovo ||
+    mostrarCardIndicacao;
 
   const cltHighlight =
     cltStatus === "consultando"
@@ -4009,6 +4030,33 @@ function App() {
                   </button>
                 )}
 
+                {/* IG-05 — "Indique a BeneMed", dentro de "Para você agora" em vez de banner
+                    separado. Sem botão de fechar: a regra de recorrência (14 dias, ver
+                    deveMostrarCardIndicacaoHoje em pages/referral/shared.ts) já cuida de não
+                    ficar poluindo o carrossel toda vez que a pessoa abre o app. */}
+                {mostrarCardIndicacao && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      trackReferralBannerClicked("dashboard");
+                      navigate("/assistencias/saude/indique-e-ganhe", { state: { origin: "banner_dashboard" } });
+                    }}
+                    className="min-h-[120px] w-[220px] min-w-[220px] max-w-[220px] rounded-xl border-0 bg-white/95 text-left shadow-sm"
+                  >
+                    <div className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">
+                          <Gift size={20} weight="fill" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground">Indique a BeneMed e ganhe 10% da primeira mensalidade de quem contratar pelo seu link</p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
+                        Quero indicar <CaretRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
                 </>
               )}
 
@@ -4265,6 +4313,13 @@ function App() {
                     { label: "Meus dados", action: () => navigate("/minha-conta/meus-dados") },
                     { label: "Editar endereço", action: () => navigate("/minha-conta/editar-endereco") },
                     { label: "Dados bancários", action: () => navigate("/minha-conta/dados-bancarios") },
+                    // Ponto de acesso fixo ao Indique e ganhe — sem ele, quem via o banner e não
+                    // indicou na hora (ou quem já dispensou/não vê mais o card em "Para você
+                    // agora", por causa da regra de recorrência) não tinha como achar o link de
+                    // novo. Mesma checagem de elegibilidade dos outros pontos de entrada.
+                    ...(isReferralEligible(storedUser?.email)
+                      ? [{ label: "Indique e ganhe", action: () => navigate("/assistencias/saude/indique-e-ganhe", { state: { origin: "conta" } }) }]
+                      : []),
                   ],
                 },
                 {
@@ -4366,6 +4421,7 @@ function App() {
             <Route path="/assistencias/saude/assinatura/benemed" element={getStoredUser() ? <AssistenciasRedirecionandoBenemedPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/cancelar/motivo" element={getStoredUser() ? <AssistenciasCancelarMotivoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/cancelar/retencao" element={getStoredUser() ? <AssistenciasCancelarRetencaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias/saude/indique-e-ganhe" element={getStoredUser() ? <IndiqueGanhePage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/energia" element={getStoredUser() ? <EnergiaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal" element={getStoredUser() ? <CreditoPessoalLanding /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/dados" element={getStoredUser() ? <CreditoPessoalDados /> : <Navigate to="/boas-vindas" replace />} />
