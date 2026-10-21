@@ -18,13 +18,29 @@ export type Plano = {
 };
 
 export const PLANOS: Plano[] = [
-  { id: "mensal", modalidade: "individual", nome: "Mensal", precoMes: "R$ 39,90", cobranca: "Cobrança mensal" },
-  { id: "semestral", modalidade: "individual", nome: "Semestral", precoMes: "R$ 33,00", cobranca: "R$ 198,00 a cada 6 meses" },
-  { id: "anual", modalidade: "individual", nome: "Anual", precoMes: "R$ 29,00", cobranca: "R$ 348,00 a cada 12 meses", destaque: "Mais econômico" },
+  { id: "mensal", modalidade: "individual", nome: "Mensal", precoMes: "R$ 39,90", cobranca: "Cobrança mensal" },
+  { id: "semestral", modalidade: "individual", nome: "Semestral", precoMes: "R$ 33,00", cobranca: "R$ 198,00 a cada 6 meses" },
+  { id: "anual", modalidade: "individual", nome: "Anual", precoMes: "R$ 29,00", cobranca: "R$ 348,00 a cada 12 meses", destaque: "Mais econômico" },
   // Por enquanto só existe uma periodicidade pro Familiar (mensal) — se a BeneMed oferecer
   // semestral/anual pra essa modalidade depois, entra como novo item aqui, mesmo padrão.
-  { id: "familiar", idExterno: "205", modalidade: "familiar", nome: "Familiar", precoMes: "R$ 53,90", cobranca: "Cobrança mensal", cobertura: "Você + 3 dependentes", destaque: "Mais econômico para a família" },
+  { id: "familiar", idExterno: "205", modalidade: "familiar", nome: "Familiar", precoMes: "R$ 53,90", cobranca: "Cobrança mensal", cobertura: "Você + 3 dependentes", destaque: "Mais econômico para a família" },
 ];
+
+// Planos exibidos na tela /assistencias/saude/planos — os 4 prazos do Individual (Mensal,
+// Semestral, Anual, selecionáveis num mesmo card) mais o Familiar (só mensal por enquanto).
+export const PLANOS_EXIBIDOS: PlanoId[] = ["mensal", "semestral", "anual", "familiar"];
+
+export function planosExibidos(): Plano[] {
+  return PLANOS.filter((p) => PLANOS_EXIBIDOS.includes(p.id));
+}
+
+// Planos exibidos na LP pública (/saude, Prompt 2 v3) — só as duas periodicidades mensais, sem
+// o seletor de prazo da tela de planos do app: Semestral e Anual ficam de fora de propósito.
+export const PLANOS_EXIBIDOS_PUBLICO: PlanoId[] = ["mensal", "familiar"];
+
+export function planosExibidosPublico(): Plano[] {
+  return PLANOS.filter((p) => PLANOS_EXIBIDOS_PUBLICO.includes(p.id));
+}
 
 // Mesma chave usada em leilao-clt/MfaPage.tsx e minha-conta/VerificarContato.tsx — o
 // telefone validado é um estado compartilhado em todo o app, não específico dessa jornada.
