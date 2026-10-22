@@ -6,15 +6,30 @@ import { Card, CardContent } from "@/components/ui/card";
 type FaqItem = {
   q: string;
   a: string;
+  /** Âncora estável, usada quando a pergunta precisa ser referenciada de fora da lista (ex:
+   * `faq-presencial` na página de Saúde). Opcional — os usos antigos não precisam ter. */
+  id?: string;
 };
 
-export default function FaqAcordeon({ items }: { items: FaqItem[] }) {
+type FaqAcordeonProps = {
+  items: FaqItem[];
+  /** Quando definido, só as primeiras N perguntas aparecem de início, com um botão "Ver mais
+   * perguntas" abaixo da lista que revela o resto na mesma lista (vira "Ver menos perguntas").
+   * Sem esse prop, o comportamento é o de sempre: todas as perguntas, sem botão. */
+  visibleCount?: number;
+};
+
+export default function FaqAcordeon({ items, visibleCount }: FaqAcordeonProps) {
   const [open, setOpen] = useState<number | null>(null);
+  const [expandido, setExpandido] = useState(visibleCount === undefined);
+
+  const temMais = visibleCount !== undefined && visibleCount < items.length;
+  const visiveis = temMais && !expandido ? items.slice(0, visibleCount) : items;
 
   return (
     <div className="space-y-2">
-      {items.map((item, i) => (
-        <Card key={i} className="border-border">
+      {visiveis.map((item, i) => (
+        <Card key={item.id ?? i} id={item.id} className="border-border">
           <CardContent className="p-0">
             <button
               className="flex w-full items-center justify-between px-4 py-3 text-left"
@@ -38,6 +53,15 @@ export default function FaqAcordeon({ items }: { items: FaqItem[] }) {
           </CardContent>
         </Card>
       ))}
+      {temMais && (
+        <button
+          type="button"
+          onClick={() => setExpandido((v) => !v)}
+          className="flex min-h-[44px] w-full items-center justify-center text-sm font-semibold text-[#FD5F31]"
+        >
+          {expandido ? "Ver menos perguntas" : "Ver mais perguntas"}
+        </button>
+      )}
     </div>
   );
 }
