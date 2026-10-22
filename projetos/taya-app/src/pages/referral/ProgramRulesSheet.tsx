@@ -12,7 +12,9 @@ const REGRAS = [
   "Se a pessoa cancelar ou pedir reembolso antes disso, a comissão é cancelada.",
   "Indique só para quem tem interesse e não prometa o que a BeneMed não oferece: ela não é plano de saúde.",
   "Contratar a BeneMed é opcional e não depende de crédito nem de qualquer outro produto da Pode Já.",
-  "Como e quando você recebe: [A CONFIRMAR].",
+  // Escondido a pedido da Ellen (22/10) até confirmar a regra de prazo de pagamento da
+  // comissão — mantido no código, só não é exibido na tela.
+  // "Como e quando você recebe: [A CONFIRMAR].",
 ];
 
 export function ProgramRulesSheet({ aberto, onFechar }: { aberto: boolean; onFechar: () => void }) {

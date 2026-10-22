@@ -8,8 +8,6 @@ import {
   ArrowsClockwise,
   Bank,
   Bell,
-  BookOpen,
-  Brain,
   Briefcase,
   CalendarCheck,
   CaretLeft,
@@ -31,36 +29,28 @@ import {
   FileText,
   Fingerprint,
   Fire,
-  FirstAid,
   Gear,
   Gift,
-  HandHeart,
   Headset,
   Heartbeat,
   House,
   Image,
   Info,
   Lightning,
-  ListChecks,
   Lock,
   LockSimple,
   MagnifyingGlass,
   MapPin,
   Money,
-  Newspaper,
-  PawPrint,
   PencilSimple,
   PiggyBank,
   SealCheck,
   ShieldCheck,
   Signature,
   SignOut,
-  Stethoscope,
   Tag,
   Tooth,
-  Trophy,
   Trash,
-  Umbrella,
   UserCircle,
   Users,
   Wallet,
@@ -112,8 +102,8 @@ import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
 import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
 import SaudeProdutoPage from "@/pages/saude/SaudeProdutoPage";
 import SaudePlanosPage from "@/pages/saude/PlanosPage";
-import { ReferralCard } from "@/pages/referral/ReferralCard";
-import { PARCEIRO_LOGO_SRC, PARCEIRO_NOME } from "@/config/parceiro";
+import { estadoAssinaturaViaParametro, planoAtivoViaParametro } from "@/pages/saude/estadoAssinaturaDesignOnly";
+import { CHIP_ESTADO_ASSINATURA } from "@/pages/saude/estadosAssinaturaConteudo";
 import AssistenciasVerificarCelularPage from "@/pages/assistencias/VerificarCelularPage";
 import AssistenciasVerificarEmailPage from "@/pages/assistencias/VerificarEmailPage";
 import AssistenciasConfirmarDadosPage from "@/pages/assistencias/ConfirmarDadosPage";
@@ -127,7 +117,7 @@ import AssistenciasRedirecionandoBenemedPage from "@/pages/assistencias/Redireci
 import { getAssinaturaBenemedAtiva } from "@/pages/assistencias/shared";
 import IndiqueGanhePage from "@/pages/referral/IndiqueGanhePage";
 import { isReferralEligible } from "@/config/referral";
-import { deveMostrarCardIndicacaoHoje, marcarCardIndicacaoComoMostrado } from "@/pages/referral/shared";
+import { deveMostrarCardIndicacaoHoje, marcarCardIndicacaoComoMostrado, ROTA_PUBLICA_SAUDE } from "@/pages/referral/shared";
 import { trackReferralBannerClicked, trackReferralBannerViewed } from "@/pages/referral/trackReferral";
 import FGTSLandingPage from "@/pages/fgts/LandingPage";
 import FGTSCopilotoPage from "@/pages/fgts/CopilotoPage";
@@ -1169,8 +1159,12 @@ function ContratosPage() {
   const lista = contratos;
   // Assinatura BeneMed não entra no array `contratos` — é modelado como mensalidade simples
   // (sem parcelas/vigência), diferente do shape de crédito/seguro usado ali. Seção própria,
-  // só aparece pra quem já tem uma assinatura ativa (mock em localStorage, ver shared.ts).
-  const assinaturaBenemed = getAssinaturaBenemedAtiva();
+  // só aparece pra quem já tem uma assinatura ativa (mock em localStorage, ver shared.ts), ou
+  // com o estado simulado via ?assinaturaPlano= (Prompt 1e, 22/10) — sem isso, não dava pra
+  // testar os 6 estados aqui sem completar um checkout de verdade.
+  const assinaturaBenemed = getAssinaturaBenemedAtiva() ?? planoAtivoViaParametro();
+  const estadoAssinatura = estadoAssinaturaViaParametro() ?? "ativo";
+  const chipAssinatura = CHIP_ESTADO_ASSINATURA[estadoAssinatura];
   return (
     <SubPageLayout title="Meus contratos">
       <p className="mb-4 text-sm text-muted-foreground">{lista.length} contratos ativos</p>
@@ -1225,10 +1219,9 @@ function ContratosPage() {
             className="w-full rounded-2xl border border-border bg-white p-4 text-left transition-colors hover:border-[#FD5F31]/40"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span className="rounded-full bg-[#FFF3EE] px-2.5 py-1 text-xs font-semibold text-[#D94E28]">Assistência Saúde</span>
-              <span className="flex items-center gap-1.5 text-xs font-medium text-green-700"><div className="h-1.5 w-1.5 rounded-full bg-green-500" />Ativo</span>
+              <span className="rounded-full bg-[#FFF3EE] px-2.5 py-1 text-xs font-semibold text-[#D94E28]">Saúde por Assinatura</span>
+              <span className={`flex items-center gap-1.5 text-xs font-medium ${chipAssinatura.corTexto}`}><div className={`h-1.5 w-1.5 rounded-full ${chipAssinatura.corPonto}`} />{chipAssinatura.label}</span>
             </div>
-            <p className="mb-2 text-sm font-bold text-foreground">BeneMed</p>
             <div className="flex items-center justify-between">
               <div><p className="text-xs text-muted-foreground">Plano</p><p className="text-sm font-semibold text-foreground">{assinaturaBenemed.nome}</p></div>
               <div className="text-right"><p className="text-xs text-muted-foreground">Valor</p><p className="text-sm font-semibold text-foreground">{assinaturaBenemed.precoMes} / mês</p></div>
@@ -1624,307 +1617,6 @@ function RecomendacoesCarousel({ variant = "default" }: { variant?: "light" | "d
   );
 }
 
-function AssistenciasPage() {
-  const navigate = useNavigate();
-  const { interesses, registrarInteresse } = useInteresse();
-  const categoriasRef = useRef<HTMLDivElement>(null);
-  const [draggingCategorias, setDraggingCategorias] = useState(false);
-  const [canCategoriasLeft, setCanCategoriasLeft] = useState(false);
-  const [canCategoriasRight, setCanCategoriasRight] = useState(false);
-  const dragStartX = useRef(0);
-  const dragStartScroll = useRef(0);
-
-  // Saúde (BeneMed) saiu do carrossel — tem seção de destaque própria, renderizada à parte
-  // logo abaixo do hero (ver `categoriaSaude` + bloco "Destaque — Saúde (BeneMed)"). Sem foto de
-  // telemedicina em public/images/ ainda — usa a ilustração como slot, trocável por foto depois.
-  const categoriaSaude = {
-    id: "saude",
-    nome: "Saúde",
-    icon: <Stethoscope size={20} className="text-[#FD5F31]" />,
-    hero: <img src="/images/assistencia-saude-nova.jpg" alt="Consulta médica por vídeo no celular" className="h-full w-full object-cover" />,
-    beneficio: "A partir de R$ 39,90 por mês",
-    tag: "Médico por vídeo e descontos em remédios, consultas, bem-estar e dentista",
-  };
-
-  // `id` é a chave estável usada no identificador de interesse por categoria (ver
-  // InteresseContext.tsx). `disponivel` marca quem já tem oferta real de parceiro — hoje
-  // nenhuma destas (Saúde foi pra fora do carrossel, ver `categoriaSaude` acima) — ficam
-  // "em breve" até ganharem parceiro próprio.
-  const categorias = [
-    { id: "pet", nome: "Pet", disponivel: false, icon: <PawPrint size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80&fit=crop&crop=center" alt="Pet" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "", tag: "Cães e gatos em todo o Brasil" },
-    { id: "psicologia", nome: "Psicologia", disponivel: false, icon: <Brain size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80&fit=crop&crop=faces" alt="Psicologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "1ª consulta gratuita", tag: "Demais por R$ 100,00" },
-    { id: "previdencia", nome: "Previdência", disponivel: false, icon: <Umbrella size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80&fit=crop&crop=center" alt="Previdência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte INSS completo", tag: "Análise e orientação de benefícios" },
-    { id: "educacao", nome: "Educação", disponivel: false, icon: <BookOpen size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80&fit=crop&crop=center" alt="Educação" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "+600 cursos digitais", tag: "Finanças, segurança digital e mais" },
-    { id: "tecnologia", nome: "Tecnologia", disponivel: false, icon: <DeviceMobile size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&fit=crop&crop=center" alt="Tecnologia" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Suporte 24h", tag: "Celular, apps e segurança digital" },
-    { id: "residencia", nome: "Residência", disponivel: false, icon: <House size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&fit=crop&crop=center" alt="Residência" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Emergências 24h", tag: "Elétrica, hidráulica, chaveiro" },
-    { id: "prevencao", nome: "Prevenção", disponivel: false, icon: <FirstAid size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=80&fit=crop&crop=center" alt="Prevenção" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Histórico de saúde centralizado", tag: "Lembretes de exames preventivos" },
-    { id: "noticias", nome: "Notícias", disponivel: false, icon: <Newspaper size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80&fit=crop&crop=center" alt="Notícias" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Conteúdo exclusivo", tag: "Portal VIVA — vídeos e podcasts" },
-    { id: "recompensa", nome: "Recompensa", disponivel: false, icon: <Gift size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400&q=80&fit=crop&crop=center" alt="Recompensa" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Pontos em +250 lojas", tag: "Troque por descontos e produtos" },
-    { id: "sorteio", nome: "Sorteio", disponivel: false, icon: <Trophy size={20} className="text-[#FD5F31]" />, hero: <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&q=80&fit=crop&crop=center" alt="Sorteio" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />, beneficio: "Prêmios diários", tag: "R$ 500 diário · R$ 5mil semanal" },
-  ];
-
-  const faqItems = FAQ["assistencias"];
-
-  const updateCategoriasControls = () => {
-    const el = categoriasRef.current;
-    if (!el) return;
-    setCanCategoriasLeft(el.scrollLeft > 2);
-    setCanCategoriasRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
-  };
-
-  useEffect(() => {
-    updateCategoriasControls();
-    const el = categoriasRef.current;
-    if (!el) return;
-    const onScroll = () => updateCategoriasControls();
-    el.addEventListener("scroll", onScroll);
-    window.addEventListener("resize", onScroll);
-    return () => {
-      el.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
-
-  // Interesse por categoria "em breve" — chave composta (assistencias-<id>) no mesmo
-  // InteresseContext genérico, sem mexer no provider. Cada categoria registra e exibe seu
-  // próprio estado — não existe mais um CTA único de interesse geral nessa página.
-  const handleInteresseCategoria = (categoriaId: string, categoriaNome: string) => {
-    const chave = `assistencias-${categoriaId}`;
-    if (interesses.includes(chave)) return;
-    registrarInteresse(chave);
-    trackStep("assistencias_interesse_registrado", { categoria_id: categoriaId, categoria_nome: categoriaNome });
-    toast("Em breve!", {
-      duration: 5000,
-      icon: <Bell size={16} className="text-[#FD5F31]" />,
-      description: `Você será um dos primeiros a saber quando ${categoriaNome} chegar.`,
-    });
-  };
-
-  return (
-    <SubPageLayout title="Assistências">
-      <div className="min-w-0 max-w-full space-y-4 overflow-x-clip pb-6">
-        <div className="relative min-h-[200px] overflow-hidden rounded-2xl">
-          <img
-            src="/images/banner-intro-assistencias.png"
-            alt="Assistências Pode Já"
-            className="absolute inset-0 h-full w-full object-cover object-right"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-          {/* Overlay mobile — cor primária sólida com opacidade + filtro escuro pra contraste do texto */}
-          <div className="absolute inset-0 bg-[#FD5F31]/75 md:hidden" />
-          <div className="absolute inset-0 bg-black/25 md:hidden" />
-          {/* Overlay desktop — gradiente horizontal, imagem visível à direita */}
-          <div
-            className="absolute inset-0 hidden md:block"
-            style={{
-              background: "linear-gradient(90deg, #D94E28 0%, rgba(253, 95, 49, 0.70) 40%, rgba(253, 95, 49, 0.00) 85%)",
-            }}
-          />
-          <div className="relative z-10 flex min-h-[200px] max-w-full flex-col justify-end p-5 md:max-w-[55%]">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/80">
-              Assistências Pode Já
-            </p>
-            <h1 className="mb-2 text-2xl font-bold leading-snug text-white">
-              Cuide de quem você ama sem pesar no bolso
-            </h1>
-            <p className="text-sm text-white/80">
-              Saúde por assinatura a partir de R$ 39,90 por mês. Outras assistências a caminho.
-            </p>
-          </div>
-        </div>
-
-        {/* Destaque — Saúde (BeneMed), fora do carrossel: é a única categoria com oferta real hoje */}
-        <button
-          type="button"
-          onClick={() => navigate(`/assistencias/${categoriaSaude.id}`)}
-          className="w-full overflow-hidden rounded-2xl border border-border bg-white text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
-        >
-          <div className="h-[300px] w-full overflow-hidden">
-            {categoriaSaude.hero}
-          </div>
-          <div className="p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <img src={PARCEIRO_LOGO_SRC} alt={PARCEIRO_NOME} className="h-5 w-auto object-contain" />
-              <span className="rounded-full bg-[#E9F7EF] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1A7A4C]">
-                Disponível
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  {categoriaSaude.icon}
-                  <p className="text-sm font-semibold text-foreground">{categoriaSaude.nome}</p>
-                </div>
-                <p className="mt-1 text-xs font-semibold text-[#FD5F31]">{categoriaSaude.beneficio}</p>
-                <p className="mt-0.5 text-xs text-[#374151]">{categoriaSaude.tag}</p>
-              </div>
-              <ArrowRight size={18} className="shrink-0 text-[#FD5F31]" />
-            </div>
-          </div>
-        </button>
-
-        {/* IG-01 — card "Indique e ganhe", de volta ao hub (21/10): logo abaixo do card de
-            destaque da Saúde, antes de "Como funciona". Já se esconde sozinho quando a flag de
-            indicação está desligada (ver ReferralCard.tsx), sem espaço reservado. */}
-        <ReferralCard />
-
-        <Card className="border-0 bg-[#FFF3EE] shadow-sm">
-          <CardContent className="p-4">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Como funciona</h3>
-            <div className="space-y-3">
-              {[
-                { icon: <ListChecks size={32} className="text-[#FD5F31]" />, titulo: "Escolha a assistência", sub: "Hoje, Saúde por Assinatura. Outras chegam em breve." },
-                { icon: <CreditCard size={32} className="text-[#FD5F31]" />, titulo: "Pague uma mensalidade, sem sair do app", sub: "Tudo dentro da Pode Já, sem burocracia." },
-                { icon: <HandHeart size={32} className="text-[#FD5F31]" />, titulo: "Use quando precisar", sub: "Médico por vídeo, descontos em remédios, consultas e exames." },
-              ].map((item, idx, arr) => (
-                <div key={item.titulo} className={`flex gap-3 ${idx !== arr.length - 1 ? "border-b border-[#FD5F31]/15 pb-3" : ""}`}>
-                  <div className="shrink-0">{item.icon}</div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{item.titulo}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{item.sub}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="relative">
-          <h3 className="text-sm font-semibold text-foreground">Benefícios a caminho para você e sua família</h3>
-          <div
-            ref={categoriasRef}
-            className={`mt-3 flex w-full gap-3 overflow-x-auto pb-1 touch-pan-x select-none [&::-webkit-scrollbar]:hidden ${draggingCategorias ? "cursor-grabbing" : "cursor-grab"}`}
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
-            onPointerDown={(e) => {
-              const el = categoriasRef.current;
-              if (!el) return;
-              setDraggingCategorias(true);
-              dragStartX.current = e.clientX;
-              dragStartScroll.current = el.scrollLeft;
-              el.setPointerCapture(e.pointerId);
-            }}
-            onPointerMove={(e) => {
-              const el = categoriasRef.current;
-              if (!el || !draggingCategorias) return;
-              const deltaX = e.clientX - dragStartX.current;
-              el.scrollLeft = dragStartScroll.current - deltaX;
-            }}
-            onPointerUp={(e) => {
-              const el = categoriasRef.current;
-              if (!el) return;
-              setDraggingCategorias(false);
-              if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
-            }}
-            onPointerCancel={(e) => {
-              const el = categoriasRef.current;
-              if (!el) return;
-              setDraggingCategorias(false);
-              if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
-            }}
-          >
-            {categorias.map((item) => {
-              if (item.disponivel) {
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => navigate(`/assistencias/${item.id}`)}
-                    className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border border-border bg-white text-left shadow-sm transition-colors hover:border-[#FD5F31]/40"
-                    style={{ scrollSnapAlign: "start" }}
-                  >
-                    <div className="relative h-[120px] overflow-hidden">
-                      {item.hero}
-                      <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-[#FD5F31] shadow">
-                        <ArrowRight size={14} />
-                      </span>
-                    </div>
-                    <div className="p-3">
-                      <div className="mb-2 flex items-center gap-2">
-                        {item.icon}
-                        <p className="text-sm font-semibold text-foreground">{item.nome}</p>
-                      </div>
-                      <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#374151]">{item.tag}</p>
-                    </div>
-                  </button>
-                );
-              }
-
-              const chaveInteresse = `assistencias-${item.id}`;
-              const interesseRegistrado = interesses.includes(chaveInteresse);
-
-              return (
-                <Card key={item.id} className="h-[260px] w-[200px] min-w-[200px] shrink-0 overflow-hidden rounded-2xl border-border bg-white shadow-sm" style={{ scrollSnapAlign: "start" }}>
-                  <div className="relative h-[120px] overflow-hidden rounded-t-2xl">
-                    {item.hero}
-                    <span className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground shadow">
-                      Em breve
-                    </span>
-                  </div>
-                  <CardContent className="p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                      {item.icon}
-                      <p className="text-sm font-semibold text-foreground">{item.nome}</p>
-                    </div>
-                    {item.beneficio && (
-                      <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#FD5F31]">{item.beneficio}</p>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleInteresseCategoria(item.id, item.nome)}
-                      disabled={interesseRegistrado}
-                      className={`mt-1 flex items-center gap-1 text-xs font-semibold ${interesseRegistrado ? "text-muted-foreground" : "text-[#FD5F31]"}`}
-                    >
-                      {interesseRegistrado ? (
-                        <>
-                          <CheckCircle size={14} weight="fill" />
-                          Avisado
-                        </>
-                      ) : (
-                        "Avisar quando chegar"
-                      )}
-                    </button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          <div className="pointer-events-none absolute left-0 top-[58%] hidden -translate-y-1/2 md:flex">
-            <button
-              type="button"
-              onClick={() => categoriasRef.current?.scrollBy({ left: -220, behavior: "smooth" })}
-              disabled={!canCategoriasLeft}
-              className="pointer-events-auto -ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#FD5F31] shadow disabled:opacity-40"
-              aria-label="Ver categorias anteriores"
-            >
-              <CaretLeft size={16} />
-            </button>
-          </div>
-          <div className="pointer-events-none absolute right-0 top-[58%] hidden -translate-y-1/2 md:flex">
-            <button
-              type="button"
-              onClick={() => categoriasRef.current?.scrollBy({ left: 220, behavior: "smooth" })}
-              disabled={!canCategoriasRight}
-              className="pointer-events-auto -mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#FD5F31] shadow disabled:opacity-40"
-              aria-label="Ver próximas categorias"
-            >
-              <CaretRight size={16} />
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="mb-2 text-sm font-semibold text-foreground">Dúvidas frequentes</h3>
-          <FaqAcordeon items={faqItems} />
-        </div>
-      </div>
-    </SubPageLayout>
-  );
-}
-
 function EnergiaPage() {
   const { interesses, registrarInteresse } = useInteresse();
   const energia = interesses.includes("energia");
@@ -2290,7 +1982,17 @@ function SeubolsoHistoricoPage() {
 // perderia esses parâmetros.
 function RedirecionarParaSaude() {
   const location = useLocation();
-  return <Navigate to={`/saude${location.search}`} replace />;
+  return <Navigate to={`${ROTA_PUBLICA_SAUDE}${location.search}`} replace />;
+}
+
+// Prompt 1d (22/10) — o hub de Assistências (AssistenciasPage) foi apagado: por decisão do GPM,
+// a Saúde virou a porta de entrada direta, pra ninguém passar por uma etapa a mais. `replace`
+// garante que o hub nunca entra no histórico — a seta de voltar da Saúde (SubPageLayout, usa
+// navigate(-1)) leva direto pra onde a pessoa estava antes de /assistencias, sem precisar de
+// nenhuma lógica extra. Preserva a query string inteira (ex: ?assinaturaPlano=).
+function RedirecionarParaAssistenciasSaude() {
+  const location = useLocation();
+  return <Navigate to={`/assistencias/saude${location.search}`} replace />;
 }
 
 function App() {
@@ -4066,7 +3768,7 @@ function App() {
                         <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF3EE] text-[#FD5F31]">
                           <Gift size={20} weight="fill" />
                         </div>
-                        <p className="text-sm font-semibold text-foreground">Indique a BeneMed e ganhe 10% da primeira mensalidade de quem contratar pelo seu link</p>
+                        <p className="text-sm font-semibold text-foreground">Indique a Saúde por Assinatura e ganhe 10% da primeira mensalidade de quem contratar pelo seu link</p>
                       </div>
                       <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#FD5F31]">
                         Quero indicar <CaretRight size={12} />
@@ -4134,12 +3836,16 @@ function App() {
                       }
                     : interest === "assistencias"
                     ? {
-                        title: "Assistências Pode Já.",
-                        subtitle: "Saúde, odonto, pet e muito mais",
-                        description: "Cuide de você e da sua família com descontos de até 85% em consultas e exames.",
+                        // Prompt 1e/1e-ajustes (22/10) — título/texto/botão exatos do brief.
+                        // `highlight` confirmado como "Clínico geral 24h" depois da rodada
+                        // anterior (texto antigo repetia "Saúde, odonto, pet", categorias que
+                        // não existem mais desde o Prompt 1d).
+                        title: "Saúde por Assinatura",
+                        subtitle: "Médico por vídeo e descontos em remédios, exames e dentista.",
+                        description: "Médico por vídeo e descontos em remédios, exames e dentista. A partir de R$ 39,90 por mês.",
                         cta: "Conhecer planos",
                         icon: <Heartbeat size={20} />,
-                        highlight: "Saúde, odonto, pet e muito mais",
+                        highlight: "Clínico geral 24h",
                         photo: "/images/card-dash-assistencias.png",
                       }
                     : interest === "energia"
@@ -4194,7 +3900,7 @@ function App() {
                             if (interest === "clt") navigate(cltPath);
                             else if (interest === "fgts") navigate(fgtsPath);
                             else if (interest === "credito-pessoal") navigate(cpPath);
-                            else if (interest === "assistencias") navigate("/assistencias");
+                            else if (interest === "assistencias") navigate("/assistencias/saude");
                             else if (interest === "energia") navigate("/energia");
                             else if (interest === "seguro") navigate("/seguro-vida");
                           }} className="inline-flex w-fit items-center text-[16px] font-semibold text-[#FD5F31]">
@@ -4410,7 +4116,7 @@ function App() {
                 pages/referral/shared.ts, mesma decisão). Mesmo componente da página do produto
                 dentro do app (SaudeProdutoPage), modo "publica" (Prompt 2 v3) — não existe mais
                 uma página separada pra essa LP. */}
-            <Route path="/saude" element={<SaudeProdutoPage modo="publica" />} />
+            <Route path={ROTA_PUBLICA_SAUDE} element={<SaudeProdutoPage modo="publica" />} />
             {/* /assistencia-saude era a rota antiga dessa LP — mantida só como redirecionamento,
                 pra link já compartilhado antes da troca continuar funcionando, preservando
                 qualquer parâmetro (ref, plano, utm_*). Não gera mais link novo (linkDeIndicacao
@@ -4439,7 +4145,7 @@ function App() {
             <Route path="/seubolso/como-funciona" element={getStoredUser() ? <SeubolsoComoFuncionaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seubolso/historico" element={getStoredUser() ? <SeubolsoHistoricoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/notificacoes" element={getStoredUser() ? <NotificacoesPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/assistencias" element={getStoredUser() ? <AssistenciasPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/assistencias" element={getStoredUser() ? <RedirecionarParaAssistenciasSaude /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude" element={getStoredUser() ? <SaudeProdutoPage modo="app" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/planos" element={getStoredUser() ? <SaudePlanosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/assistencias/saude/verificar-celular" element={getStoredUser() ? <AssistenciasVerificarCelularPage /> : <Navigate to="/boas-vindas" replace />} />

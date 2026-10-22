@@ -41,9 +41,10 @@ export default function AssistenciasCancelarRetencaoPage() {
         <div className="space-y-2">
           <h1 className="text-xl font-bold text-foreground">Tem certeza que quer cancelar?</h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Sua assinatura {plano.nome} continua garantindo descontos reais em consultas, exames
-            e outros serviços de saúde sempre que você precisar. Cancelando, você perde esse
-            acesso.
+            Sua assinatura {plano.nome} dá acesso a médico por vídeo e descontos em remédios,
+            consultas e exames. O cancelamento vale na hora, e você usa o plano até o fim do
+            período já pago. Não há devolução de valores, e só dá para contratar de novo depois
+            de 3 meses. Para concluir, você fala com o atendimento da Pode Já.
           </p>
         </div>
 
@@ -51,13 +52,12 @@ export default function AssistenciasCancelarRetencaoPage() {
           <Button className="h-14 w-full rounded-full" onClick={continuarAssinando}>
             Continuar assinando
           </Button>
-          <button
-            type="button"
-            onClick={confirmarCancelamento}
-            className="w-full py-3 text-center text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-          >
+          {/* Prompt 1e (22/10) — era um link sublinhado pequeno; vira botão secundário, mesmo
+              componente/variante já usado em outras telas de duas ações (ex: ConfirmacaoPage.tsx,
+              PixExpiradoPage.tsx), só com a altura igual à do botão principal aqui, como pedido. */}
+          <Button variant="outline" className="h-14 w-full rounded-full" onClick={confirmarCancelamento}>
             Confirmar cancelamento
-          </button>
+          </Button>
         </div>
       </div>
     </SubPageLayout>

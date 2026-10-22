@@ -30,6 +30,11 @@ import {
 
 type LinkState = "loading" | "ready" | "error";
 
+// Prompt 1e (22/10) — mensagem de compartilhamento volta a existir (tinha sido simplificada pra
+// compartilhar só o link numa rodada anterior). Link sempre no fim da mensagem, como pedido.
+const MENSAGEM_COMPARTILHAMENTO = (link: string) =>
+  `Cuide de quem você ama com a Saúde por Assinatura da Pode Já: clínico geral por vídeo 24 horas e descontos em remédios, consultas, exames e dentista. A partir de R$ 39,90 por mês. ${link}`;
+
 // Texto de cada passo exatamente como a spec (seção 5, IG-02), só dividido na primeira ":" pra
 // destacar a palavra-chave igual ao card de referência de Assistências.
 const COMO_FUNCIONA = [
@@ -96,15 +101,14 @@ export default function IndiqueGanhePage() {
 
   // Compartilhamento genérico (Web Share API) — abre o seletor do sistema, com qualquer app
   // que a pessoa tiver instalado, não só WhatsApp. Sem Web Share (ex.: a maioria dos
-  // navegadores de desktop), não faz sentido escolher um app específico no lugar dela: copia o
-  // link pra colar onde quiser, e isso conta como "copiado" na taxonomia (não existe canal
-  // "clipboard" na tabela de eventos da spec, só whatsapp/native_share). Compartilha só o link,
-  // sem mensagem pré-escrita (ver PR description pra regra de copy que o dev precisa aplicar
-  // aqui quando a mensagem de compartilhamento for definida com o time de conteúdo).
+  // navegadores de desktop), não faz sentido escolher um app específico no lugar dela: copia a
+  // mensagem com o link pra colar onde quiser, e isso conta como "copiado" na taxonomia (não
+  // existe canal "clipboard" na tabela de eventos da spec, só whatsapp/native_share).
   const compartilhar = async () => {
+    const texto = MENSAGEM_COMPARTILHAMENTO(link);
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Indique a BeneMed", url: link });
+        await navigator.share({ text: texto });
         trackReferralLinkShareStarted(codigo, "native_share");
       } catch (erro) {
         // compartilhamento cancelado pela pessoa — sem mensagem de erro, por decisão da spec
@@ -115,11 +119,11 @@ export default function IndiqueGanhePage() {
       return;
     }
     try {
-      await navigator.clipboard.writeText(link);
-      toast("Link copiado");
+      await navigator.clipboard.writeText(texto);
+      toast("Mensagem copiada. Cole onde quiser compartilhar.");
       trackReferralLinkCopied(codigo);
     } catch {
-      toast("Não foi possível copiar o link. Tente novamente.");
+      toast("Não foi possível copiar a mensagem. Tente novamente.");
     }
   };
 
@@ -141,7 +145,7 @@ export default function IndiqueGanhePage() {
               10%
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg font-bold leading-snug">Indique a BeneMed e ganhe 10%</h1>
+              <h1 className="text-lg font-bold leading-snug">Indique a Saúde por Assinatura e ganhe 10%</h1>
               <p className="mt-0.5 text-sm text-white/85">da primeira mensalidade de quem contratar pelo seu link.</p>
             </div>
           </div>
@@ -181,11 +185,10 @@ export default function IndiqueGanhePage() {
           </div>
         </div>
 
-        {/* ReferralLinkBox + ShareButton — campo com o ícone de copiar e um botão de
-            compartilhar genérico (Web Share API, não mais um botão verde de WhatsApp): a ideia
-            é a pessoa poder compartilhar onde e como quiser, não só lá. O botão secundário
-            "Copiar link" continua fora (o campo já copia). Sem mensagem pré-escrita por decisão
-            de produto (ver PR description) — só o link é compartilhado/copiado. */}
+        {/* ReferralLinkBox + ShareButton — campo com o ícone de copiar (só o link) e um botão de
+            compartilhar genérico (Web Share API, não mais um botão verde de WhatsApp) que leva a
+            mensagem de MENSAGEM_COMPARTILHAMENTO, com o link no fim (Prompt 1e, 22/10). O botão
+            secundário "Copiar link" continua fora (o campo já copia). */}
         {linkState === "loading" && (
           <div className="h-[96px] w-full animate-pulse rounded-2xl bg-[#ECEEF1]" aria-hidden="true" />
         )}
@@ -290,7 +293,9 @@ export default function IndiqueGanhePage() {
                   <p className="text-base font-bold text-foreground">{formatarBRL(jaRecebido)}</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Como e quando você recebe: [A CONFIRMAR com o Financeiro]</p>
+              {/* Escondido a pedido da Ellen (22/10) até o Financeiro confirmar a regra de prazo
+                  de pagamento da comissão — mantido no código, só não é exibido na tela.
+                  <p className="text-xs text-muted-foreground">Como e quando você recebe: [A CONFIRMAR com o Financeiro]</p> */}
 
               <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white">
                 {indicacoes.map((indicacao) => (

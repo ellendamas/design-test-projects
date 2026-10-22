@@ -71,10 +71,6 @@ export const FAQ: Record<string, FaqItem[]> = {
       a: "Todos os clientes cadastrados no Pode Já com CPF validado.",
     },
     {
-      q: "Preciso contratar todas as categorias?",
-      a: "Não. Você escolhe apenas as assistências que fazem sentido para você e sua família.",
-    },
-    {
       q: "Como funciona o pagamento?",
       a: "Uma mensalidade acessível debitada diretamente pelo app. Sem fidelidade, sem surpresa.",
     },

@@ -31,7 +31,7 @@ export default function AssistenciasCancelarMotivoPage() {
           <div>
             <h1 className="text-xl font-bold text-foreground">Por que você quer cancelar?</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Isso nos ajuda a melhorar a assistência Saúde BeneMed.
+              Isso nos ajuda a melhorar a Saúde por Assinatura.
             </p>
           </div>
         </div>

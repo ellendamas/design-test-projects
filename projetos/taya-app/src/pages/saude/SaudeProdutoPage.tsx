@@ -7,7 +7,9 @@ import type { ModoSaudeProduto } from "@/data/saudeConteudo";
 import { formatoDeCodigoValido, gravarAtribuicao, gravarRefNaSessao } from "@/pages/referral/shared";
 import { trackReferralLandingViewed } from "@/pages/referral/trackReferral";
 import { trackStep } from "@/utils/analytics";
-import { ASSINATURA_ATIVA_SO_POR_PARAMETRO, planoAtivoViaParametro } from "./estadoAssinaturaDesignOnly";
+import { ReferralCard } from "@/pages/referral/ReferralCard";
+import { ASSINATURA_ATIVA_SO_POR_PARAMETRO, estadoAssinaturaViaParametro, planoAtivoViaParametro } from "./estadoAssinaturaDesignOnly";
+import { AVISO_SAUDE_POR_ESTADO, ESTADOS_COM_INDIQUE_E_GANHE, type AcaoEstadoAssinatura } from "./estadosAssinaturaConteudo";
 import { usarMetaTagsPublicas } from "./usarMetaTagsPublicas";
 import { AvisoAssinaturaAtiva } from "./secoes/AvisoAssinaturaAtiva";
 import { ComoFunciona } from "./secoes/ComoFuncionaProduto";
@@ -36,6 +38,9 @@ export default function SaudeProdutoPage({ modo }: { modo: ModoSaudeProduto }) {
 
   const assinaturaAtiva =
     modo === "app" && (ASSINATURA_ATIVA_SO_POR_PARAMETRO ? planoAtivoViaParametro() !== null : false);
+  // Sem plano ativo, não existe estado. Com plano ativo e sem ?assinaturaEstado= na URL, o
+  // padrão é "ativo" — mesmo comportamento de antes deste parâmetro existir.
+  const estado = assinaturaAtiva ? estadoAssinaturaViaParametro() ?? "ativo" : null;
 
   const refParam = searchParams.get("ref");
   const refValido = formatoDeCodigoValido(refParam);
@@ -81,11 +86,36 @@ export default function SaudeProdutoPage({ modo }: { modo: ModoSaudeProduto }) {
   const irParaPlanos = () => navigate("/assistencias/saude/planos");
   const irParaMeuPlano = () => navigate("/contratos");
   const rolarAtePlanos = () => planosRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const irParaPagamentoPix = () => navigate("/assistencias/saude/pagamento", { state: { plano: planoAtivoViaParametro() ?? undefined } });
+
+  // Mapeia a ação do botão do estado (estadosAssinaturaConteudo.ts) pra navegação de verdade —
+  // "acessar_benemed" não aparece no aviso desta página (só em Minha assinatura), então não
+  // precisa de caso aqui.
+  const executarAcaoEstado = (acao: AcaoEstadoAssinatura) => {
+    if (acao === "pagar_pix" || acao === "regularizar") irParaPagamentoPix();
+    else irParaMeuPlano();
+  };
+
+  // "cancelado" não tem aviso nenhum (pedido explícito do brief) — some tanto o card quanto o
+  // card de indicação, como se não houvesse assinatura pra mostrar aqui.
+  const avisoEstado = estado && estado !== "cancelado" ? AVISO_SAUDE_POR_ESTADO[estado] : null;
 
   const conteudo = (
     <div className="space-y-6 pb-4">
       <Hero modo={modo} />
-      {assinaturaAtiva && <AvisoAssinaturaAtiva onVerMeuPlano={irParaMeuPlano} />}
+      {avisoEstado && estado && (
+        <>
+          <AvisoAssinaturaAtiva
+            titulo={avisoEstado.titulo}
+            texto={avisoEstado.texto}
+            botaoLabel={avisoEstado.botao.label}
+            onBotao={() => executarAcaoEstado(avisoEstado.botao.acao)}
+          />
+          {/* IG-01 — Prompt 1d (22/10) trouxe o card pra cá; Prompt 1e (22/10) restringiu a
+              exibição aos estados "ativo" e "ativacao" (ESTADOS_COM_INDIQUE_E_GANHE). */}
+          {ESTADOS_COM_INDIQUE_E_GANHE.includes(estado) && <ReferralCard origin="saude_plano_ativo" />}
+        </>
+      )}
       <OQueVoceTem />
       <SituacoesGrid />
       <EspecialidadesCarrossel />
@@ -103,14 +133,25 @@ export default function SaudeProdutoPage({ modo }: { modo: ModoSaudeProduto }) {
     </div>
   );
 
+  // CTA fixo segue o mesmo botão do aviso quando ele existe (mesma ação, só repetida fixa no
+  // rodapé) — sem aviso (sem plano, ou "cancelado"), volta a ser "Ver planos".
+  const ctaFixoLabel = avisoEstado ? avisoEstado.botao.label : "Ver planos";
+  const ctaFixoOnClick = avisoEstado ? () => executarAcaoEstado(avisoEstado.botao.acao) : irParaPlanos;
+
   if (modo === "app") {
     return (
       <SubPageLayout title="Saúde">
         {conteudo}
-        <div className="fixed inset-x-0 bottom-[90px] z-30 px-4 md:relative md:inset-auto md:bottom-auto md:px-0 md:pt-2">
+        {/* Flutuante nas duas larguras: fixed no mobile (acima da navegação inferior, por isso o
+            bottom-[90px]) e sticky no desktop — como o botão já vive dentro da coluna
+            centralizada que o SubPageLayout cria pros children (md:max-w-[640px]), sticky
+            herda a largura certa sozinho, sem precisar calcular o deslocamento do menu lateral
+            como um fixed exigiria. Pedido explícito: antes só flutuava no mobile, no desktop
+            virava um botão comum no fim da página. */}
+        <div className="fixed inset-x-0 bottom-[90px] z-30 px-4 md:sticky md:inset-x-auto md:bottom-6 md:px-0">
           <div className="mx-auto md:max-w-none">
-            <Button className="h-14 w-full rounded-full shadow-lg" onClick={assinaturaAtiva ? irParaMeuPlano : irParaPlanos}>
-              {assinaturaAtiva ? "Ver meu plano" : "Ver planos"}
+            <Button className="h-14 w-full rounded-full shadow-lg" onClick={ctaFixoOnClick}>
+              {ctaFixoLabel}
             </Button>
           </div>
         </div>
@@ -119,7 +160,10 @@ export default function SaudeProdutoPage({ modo }: { modo: ModoSaudeProduto }) {
   }
 
   return (
-    <PublicLayout footer={!planosVisiveis ? <Button className="h-14 w-full rounded-full shadow-lg" onClick={rolarAtePlanos}>Ver planos</Button> : undefined}>
+    <PublicLayout
+      footerTransparente
+      footer={!planosVisiveis ? <Button className="h-14 w-full rounded-full shadow-lg" onClick={rolarAtePlanos}>Ver planos</Button> : undefined}
+    >
       {conteudo}
     </PublicLayout>
   );

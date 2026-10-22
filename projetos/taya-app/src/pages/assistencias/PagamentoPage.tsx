@@ -3,7 +3,8 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Clock, Copy, QrCode } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
-import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, PLANOS, temAssinaturaBenemedAtiva, type DiaCobranca, type Plano } from "./shared";
+import { useMensalidades } from "@/pages/saude/useMensalidades";
+import { cobrancaBenemedFalhou, formatarDataBR, getAssinaturaBenemedAtiva, PLANOS, temAssinaturaBenemedAtiva, type DiaCobranca, type Plano } from "./shared";
 
 // Rota: /assistencias/saude/pagamento — Pix mockado (QR + copia e cola), sem chamada real de
 // API ainda. O payload do QR e o código copia-e-cola abaixo são só texto de exemplo.
@@ -34,6 +35,12 @@ export default function AssistenciasPagamentoPage() {
   const plano = (location.state as { plano?: Plano } | null)?.plano ?? getAssinaturaBenemedAtiva() ?? PLANOS[0];
   const diaCobranca = (location.state as { diaCobranca?: DiaCobranca | null } | null)?.diaCobranca ?? null;
   const modoRegularizacao = temAssinaturaBenemedAtiva() && cobrancaBenemedFalhou();
+
+  // Vencimento da próxima mensalidade (seção 4 do Prompt 1f) — só na primeira contratação dos
+  // planos mensais (Mensal/Familiar), nunca em regularização de cobrança nem no Pix de
+  // Semestral/Anual (que não têm dia de cobrança escolhido, por isso nem entram no `useMensalidades`).
+  const mostraVencimento = !modoRegularizacao && (plano.id === "mensal" || plano.id === "familiar");
+  const { proximoVencimento } = useMensalidades(diaCobranca);
   const [copiado, setCopiado] = useState(false);
   const [qrFalhou, setQrFalhou] = useState(false);
   const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
@@ -84,6 +91,11 @@ export default function AssistenciasPagamentoPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               Plano {plano.nome} · {plano.cobranca}
             </p>
+            {mostraVencimento && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                A próxima mensalidade vence em {formatarDataBR(proximoVencimento)}.
+              </p>
+            )}
           </div>
         </div>
 

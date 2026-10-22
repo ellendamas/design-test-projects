@@ -77,11 +77,73 @@ export type AssistenciaSaudeState = {
   plano: Plano;
 };
 
-// Dias disponíveis pra cobrança do plano Mensal — único plano com Pix recorrente mês a mês
-// (Semestral/Anual são recorrentes também, mas em ciclos mais longos; Familiar ainda não tem
-// essa etapa por decisão de produto). Lista fixa por enquanto, sem vir de nenhuma API.
+// Dias disponíveis pra cobrança dos planos Mensal e Familiar — os dois com Pix recorrente mês
+// a mês (Semestral/Anual são recorrentes também, mas em ciclos mais longos, sem escolha de
+// dia). Lista fixa por enquanto, sem vir de nenhuma API.
 export const DIAS_COBRANCA = [5, 10, 15, 20, 25] as const;
 export type DiaCobranca = (typeof DIAS_COBRANCA)[number];
+
+// ---------------------------------------------------------------------------
+// Prompt 1f (22/10) — regra de vencimento da próxima mensalidade, confirmada pelo time de
+// cobrança: a primeira mensalidade é paga na contratação; a segunda vence no dia escolhido,
+// mas só se esse dia cair a 30 dias ou mais da contratação (senão, pula pro mês seguinte, pra
+// não cobrar de novo cedo demais). Funções puras, sem I/O, com testes em
+// calcularProximoVencimento.test.ts (mesma pasta) — `node --test
+// src/pages/assistencias/calcularProximoVencimento.test.ts` roda sem precisar de nenhuma
+// dependência nova (Node 24 já faz strip de tipos TS nativamente).
+// ---------------------------------------------------------------------------
+
+// Converte "AAAA-MM-DD" num Date à meia-noite no fuso local (São Paulo neste app, já que não
+// há troca de fuso no protótipo) — `new Date(string)` evita de propósito, porque esse
+// construtor interpreta a string como UTC e pode voltar um dia quando formatado de volta num
+// fuso negativo (exatamente o erro que esta tarefa pede pra evitar).
+export function parseDataISOLocal(iso: string): Date {
+  const [ano, mes, dia] = iso.split("-").map(Number);
+  return new Date(ano, mes - 1, dia);
+}
+
+// Diferença em dias de calendário entre duas datas, ignorando hora/fuso — normaliza as duas
+// pra meia-noite UTC antes de subtrair, pra um horário de verão no meio do intervalo não
+// desviar a conta em 1 dia (23h/25h não são múltiplos exatos de 86400000ms).
+function diferencaEmDiasCalendario(a: Date, b: Date): number {
+  const aUTC = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const bUTC = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((bUTC - aUTC) / 86_400_000);
+}
+
+// Soma 1 mês a uma data, preservando o dia do mês — seguro aqui porque os dias escolhidos
+// (DIAS_COBRANCA) nunca passam de 25, então nunca estoura o número de dias do mês seguinte.
+function somarUmMes(data: Date): Date {
+  return new Date(data.getFullYear(), data.getMonth() + 1, data.getDate());
+}
+
+// Regra de vencimento (seção 1 do Prompt 1f): a candidata é a primeira data, estritamente
+// depois da contratação, cujo dia do mês seja o dia escolhido — se o dia da contratação já foi
+// alcançado ou passado no mês da contratação, a candidata cai no mês seguinte. Se a candidata
+// ficar a menos de 30 dias da contratação, soma mais um mês a ela.
+export function calcularProximoVencimento(dataContratacao: Date, diaEscolhido: DiaCobranca): Date {
+  const ano = dataContratacao.getFullYear();
+  const mes = dataContratacao.getMonth();
+  const diaContratacao = dataContratacao.getDate();
+
+  let candidata =
+    diaContratacao < diaEscolhido ? new Date(ano, mes, diaEscolhido) : new Date(ano, mes + 1, diaEscolhido);
+
+  if (diferencaEmDiasCalendario(dataContratacao, candidata) < 30) {
+    candidata = somarUmMes(candidata);
+  }
+
+  return candidata;
+}
+
+// dd/mm/aaaa — formato pedido em todas as telas desta tarefa. `padStart` em vez de
+// `toLocaleDateString` pra não depender de locale do ambiente (Node do servidor de build,
+// navegador do usuário) pra um formato que a spec já define exatamente.
+export function formatarDataBR(data: Date): string {
+  const dia = String(data.getDate()).padStart(2, "0");
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  return `${dia}/${mes}/${data.getFullYear()}`;
+}
 
 // Estado mockado de "tem assinatura BeneMed ativa" — sem backend real ainda, igual ao resto
 // do fluxo. Setado em ConfirmacaoPage.tsx (pagamento confirmado) e lido tanto em
@@ -206,3 +268,20 @@ export const MOTIVOS_CANCELAMENTO: { id: MotivoCancelamentoId; label: string }[]
   { id: "nao_atendeu", label: "Não atendeu minhas expectativas" },
   { id: "outro", label: "Outro motivo" },
 ];
+
+// Registro do aceite do contrato (Prompt 1g, 22/10) — "versao"/"hash" vêm de
+// contratoBenemedConteudo.ts, "aceitoEm" é o momento em que a caixa foi marcada em
+// ConfirmarDadosPage.tsx. Não existe hoje, em nenhum fluxo do app, um caminho real de envio de
+// consentimento pro backend — o mais próximo é o comentário em
+// src/pages/consignado-clt/ProvedoresPage.tsx:222 ("TODO: POST /consentimentos..."), que nunca
+// chegou a ser implementado. Esta função segue a mesma convenção: fica como um ponto único e
+// óbvio pro backend entrar depois, sem espalhar a chamada pelas telas.
+export type AceiteContrato = { versao: string; hash: string; aceitoEm: string };
+
+export function registrarAceiteContrato(aceite: AceiteContrato): void {
+  // TODO: POST /contratos/aceites { usuario_id, versao, hash, aceito_em, ip, dispositivo } —
+  // prova de aceite para auditoria/jurídico. IP e dispositivo não dá pra capturar aqui (só o
+  // backend vê o IP de origem; "dispositivo" precisaria de um user-agent/device-id que este
+  // protótipo não coleta hoje) — ver lista de pendências na entrega do Prompt 1g.
+  console.log("[aceite de contrato]", aceite);
+}

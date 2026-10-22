@@ -19,14 +19,35 @@ export function Drawer({
   );
 }
 
-export function DrawerContent({ children }: { children: React.ReactNode }) {
+export function DrawerContent({
+  children,
+  footer,
+}: {
+  children: React.ReactNode;
+  /** Quando informado, fica fixo embaixo (fora da área que rola), com a área segura do celular
+   * respeitada (`env(safe-area-inset-bottom)`) — só `children` rola. Sem `footer`, comportamento
+   * de sempre: tudo num único bloco que rola junto. Vaul (base deste Drawer) já trava o foco, a
+   * rolagem do body e fecha com Esc/toque fora sozinho — não precisou adicionar nada disso aqui. */
+  footer?: React.ReactNode;
+}) {
   return (
     <VaulDrawer.Portal>
       <VaulDrawer.Overlay className="fixed inset-0 z-50 bg-black/40" />
-      <VaulDrawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-[20px] bg-white outline-none">
+      <VaulDrawer.Content
+        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-[20px] bg-white outline-none ${footer ? "max-h-[85vh]" : ""}`}
+      >
         {/* Handle */}
         <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
-        <div className="flex-1 overflow-y-auto px-6 pb-8 pt-4">{children}</div>
+        {footer ? (
+          <>
+            <div className="flex-1 overflow-y-auto px-6 pb-4 pt-4">{children}</div>
+            <div className="shrink-0 border-t border-border px-6 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+              {footer}
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 overflow-y-auto px-6 pb-8 pt-4">{children}</div>
+        )}
       </VaulDrawer.Content>
     </VaulDrawer.Portal>
   );

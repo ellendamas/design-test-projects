@@ -80,7 +80,7 @@ export default function AssistenciasVerificarEmailPage() {
           <div>
             <h1 className="text-xl font-bold text-foreground">Confirme seu e-mail</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Antes de continuar com a assinatura BeneMed, enviamos um código para {emailMascarado}.
+              Antes de continuar com a contratação, enviamos um código para {emailMascarado}.
             </p>
           </div>
         </div>
