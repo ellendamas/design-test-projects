@@ -79,7 +79,7 @@ export default function AssistenciasVerificarCelularPage() {
           <div>
             <h1 className="text-xl font-bold text-foreground">Confirme seu celular</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Antes de continuar com a assinatura BeneMed, enviamos um código por SMS para {celularMascarado}.
+              Antes de continuar com a contratação, enviamos um código por SMS para {celularMascarado}.
             </p>
           </div>
         </div>

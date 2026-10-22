@@ -4,8 +4,9 @@ import { CheckCircle } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { Button } from "@/components/ui/button";
-import { ativarAssinaturaBenemed, cobrancaBenemedFalhou, PLANOS, resolverCobrancaBenemed, temAssinaturaBenemedAtiva, type DiaCobranca, type Plano } from "./shared";
-import { ReferralBanner } from "@/pages/referral/ReferralBanner";
+import { ativarAssinaturaBenemed, cobrancaBenemedFalhou, formatarDataBR, PLANOS, resolverCobrancaBenemed, temAssinaturaBenemedAtiva, type DiaCobranca, type Plano } from "./shared";
+import { ReferralCard } from "@/pages/referral/ReferralCard";
+import { useMensalidades } from "@/pages/saude/useMensalidades";
 
 // Rota: /assistencias/saude/confirmacao — tela final tanto da primeira contratação quanto da
 // regularização de cobrança (ver PagamentoPage.tsx). O modo é capturado uma vez, no mount —
@@ -17,6 +18,10 @@ export default function AssistenciasConfirmacaoPage() {
   const plano = (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
   const diaCobranca = (location.state as { diaCobranca?: DiaCobranca | null } | null)?.diaCobranca ?? null;
   const [modoRegularizacao] = useState(() => temAssinaturaBenemedAtiva() && cobrancaBenemedFalhou());
+  // Seção 4 do Prompt 1f — só na primeira contratação dos planos mensais, nunca em
+  // regularização nem em Semestral/Anual (sem dia de cobrança escolhido).
+  const mostraVencimento = !modoRegularizacao && (plano.id === "mensal" || plano.id === "familiar");
+  const { proximoVencimento } = useMensalidades(diaCobranca);
 
   useEffect(() => {
     if (modoRegularizacao) {
@@ -42,8 +47,8 @@ export default function AssistenciasConfirmacaoPage() {
           <h1 className="text-2xl font-bold text-foreground">Pagamento confirmado!</h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
             {modoRegularizacao
-              ? "Sua mensalidade da BeneMed foi regularizada. Sua assinatura continua ativa normalmente."
-              : `Sua assinatura do plano ${plano.nome} da BeneMed foi contratada com sucesso.`}
+              ? "Sua mensalidade da Saúde por Assinatura foi regularizada. Sua assinatura continua ativa normalmente."
+              : `Seu plano ${plano.nome} da Saúde por Assinatura foi contratado com sucesso.`}
           </p>
         </div>
 
@@ -58,14 +63,19 @@ export default function AssistenciasConfirmacaoPage() {
         ) : (
           <>
             <div className="w-full rounded-2xl border border-border bg-white p-4 text-left shadow-sm">
-              <p className="text-sm font-semibold text-foreground">Ativação em até 48 horas</p>
+              <p className="text-sm font-semibold text-foreground">Ativação em até 48 horas úteis</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Seu plano fica disponível para uso assim que a ativação for concluída pela BeneMed.
               </p>
+              {mostraVencimento && (
+                <p className="mt-2 text-xs font-medium text-foreground">
+                  Próxima mensalidade: {formatarDataBR(proximoVencimento)}
+                </p>
+              )}
             </div>
 
             <div className="w-full rounded-2xl bg-[#FFF3EE] p-4 text-left">
-              <p className="text-sm font-semibold text-[#D94E28]">Baixe o app da BeneMed</p>
+              <p className="text-sm font-semibold text-[#D94E28]">Baixe o app para usar seu plano</p>
               <p className="mt-1 text-xs leading-relaxed text-[#D94E28]">
                 É por lá que você agenda consultas, exames e acompanha tudo do seu plano. As
                 informações de acesso chegam em breve.
@@ -75,8 +85,11 @@ export default function AssistenciasConfirmacaoPage() {
               </div>
             </div>
 
-            {/* IG-06 — banner "Indique e ganhe", só na primeira contratação confirmada */}
-            <ReferralBanner variant="pos_contratacao" />
+            {/* IG-06 — Prompt 1d (22/10): era o ReferralBanner (layout próprio, dispensável),
+                agora é o mesmo componente IG-01 usado em todo lugar. Continua só na primeira
+                contratação confirmada. origin="banner_pos_contratacao" mantém os eventos
+                trackReferralBannerViewed/Clicked que o banner antigo já disparava aqui. */}
+            <ReferralCard origin="banner_pos_contratacao" />
           </>
         )}
 

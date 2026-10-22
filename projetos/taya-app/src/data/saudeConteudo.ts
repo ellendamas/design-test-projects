@@ -63,7 +63,7 @@ export type Especialidade = {
 };
 
 export const ESPECIALIDADES_CONTEUDO = {
-  subtitulo: "Clínico geral 24 horas, todos os dias. Especialistas de segunda a sexta, das 8h às 20h, conforme a agenda.",
+  subtitulo: "Clínico geral 24 horas, todos os dias. Especialistas de segunda a sexta, das 9h às 18h, conforme a agenda.",
   itens: [
     { slot: "E01", nome: "Clínico Geral", selo: "24h, todos os dias" },
     { slot: "E02", nome: "Cardiologia" },
@@ -98,7 +98,7 @@ export const PASSOS_CONTEUDO = {
     app: { titulo: "Confirme seus dados", sub: "Celular e e-mail, em poucos minutos." },
     publica: { titulo: `Crie sua conta na Pode Já`, sub: "Sem precisar de crédito." },
   } satisfies Record<ModoSaudeProduto, { titulo: string; sub: string }>,
-  passo3: { titulo: "Pague e use", sub: "Pix ou cartão. Ativa em até 48 horas úteis." },
+  passo3: { titulo: "Pague e use", sub: "Pix. Ativa em até 48 horas úteis." },
 };
 
 export type PlanoConteudo = {
@@ -137,7 +137,7 @@ export type FaqItemConteudo = { id?: string; q: string; a: string };
 export const DUVIDAS_VISIVEIS: FaqItemConteudo[] = [
   { q: "É plano de saúde?", a: "Não. Saúde por Assinatura reúne telemedicina, orientação e descontos. Não cobre internação nem cirurgia." },
   { q: "E se for uma emergência?", a: "A telemedicina não substitui urgência e emergência. Procure um pronto-socorro ou ligue 192 (SAMU)." },
-  { q: "Como funciona o atendimento por vídeo?", a: "O clínico geral atende 24 horas, todos os dias. Os especialistas atendem de segunda a sexta, das 8h às 20h, exceto feriados, conforme a agenda. Cada usuário ativo pode usar até 15 vezes por mês, e no Familiar o benefício vale para os dependentes." },
+  { q: "Como funciona o atendimento por vídeo?", a: "O clínico geral atende 24 horas, todos os dias. Os especialistas atendem de segunda a sexta, das 9h às 18h, exceto feriados, conforme a agenda. Cada usuário ativo pode usar até 15 vezes por mês, e no Familiar o benefício vale para os dependentes." },
   { q: "Posso cancelar?", a: `Sim. Depois de 3 meses, sem multa. Peça ao atendimento da Pode Já, no app. O cancelamento vale na hora: os benefícios seguem até o fim do período pago, não há devolução do valor e só dá para contratar de novo depois de 3 meses.` },
   { q: "Como uso o desconto na farmácia?", a: "O desconto chega a até 80% e varia conforme o remédio e a farmácia. Ative o benefício no app na primeira vez que usar. Na farmácia, mostre documento com foto e CPF ou a carteirinha digital." },
   { q: `Preciso ter crédito na Pode Já?`, a: "Não. A contratação é opcional e não depende de crédito nem de outro produto." },
@@ -145,11 +145,11 @@ export const DUVIDAS_VISIVEIS: FaqItemConteudo[] = [
 
 export const DUVIDAS_EXTRA: FaqItemConteudo[] = [
   { q: "Tem dentista?", a: "Sim, inclusive no Familiar. Odontologia, odontopediatria e ortodontia fazem parte da rede presencial. Você paga direto ao dentista, com o valor reduzido, e os procedimentos seguem as condições do parceiro." },
-  { q: "Meu filho pode usar a telemedicina?", a: "Pode, no Familiar. O clínico geral atende a qualquer hora, e a pediatria atende de segunda a sexta, das 8h às 20h, conforme a agenda. Os dependentes podem ser de qualquer idade." },
+  { q: "Meu filho pode usar a telemedicina?", a: "Pode, no Familiar. O clínico geral atende a qualquer hora, e a pediatria atende de segunda a sexta, das 9h às 18h, conforme a agenda. Os dependentes podem ser de qualquer idade." },
   { q: "Em quanto tempo começo a usar?", a: "A ativação leva até 48 horas úteis depois do pagamento. O acesso chega por e-mail ou WhatsApp." },
   { id: "faq-presencial", q: "Quais especialidades e exames existem na rede presencial?", a: "A rede presencial tem dezenas de especialidades, como clínico geral, cardiologia, pediatria, neurologia, ginecologia, ortopedia, dermatologia, oftalmologia e odontologia, além de exames como hemograma, glicemia, raio-X e ressonância. Também tem serviços de bem-estar, como fisioterapia, nutricionista, pilates e acupuntura, e serviços odontológicos, como prevenção, restaurações e canal. Depende da rede e da agenda. Você paga direto ao parceiro, com o valor reduzido." },
   { q: "Posso incluir minha família?", a: "Sim, no Familiar: até 3 dependentes, sem comprovar vínculo e sem limite de idade. O cadastro de cada dependente é feito depois, no app do parceiro de saúde. Eles também usam a telemedicina e os descontos." },
-  { q: "Como pago?", a: "Cartão de crédito ou Pix, com cobrança mensal. Não há boleto." },
+  { q: "Como pago?", a: "Com Pix. Você autoriza o Pix automático uma vez, e a cobrança acontece todo mês no dia que você escolher." },
   { q: "Meus dados estão seguros?", a: "Tratamos seus dados conforme a LGPD. Veja a Política de Privacidade." },
   { q: "Quem presta o serviço?", a: `Parceiro de saúde: ${PARCEIRO_NOME}. A Pode Já oferece o plano, o cadastro e o atendimento.` },
 ];

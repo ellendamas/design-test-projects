@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { PLANOS_CONTEUDO } from "@/data/saudeConteudo";
 import { PLANOS, planosExibidos, proximaEtapaAposVerificacao, type Plano, type PlanoId } from "@/pages/assistencias/shared";
 import { trackStep } from "@/utils/analytics";
-import { ASSINATURA_ATIVA_SO_POR_PARAMETRO, planoAtivoViaParametro } from "./estadoAssinaturaDesignOnly";
+import { ASSINATURA_ATIVA_SO_POR_PARAMETRO, estadoAssinaturaViaParametro, planoAtivoViaParametro } from "./estadoAssinaturaDesignOnly";
+import { AVISO_SAUDE_POR_ESTADO, type AcaoEstadoAssinatura } from "./estadosAssinaturaConteudo";
 import { AvisoAssinaturaAtiva } from "./secoes/AvisoAssinaturaAtiva";
 
 const PRAZOS_INDIVIDUAL: PlanoId[] = ["mensal", "semestral", "anual"];
@@ -24,19 +25,37 @@ export default function SaudePlanosPage() {
   const navigate = useNavigate();
   const [prazoSelecionado, setPrazoSelecionado] = useState<PlanoId>("mensal");
   const assinaturaAtiva = ASSINATURA_ATIVA_SO_POR_PARAMETRO ? planoAtivoViaParametro() !== null : false;
+  const estado = assinaturaAtiva ? estadoAssinaturaViaParametro() ?? "ativo" : null;
+  // "cancelado" é o único estado em que esta tela volta a mostrar os cards (com o aviso e os
+  // botões desativados abaixo) — todo o resto (inclusive sem assinatura nenhuma) segue cada um
+  // pro seu próprio caminho: sem estado, cards normais; com qualquer outro estado, aviso no
+  // lugar dos cards, igual já era pra "ativo" antes deste prompt.
+  const avisoEstado = estado && estado !== "cancelado" ? AVISO_SAUDE_POR_ESTADO[estado] : null;
+
+  const irParaPagamentoPix = () => navigate("/assistencias/saude/pagamento", { state: { plano: planoAtivoViaParametro() ?? undefined } });
+  const executarAcaoEstado = (acao: AcaoEstadoAssinatura) => {
+    if (acao === "pagar_pix" || acao === "regularizar") irParaPagamentoPix();
+    else navigate("/contratos");
+  };
 
   const handleContratar = (planoId: PlanoId) => {
+    if (estado === "cancelado") return;
     trackStep("saude_plano_selecionado", { plano_id: planoId });
     const plano = planosExibidos().find((p) => p.id === planoId);
     if (!plano) return;
     navigate(proximaEtapaAposVerificacao(), { state: { plano } });
   };
 
-  if (assinaturaAtiva) {
+  if (avisoEstado) {
     return (
       <SubPageLayout title="Planos">
         <div className="pb-6">
-          <AvisoAssinaturaAtiva onVerMeuPlano={() => navigate("/contratos")} />
+          <AvisoAssinaturaAtiva
+            titulo={avisoEstado.titulo}
+            texto={avisoEstado.texto}
+            botaoLabel={avisoEstado.botao.label}
+            onBotao={() => executarAcaoEstado(avisoEstado.botao.acao)}
+          />
         </div>
       </SubPageLayout>
     );
@@ -46,10 +65,18 @@ export default function SaudePlanosPage() {
   const planoFamiliar = PLANOS.find((p) => p.id === "familiar") as Plano;
   const conteudoIndividual = PLANOS_CONTEUDO.mensal;
   const conteudoFamiliar = PLANOS_CONTEUDO.familiar;
+  // Único jeito de chegar aqui com os cards visíveis E uma assinatura: "cancelado" (ver
+  // avisoEstado acima — todo o resto já retornou o aviso antes de chegar neste ponto).
+  const cancelado = estado === "cancelado";
 
   return (
     <SubPageLayout title="Planos">
       <div className="space-y-4 pb-6">
+        {cancelado && (
+          <div className="rounded-2xl border border-border bg-[#FFF3EE] p-4 text-center text-sm font-medium text-foreground">
+            Você pode contratar de novo depois de 3 meses do cancelamento.
+          </div>
+        )}
         {/* Card Individual — preço do topo muda com o prazo escolhido no seletor abaixo da lista
             de benefícios. Um único botão "Contratar Individual" usa o prazo selecionado. */}
         <div className="rounded-2xl border border-border bg-white p-5">
@@ -115,7 +142,8 @@ export default function SaudePlanosPage() {
           <button
             type="button"
             onClick={() => handleContratar(prazoSelecionado)}
-            className="mt-4 h-12 w-full rounded-full bg-[#FD5F31] text-sm font-semibold text-white"
+            disabled={cancelado}
+            className="mt-4 h-12 w-full rounded-full bg-[#FD5F31] text-sm font-semibold text-white disabled:opacity-50"
           >
             {conteudoIndividual.cta}
           </button>
@@ -151,7 +179,8 @@ export default function SaudePlanosPage() {
           <button
             type="button"
             onClick={() => handleContratar("familiar")}
-            className="mt-4 h-12 w-full rounded-full bg-white text-sm font-semibold text-[#FD5F31]"
+            disabled={cancelado}
+            className="mt-4 h-12 w-full rounded-full bg-white text-sm font-semibold text-[#FD5F31] disabled:opacity-50"
           >
             {conteudoFamiliar.cta}
           </button>

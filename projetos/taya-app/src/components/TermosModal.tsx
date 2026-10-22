@@ -1,43 +1,25 @@
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { Dialog, DialogContent, DialogClose, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { ResponsiveSheet } from "@/components/ResponsiveSheet";
 
 interface TermosModalProps {
   aberto: boolean;
   onFechar: () => void;
 }
 
+// Migrado pro ResponsiveSheet (Prompt 1g, 22/10) — mesma ramificação Dialog/Drawer que já
+// existia aqui, só extraída. Comportamento e visual idênticos aos de antes (sem footer sticky
+// próprio: o botão "Fechar" continua dentro da área que rola, como sempre foi, por isso não
+// passa a prop `footer`). A altura do box de texto (`scrollBoxClassName`) é a única diferença
+// entre modal e drawer, por isso ainda decide isso aqui com o próprio `useMediaQuery`.
 export function TermosModal({ aberto, onFechar }: TermosModalProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  if (isDesktop) {
-    return (
-      <Dialog open={aberto} onOpenChange={(o) => { if (!o) onFechar(); }}>
-        <DialogContent className="max-w-md">
-          <DialogClose onClose={onFechar} />
-          <DialogHeader>
-            <DialogTitle>Termos de uso e privacidade</DialogTitle>
-            <p className="mt-0.5 text-xs text-muted-foreground">Leia antes de continuar</p>
-          </DialogHeader>
-          <TermosConteudo scrollBoxClassName="max-h-[280px]" />
-          <TermosFooter onFechar={onFechar} />
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
-    <Drawer open={aberto} onOpenChange={(o) => { if (!o) onFechar(); }}>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Termos de uso e privacidade</DrawerTitle>
-          <p className="mt-0.5 text-xs text-muted-foreground">Leia antes de continuar</p>
-        </DrawerHeader>
-        <TermosConteudo scrollBoxClassName="h-[45vh]" />
-        <TermosFooter onFechar={onFechar} />
-      </DrawerContent>
-    </Drawer>
+    <ResponsiveSheet aberto={aberto} onFechar={onFechar} titulo="Termos de uso e privacidade" subtitulo="Leia antes de continuar" botaoFecharX>
+      <TermosConteudo scrollBoxClassName={isDesktop ? "max-h-[280px]" : "h-[45vh]"} />
+      <TermosFooter onFechar={onFechar} />
+    </ResponsiveSheet>
   );
 }
 

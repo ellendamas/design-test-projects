@@ -1,21 +1,40 @@
+import { useEffect } from "react";
 import { CaretRight, Gift } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import { getStoredUser } from "@/App";
 import { isReferralEligible } from "@/config/referral";
 import { IG01_CONTEUDO } from "@/data/saudeConteudo";
-import { useVisibilidadeFlag } from "./shared";
+import { useVisibilidadeFlag, type ReferralOrigin } from "./shared";
+import { trackReferralBannerClicked, trackReferralBannerViewed } from "./trackReferral";
 
-// IG-01 — card "Indique e ganhe" dentro de Assistências, restaurado em 21/10 no hub
-// (AssistenciasPage, App.tsx), logo abaixo do card de destaque da Saúde. Tinha sido removido no
-// commit 9c485bc, voltou primeiro pra dentro da página do produto Saúde e, nesta correção,
-// mudou de lugar de novo pro hub. O texto não cita o parceiro fora dos dois pontos permitidos
-// pela regra de copy (docs/saude-conteudo-fonte.md). Card inteiro é área de toque (único
-// <button>, alvo de 44 px ou mais), mesmo racional de R6/Clarity já documentado na versão
-// original deste componente.
-export function ReferralCard() {
+type ReferralCardProps = {
+  // Obrigatória, sem valor padrão: o hub que antes decidia essa origem sozinho não existe mais
+  // (Prompt 1d, 22/10) — cada lugar que usa o card precisa dizer explicitamente de onde é, pra
+  // não mascarar a origem real do clique no evento trackReferralScreenViewed.
+  origin: ReferralOrigin;
+};
+
+// IG-01 — card "Indique e ganhe". Até o Prompt 1d só existia no hub de Assistências (a tela
+// inteira foi apagada nesta tarefa, a Saúde virou a porta de entrada). Agora aparece em dois
+// lugares, cada um passando a própria origem: `/assistencias/saude` pra quem já tem plano ativo
+// e a confirmação de compra, no lugar onde antes ficava o ReferralBanner (ver
+// ConfirmacaoPage.tsx). Quando origin === "banner_pos_contratacao" o card também dispara
+// trackReferralBannerViewed/Clicked com placement "pos_contratacao" — os mesmos dois eventos
+// que o ReferralBanner disparava ali, pra não perder esse dado já coletado. Em nenhum outro
+// lugar esses dois disparam. O texto não cita o parceiro fora dos dois pontos permitidos pela
+// regra de copy (docs/saude-conteudo-fonte.md). Card inteiro é área de toque (único <button>,
+// alvo de 44 px ou mais), mesmo racional de R6/Clarity já documentado na versão original deste
+// componente.
+export function ReferralCard({ origin }: ReferralCardProps) {
   const navigate = useNavigate();
   const elegivel = isReferralEligible(getStoredUser()?.email);
   const estado = useVisibilidadeFlag(elegivel);
+  const ehPosContratacao = origin === "banner_pos_contratacao";
+
+  useEffect(() => {
+    if (ehPosContratacao && estado === "default") trackReferralBannerViewed("pos_contratacao");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ehPosContratacao, estado]);
 
   if (estado === "oculto" || estado === "error") return null;
 
@@ -26,7 +45,10 @@ export function ReferralCard() {
   return (
     <button
       type="button"
-      onClick={() => navigate("/assistencias/saude/indique-e-ganhe", { state: { origin: "assistencias_hub" } })}
+      onClick={() => {
+        if (ehPosContratacao) trackReferralBannerClicked("pos_contratacao");
+        navigate("/assistencias/saude/indique-e-ganhe", { state: { origin } });
+      }}
       className="flex min-h-[44px] w-full items-center gap-3 rounded-2xl border border-[#FFD4C4] bg-[#FFF3EE] p-4 text-left transition-colors hover:bg-[#FFE9DF]"
     >
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[#FD5F31]">

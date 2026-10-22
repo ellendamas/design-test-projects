@@ -28,9 +28,9 @@ export default function AssistenciasRedirecionandoBenemedPage() {
       <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1, repeat: Infinity }}>
         <ArrowSquareOut size={48} />
       </motion.div>
-      <h2 className="mt-6 text-2xl font-bold">Abrindo a BeneMed</h2>
+      <h2 className="mt-6 text-2xl font-bold">Abrindo seu plano</h2>
       <p className="mt-2 text-sm text-white/80">
-        Você será direcionado para o app ou site da BeneMed, nosso parceiro de assistência à saúde.
+        Você vai para o app ou o site do parceiro de Saúde por Assinatura.
       </p>
       {mostrarBotao && (
         <button
@@ -38,7 +38,7 @@ export default function AssistenciasRedirecionandoBenemedPage() {
           onClick={() => window.open(BENEMED_URL, "_blank")}
           className="mt-6 flex h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-[#FD5F31]"
         >
-          Abrir BeneMed
+          Abrir meu plano
         </button>
       )}
     </main>

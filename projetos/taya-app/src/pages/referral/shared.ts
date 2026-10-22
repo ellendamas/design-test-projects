@@ -56,12 +56,17 @@ export function getOrCreateReferralCode(): string {
   return novo;
 }
 
-// [A CONFIRMAR o domínio com o Bruno] — domínio como a spec já dava (seção 5, IG-02). Caminho
-// é /saude (Prompt 2 v3): /assistencia-saude, usado antes, agora só redireciona pra cá (ver
-// App.tsx) — mantido funcionando pra link já compartilhado antes da troca, mas não gera mais
-// link novo, pra não empilhar um redirecionamento a mais em cada acesso.
+// Caminho único da landing pública de Saúde, conferido no roteador (App.tsx:
+// `<Route path="/saude" .../>`). /assistencia-saude, usado antes da troca do Prompt 2 v3,
+// continua registrado só como redirecionamento pra cá — não aparece aqui de novo, pra não gerar
+// link novo que empilha um redirecionamento a mais em cada acesso. Qualquer lugar que precise
+// desse caminho (link de indicação, CTA de LP, etc.) deve ler esta constante, não repetir a
+// string.
+export const ROTA_PUBLICA_SAUDE = "/saude";
+
+// [A CONFIRMAR o domínio com o Bruno] — domínio como a spec já dava (seção 5, IG-02).
 export function linkDeIndicacao(codigo: string): string {
-  return `https://www.podeja.com.br/saude?ref=${codigo}`;
+  return `https://www.podeja.com.br${ROTA_PUBLICA_SAUDE}?ref=${codigo}`;
 }
 
 export function formatoDeCodigoValido(codigo: string | null | undefined): boolean {
@@ -242,9 +247,20 @@ export function marcarCardIndicacaoComoMostrado(): void {
 // ---------------------------------------------------------------------------
 
 // "conta" é o ponto de acesso fixo em Minha Conta, pra quem viu um banner mas não indicou na
-// hora conseguir achar o link depois, sem depender de ver o banner de novo. "assistencias_hub" é
-// o card IG-01, de volta ao hub de Assistências (21/10, abaixo do card de destaque da Saúde).
-export type ReferralOrigin = "conta" | "banner_dashboard" | "banner_pos_contratacao" | "assistencias_hub";
+// hora conseguir achar o link depois, sem depender de ver o banner de novo.
+//
+// "assistencias_hub" — SEM USO desde o Prompt 1d (22/10): era o card IG-01 no hub de
+// Assistências, que deixou de existir (a Saúde virou a porta de entrada). Mantido no tipo só
+// pra não perder o histórico de leitura dos dados já coletados com essa origem; nenhum call
+// site gera esse valor mais.
+//
+// "saude_plano_ativo" — novo no Prompt 1d: o card IG-01 dentro de `/assistencias/saude`
+// (SaudeProdutoPage.tsx), visível só pra quem já tem plano ativo.
+//
+// "banner_pos_contratacao" — reaproveitado no Prompt 1d: antes era só do `ReferralBanner` na
+// confirmação de compra; agora é a origem do IG-01 (`ReferralCard`) no mesmo lugar, já que o
+// `ReferralBanner` saiu de uso ali (ver ReferralCard.tsx e ConfirmacaoPage.tsx).
+export type ReferralOrigin = "conta" | "banner_dashboard" | "banner_pos_contratacao" | "assistencias_hub" | "saude_plano_ativo";
 
 // ---------------------------------------------------------------------------
 // Estados de visibilidade (R2 — flag) compartilhados por IG-01 e IG-05: default, oculto,

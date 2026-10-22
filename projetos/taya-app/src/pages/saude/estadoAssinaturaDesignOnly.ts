@@ -13,3 +13,20 @@ export function planoAtivoViaParametro(): Plano | null {
   if (!forcado) return null;
   return PLANOS.find((p) => p.id === forcado) ?? null;
 }
+
+// Prompt 1e (22/10) — estados de assinatura, também protótipo: em produção, ler o estado real
+// (ex: de uma API de billing), não um parâmetro de URL. Independente de `?assinaturaPlano=` de
+// propósito: em Minha assinatura e em Meus contratos sempre existe algum plano pra mostrar (real
+// ou PLANOS[0] como fallback), então o teste de estado funciona ali mesmo sem forçar o plano
+// via parâmetro — só a página da Saúde e a tela de Planos, que já tratam "sem plano" como padrão,
+// precisam dos dois parâmetros juntos pra mostrar qualquer coisa de assinante.
+export type EstadoAssinatura = "ativo" | "ativacao" | "pendente" | "atraso" | "cancelamento" | "cancelado";
+
+const ESTADOS_VALIDOS: readonly EstadoAssinatura[] = ["ativo", "ativacao", "pendente", "atraso", "cancelamento", "cancelado"];
+
+export function estadoAssinaturaViaParametro(): EstadoAssinatura | null {
+  if (typeof window === "undefined") return null;
+  const forcado = new URLSearchParams(window.location.search).get("assinaturaEstado");
+  if (forcado && (ESTADOS_VALIDOS as string[]).includes(forcado)) return forcado as EstadoAssinatura;
+  return null;
+}
