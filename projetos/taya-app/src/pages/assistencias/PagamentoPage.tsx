@@ -93,7 +93,7 @@ export default function AssistenciasPagamentoPage() {
             </p>
             {mostraVencimento && (
               <p className="mt-1 text-xs text-muted-foreground">
-                A próxima mensalidade vence em {formatarDataBR(proximoVencimento)}.
+                A próxima mensalidade deve vencer em {formatarDataBR(proximoVencimento)}.
               </p>
             )}
           </div>
