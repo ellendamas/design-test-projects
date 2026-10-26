@@ -47,7 +47,9 @@ export default function AssistenciasConfirmarDadosPage() {
   const [contratoJaFoiAberto, setContratoJaFoiAberto] = useState(false);
   const [contratoAberto, setContratoAberto] = useState(false);
   const [aceite, setAceite] = useState<AceiteContrato | null>(null);
-  const [diaCobranca, setDiaCobranca] = useState<DiaCobranca | null>(null);
+  // Prompt 1h (23/10) — dia 10 pré-selecionado por padrão (antes começava sem nada marcado),
+  // pros dois planos com seletor (Individual e Familiar). A pessoa ainda pode trocar.
+  const [diaCobranca, setDiaCobranca] = useState<DiaCobranca | null>(10);
 
   const precisaEscolherDia = plano.id === "mensal" || plano.id === "familiar";
   const podeAvancar = aceitouTermos && (!precisaEscolherDia || diaCobranca !== null);
@@ -142,7 +144,7 @@ export default function AssistenciasConfirmarDadosPage() {
             </div>
             {proximoVencimento && (
               <p className="text-xs text-muted-foreground">
-                A próxima mensalidade vence em {formatarDataBR(proximoVencimento)}.
+                A próxima mensalidade deve vencer em {formatarDataBR(proximoVencimento)}.
               </p>
             )}
           </div>
