@@ -9,22 +9,25 @@ import { SeubolsoProvider } from "./context/SeubolsoContext";
 import { InteresseProvider } from "./context/InteresseContext";
 import { RecomendacoesProvider } from "./context/RecomendacoesContext";
 import { ChatProvider } from "./context/ChatContext";
+import { OpenFinanceProvider } from "./context/OpenFinanceContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <InteresseProvider>
       <SeubolsoProvider>
-        <RecomendacoesProvider>
-          <PrivacyProvider>
-            <NotificacoesProvider>
-              <ChatProvider>
-                <BrowserRouter>
-                  <App />
-                </BrowserRouter>
-              </ChatProvider>
-            </NotificacoesProvider>
-          </PrivacyProvider>
-        </RecomendacoesProvider>
+        <OpenFinanceProvider>
+          <RecomendacoesProvider>
+            <PrivacyProvider>
+              <NotificacoesProvider>
+                <ChatProvider>
+                  <BrowserRouter>
+                    <App />
+                  </BrowserRouter>
+                </ChatProvider>
+              </NotificacoesProvider>
+            </PrivacyProvider>
+          </RecomendacoesProvider>
+        </OpenFinanceProvider>
       </SeubolsoProvider>
     </InteresseProvider>
   </React.StrictMode>
