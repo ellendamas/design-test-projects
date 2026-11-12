@@ -84,6 +84,14 @@ import { contratos } from "@/data/contratos";
 import { usePrivacy } from "@/context/PrivacyContext";
 import { useNotificacoes } from "@/context/NotificacoesContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
+import OpenFinanceSelectBankPage from "@/pages/open-finance/OpenFinanceSelectBankPage";
+import OpenFinanceGuidePage from "@/pages/open-finance/OpenFinanceGuidePage";
+import OpenFinanceConnectingPage from "@/pages/open-finance/OpenFinanceConnectingPage";
+import OpenFinanceConnectedPage from "@/pages/open-finance/OpenFinanceConnectedPage";
+import OpenFinanceIntroPage from "@/pages/open-finance-celcoin/OpenFinanceIntroPage";
+import OpenFinanceSelecionarInstituicaoPage from "@/pages/open-finance-celcoin/OpenFinanceSelecionarInstituicaoPage";
+import OpenFinanceTransicaoBancoPage from "@/pages/open-finance-celcoin/OpenFinanceTransicaoBancoPage";
+import OpenFinanceRetornoPage from "@/pages/open-finance-celcoin/OpenFinanceRetornoPage";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
 import ConsignadoCLTLandingPage from "@/pages/consignado-clt/LandingPage";
@@ -2004,7 +2012,9 @@ function App() {
   // em vez do /painel padrão. Usado pela jornada Leilão CLT ("Já tenho conta").
   const redirectPosLogin = () => new URLSearchParams(location.search).get("redirect") || "/painel";
 
-  const [step, setStep] = useState(1);
+  // DESIGN ONLY: retoma o passo do onboarding salvo em sessionStorage, necessário porque a
+  // jornada de Open Finance leva o usuário pra fora do app (e de volta) no meio do cadastro.
+  const [step, setStep] = useState(() => { const s = sessionStorage.getItem("onboarding_step"); return s ? Number(s) : 1; });
   const [direction, setDirection] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -2017,6 +2027,12 @@ function App() {
   const [mfaCode, setMfaCode] = useState("");
   const [mfaErro, setMfaErro] = useState<string | null>(null);
   const [mfaCountdown, setMfaCountdown] = useState(0);
+  // DESIGN ONLY: canal de confirmação de identidade do onboarding, pensado a partir da troca de
+  // canal (SMS/e-mail) que a produção já teve que adicionar no cadastro, por causa de SMS que não
+  // chegavam pra boa parte das pessoas (ver SignupOtpStep na taya-b2c-frontend). Default SMS,
+  // porque é o que o passo anterior já coleta primeiro; troca pra e-mail (ou volta) sem perder o
+  // código digitado até ali, e reaproveita o mesmo cooldown do reenvio.
+  const [mfaCanal, setMfaCanal] = useState<"sms" | "email">("sms");
   const [necessidades, setNecessidades] = useState<string[]>([]);
   const [mostrarTermos, setMostrarTermos] = useState(false);
   const [biometriaSheetOpen, setBiometriaSheetOpen] = useState(false);
@@ -2054,6 +2070,11 @@ function App() {
   const phoneMascarado = (() => {
     const d = phone.replace(/\D/g, "");
     return d.length >= 6 ? `+55 (${d.slice(0, 2)}) •••••-${d.slice(-4)}` : "o número cadastrado";
+  })();
+  const emailMascarado = (() => {
+    const [local, dominio] = email.split("@");
+    if (!local || !dominio) return "o e-mail cadastrado";
+    return `${local.slice(0, 2)}***@${dominio}`;
   })();
 
   const pageVariants = {
@@ -2272,8 +2293,25 @@ function App() {
       setStep(4);
       return;
     }
+    if (step === 4) {
+      // DESIGN ONLY: leva pra jornada de Open Finance aqui, depois da senha e antes das
+      // necessidades (pedido da Ellen: conta criada primeiro, Open Finance depois). `setStep(5)`
+      // é o que importa de verdade: o App() nunca desmonta entre rotas (navegação é tudo
+      // client-side), então o estado `step` em memória tem que avançar aqui mesmo. Gravar só no
+      // sessionStorage não é o suficiente, porque o useState que lê de lá só roda uma vez, no
+      // primeiro carregamento da página. Mantemos o sessionStorage também, como resumo pro caso
+      // raro de recarregar a página de verdade no meio do caminho.
+      setStep(5);
+      sessionStorage.setItem("onboarding_step", "5");
+      if (typeof window !== "undefined" && name && email) {
+        window.localStorage.setItem("podeja_user", JSON.stringify({ name, email }));
+      }
+      navigate("/cadastro/open-finance");
+      return;
+    }
     if (step === 5) {
       if (necessidades.length === 0) return; // validação
+      sessionStorage.removeItem("onboarding_step");
       completeOnboarding();
       setBiometriaSheetOpen(true); // abre sheet em vez de navegar direto
       return;
@@ -2731,14 +2769,23 @@ function App() {
                 </>
               )}
 
-              {/* ── Step 3 — MFA SMS ── */}
+              {/* ── Step 3 — Confirmação de identidade (SMS ou e-mail) ──
+                  Troca de canal sempre visível, habilitada só quando o cooldown de reenvio zera
+                  (mesma regra já usada na troca de canal da tela de código de exclusão de conta,
+                  em ExcluirContaCodigoPage). Pensada a partir do SignupOtpStep da produção, que
+                  precisou ganhar essa troca por causa de SMS que não chegava pra boa parte das
+                  pessoas. */}
               {step === 3 && (
                 <>
                   <StepHeader
                     step={3}
                     total={totalSteps}
-                    title="Confirme seu telefone"
-                    subtitle={`Enviamos um código por SMS para ${phoneMascarado}`}
+                    title="Confirme sua identidade"
+                    subtitle={
+                      mfaCanal === "sms"
+                        ? `Enviamos um código por SMS para ${phoneMascarado}`
+                        : `Enviamos um código por e-mail para ${emailMascarado}`
+                    }
                   />
                   <Card className="border-border shadow-sm">
                     <CardContent className="space-y-4 pt-5">
@@ -2772,8 +2819,8 @@ function App() {
                               setMfaCountdown(30);
                               setMfaCode("");
                               setMfaErro(null);
-                              // TODO: acionar reenvio de SMS via API
-                              toast(`Código reenviado para ${phoneMascarado}.`);
+                              // TODO: acionar reenvio de SMS/e-mail via API
+                              toast(`Código reenviado para ${mfaCanal === "sms" ? phoneMascarado : emailMascarado}.`);
                             }}
                             className="text-sm font-semibold text-[#FD5F31] underline"
                           >
@@ -2781,6 +2828,39 @@ function App() {
                           </button>
                         )}
                       </div>
+
+                      {/* Troca de canal: visível desde o início, libera só quando o cooldown zera */}
+                      <button
+                        type="button"
+                        disabled={mfaCountdown > 0}
+                        onClick={() => {
+                          const outro = mfaCanal === "sms" ? "email" : "sms";
+                          setMfaCanal(outro);
+                          setMfaCountdown(30);
+                          setMfaCode("");
+                          setMfaErro(null);
+                          // TODO: acionar envio pelo canal escolhido via API
+                          toast(`Código enviado por ${outro === "sms" ? "SMS" : "e-mail"} para ${outro === "sms" ? phoneMascarado : emailMascarado}.`);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary">
+                          {mfaCanal === "sms" ? <EnvelopeSimple size={20} /> : <ChatCircle size={20} />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-muted-foreground">Não chegou?</p>
+                          <p className="text-sm font-semibold text-foreground">
+                            {mfaCanal === "sms" ? "Receber por e-mail" : "Receber por SMS"}
+                          </p>
+                        </div>
+                        {mfaCountdown > 0 ? (
+                          <span className="shrink-0 text-xs font-semibold text-muted-foreground">em {mfaCountdown}s</span>
+                        ) : (
+                          <ArrowRight size={18} className="shrink-0 text-primary" />
+                        )}
+                      </button>
+
+                      <SecurityStrip />
                     </CardContent>
                   </Card>
                 </>
@@ -4178,6 +4258,21 @@ function App() {
             <Route path="/credito-pessoal/contrato/:id" element={getStoredUser() ? <CreditoPessoalContratoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <DuvidasPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seguro-vida" element={getStoredUser() ? <SeguroVidaLandingPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* Jornada de Open Finance real, via API, com a Celcoin. Sem etapa própria de
+                autorização LGPD: pela documentação da Celcoin, quem autoriza de verdade é a
+                própria tela do banco, depois do redirecionamento (ver
+                OpenFinanceTransicaoBancoPage). */}
+            <Route path="/cadastro/open-finance" element={getStoredUser() ? <OpenFinanceIntroPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/open-finance/selecionar-instituicao" element={getStoredUser() ? <OpenFinanceSelecionarInstituicaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/open-finance/transicao-banco" element={getStoredUser() ? <OpenFinanceTransicaoBancoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/open-finance/retorno" element={getStoredUser() ? <OpenFinanceRetornoPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* Jornada genérica anterior de Open Finance, mantida intocada e acessível por URL
+                direta. Pode ser reaproveitada com outro parceiro no futuro. Não é mais o
+                destino de nenhum CTA do app, só continua montada aqui de propósito. */}
+            <Route path="/cadastro/selecionar-banco" element={getStoredUser() ? <OpenFinanceSelectBankPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/guia-banco/:bancoId" element={getStoredUser() ? <OpenFinanceGuidePage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/conectando" element={getStoredUser() ? <OpenFinanceConnectingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/conectado" element={getStoredUser() ? <OpenFinanceConnectedPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/provedores" element={getStoredUser() ? <ConsignadoCLTProvedoresPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/redirecionando/unico" element={getStoredUser() ? <ConsignadoCLTRedirecionandoUnicoPage /> : <Navigate to="/boas-vindas" replace />} />
