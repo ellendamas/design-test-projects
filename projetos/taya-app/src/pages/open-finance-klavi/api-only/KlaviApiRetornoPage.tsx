@@ -62,27 +62,29 @@ export default function KlaviApiRetornoPage() {
 
   if (resultado === "erro") {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 text-center">
+      <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 pb-28 text-center">
         <WarningCircle size={64} weight="fill" className="text-[#DC2626]" />
         <h2 className="mt-5 text-2xl font-bold text-foreground">Não conseguimos confirmar sua conexão</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Isso pode acontecer quando a autorização não foi concluída no {bank.customerFriendlyName}. Nenhum
           dado foi compartilhado.
         </p>
-        <div className="mt-6 w-full space-y-2">
-          <Button
-            className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-            onClick={() => navigate(`${base}/transicao-banco`, { state: { bancoId } })}
-          >
-            Tentar novamente
-          </Button>
-          <Button
-            variant="outline"
-            className="h-12 w-full rounded-xl border-border"
-            onClick={voltarDepois}
-          >
-            Fazer isso depois
-          </Button>
+        <div className="fixed bottom-0 left-0 right-0 px-4 py-3">
+          <div className="mx-auto w-full max-w-[640px] space-y-2">
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+              onClick={() => navigate(`${base}/transicao-banco`, { state: { bancoId } })}
+            >
+              Tentar novamente
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 w-full rounded-xl border-border"
+              onClick={voltarDepois}
+            >
+              Fazer isso depois
+            </Button>
+          </div>
         </div>
       </main>
     );
@@ -90,33 +92,35 @@ export default function KlaviApiRetornoPage() {
 
   if (resultado === "cancelado") {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 text-center">
+      <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 pb-28 text-center">
         <Prohibit size={64} weight="fill" className="text-muted-foreground" />
         <h2 className="mt-5 text-2xl font-bold text-foreground">Você cancelou a conexão</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Nenhum dado foi compartilhado. Você pode tentar novamente quando quiser.
         </p>
-        <div className="mt-6 w-full space-y-2">
-          <Button
-            className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-            onClick={() => navigate(`${base}/transicao-banco`, { state: { bancoId } })}
-          >
-            Tentar novamente
-          </Button>
-          <Button
-            variant="outline"
-            className="h-12 w-full rounded-xl border-border"
-            onClick={voltarDepois}
-          >
-            Fazer isso depois
-          </Button>
+        <div className="fixed bottom-0 left-0 right-0 px-4 py-3">
+          <div className="mx-auto w-full max-w-[640px] space-y-2">
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+              onClick={() => navigate(`${base}/transicao-banco`, { state: { bancoId } })}
+            >
+              Tentar novamente
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 w-full rounded-xl border-border"
+              onClick={voltarDepois}
+            >
+              Fazer isso depois
+            </Button>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 text-center">
+    <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 pb-28 text-center">
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.4, ease: "backOut" }}>
         <CheckCircle size={64} weight="fill" className="text-[#16A34A]" />
       </motion.div>
@@ -124,7 +128,7 @@ export default function KlaviApiRetornoPage() {
       <p className="mt-2 text-sm text-muted-foreground">Estamos buscando seus dados financeiros...</p>
 
       <motion.div
-        className="mt-6 w-full space-y-2"
+        className="mt-6 flex flex-col items-start gap-2"
         initial="hidden"
         animate="show"
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.6 } } }}
@@ -133,7 +137,7 @@ export default function KlaviApiRetornoPage() {
           <motion.div
             key={item}
             variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }}
-            className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2"
+            className="flex items-center gap-2"
           >
             <Check size={16} className="text-[#16A34A]" />
             <p className="text-sm text-foreground">{item}</p>
@@ -165,31 +169,33 @@ export default function KlaviApiRetornoPage() {
       </p>
 
       <AnimatePresence>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6 w-full">
-          {isReal ? (
-            <>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed bottom-0 left-0 right-0 px-4 py-3">
+          <div className="mx-auto w-full max-w-[640px]">
+            {isReal ? (
+              <>
+                <Button
+                  className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+                  onClick={() => navigate(`${base}/selecionar-instituicao`)}
+                >
+                  Conectar outro banco
+                </Button>
+                <Button
+                  variant="outline"
+                  className="mt-2 h-12 w-full rounded-xl border-border"
+                  onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
+                >
+                  Ir para o início <ArrowRight size={16} className="ml-2" />
+                </Button>
+              </>
+            ) : (
               <Button
                 className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-                onClick={() => navigate(`${base}/selecionar-instituicao`)}
-              >
-                Conectar outro banco
-              </Button>
-              <Button
-                variant="outline"
-                className="mt-2 h-12 w-full rounded-xl border-border"
-                onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
+                onClick={() => navigate("/prototipos/open-finance-klavi")}
               >
                 Ir para o início <ArrowRight size={16} className="ml-2" />
               </Button>
-            </>
-          ) : (
-            <Button
-              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-              onClick={() => navigate("/prototipos/open-finance-klavi")}
-            >
-              Ir para o início <ArrowRight size={16} className="ml-2" />
-            </Button>
-          )}
+            )}
+          </div>
         </motion.div>
       </AnimatePresence>
     </main>

@@ -29,20 +29,26 @@ export default function KlaviApiTransicaoBancoPage() {
           <ArrowLeft size={20} />
         </button>
 
+        <div className="overflow-hidden rounded-2xl">
+          <img src="/images/banner-passos-open-finance.png" alt="" className="w-full object-cover" />
+        </div>
+
         <div>
           <h2 className="text-2xl font-bold text-foreground">Como funciona no {bank.customerFriendlyName}</h2>
           <p className="mt-1 text-sm text-muted-foreground">Siga esses passos quando a página abrir:</p>
         </div>
 
-        <div className="space-y-2">
-          {instrucoes.map((text, idx) => (
-            <div key={text} className="flex items-start gap-3 rounded-xl border border-border bg-white p-3">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
-                {idx + 1}
+        <div className="rounded-xl border border-border bg-white p-3">
+          <div className="divide-y divide-border">
+            {instrucoes.map((text, idx) => (
+              <div key={text} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                  {idx + 1}
+                </div>
+                <p className="text-sm font-semibold text-foreground">{text}</p>
               </div>
-              <p className="text-sm font-semibold text-foreground">{text}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <Card className="border-0 bg-primary-light">
@@ -56,7 +62,7 @@ export default function KlaviApiTransicaoBancoPage() {
         </Card>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-white px-4 py-3">
+      <div className="fixed bottom-0 left-0 right-0 px-4 py-3">
         <div className="mx-auto w-full max-w-[640px]">
           <Button
             className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
