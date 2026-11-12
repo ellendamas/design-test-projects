@@ -1,27 +1,35 @@
 ---
 agent: content-strategy
 project: taya-app
-journey: open-finance-onboarding-klavi
+journey: open-finance-onboarding-celcoin
 platform: Mobile
 date: 2026-11-12
 depends_on: [ux-research, visual-design, open-finance-klavi-comparacao]
 status: draft
 ---
 
-# Journey Spec - Open Finance real via API no cadastro (Celcoin)
+# Journey Spec - Open Finance real via API no cadastro (parceiro: Celcoin)
+
+**O parceiro de Open Finance é a Celcoin.** A Klavi foi avaliada antes (o Erasmo confirmou
+que a API de insights dela era restrita demais) e descartada em 12/11/2026: não é mais a
+direção do projeto. Pesquisei a documentação pública da Celcoin
+(developers.celcoin.com.br/docs/marcas-no-open-finance e páginas relacionadas de
+consentimento e diretório de marcas) e isso moldou a jornada descrita aqui: ver seção 5 e
+open questions.
+
+**Nota pros devs**: os nomes de arquivo e de componente no código ainda usam o prefixo
+`Klavi` (ex.: `KlaviApiIntroPage`), porque foram criados durante a avaliação inicial, antes
+da decisão por Celcoin, e ainda não foram renomeados. Isso é só nomenclatura de código
+interna, não indica que o parceiro ainda é a Klavi. Avise a Ellen se quiser que esses nomes
+sejam atualizados antes de virar PR.
 
 Este spec cobre a integração via API na jornada real de cadastro. Para o detalhamento
 completo de cada tela (componentes, microcopy, acessibilidade), ver a seção 5 de
-[open-finance-klavi-comparacao-journey-spec.md](./open-finance-klavi-comparacao-journey-spec.md):
-os componentes React são os mesmos, reaproveitados sem duplicação de arquivo (os nomes de
-arquivo continuam com prefixo `Klavi` por motivo histórico, da avaliação inicial). Este
+[open-finance-klavi-comparacao-journey-spec.md](./open-finance-klavi-comparacao-journey-spec.md).
+Esse outro documento é o registro histórico da comparação entre as duas opções da Klavi
+(Whitelabel vs. API Only), mantido como referência; os componentes React usados na jornada
+real descrita aqui são os mesmos dali, reaproveitados sem duplicação de arquivo. Este
 documento cobre o que muda ao sair do protótipo solto e entrar na jornada real.
-
-**Atualização de 12/11/2026**: a decisão final de parceiro mudou de Klavi para **Celcoin**
-(o Erasmo confirmou que a API de insights da Klavi era restrita demais; a Celcoin dá mais
-liberdade). Pesquisei a documentação pública da Celcoin
-(developers.celcoin.com.br/docs/marcas-no-open-finance e páginas relacionadas de
-consentimento e diretório de marcas) e isso mudou a jornada: ver seção 5 e open questions.
 
 ## 1) Resumo executivo da jornada
 
