@@ -10,11 +10,14 @@ const BASE = "/cadastro/open-finance";
 // manda logo real aqui (ver celcoinBrandsData.ts), por isso não tem ilustração por banco: só o
 // passo a passo em texto, que é conteúdo nosso. Quem autentica e autoriza o compartilhamento é
 // a própria tela do banco depois do redirecionamento, então essa é a última tela nossa antes
-// de sair da Pode Já.
+// de sair da Pode Já. `returnTo` só passa adiante pra tela de retorno (não é usado aqui: a
+// seta de voltar sempre volta pra seleção de instituição, não sai do fluxo).
 export default function OpenFinanceTransicaoBancoPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const bancoId = (location.state as { bancoId?: string } | null)?.bancoId ?? "nubank"; // DESIGN ONLY
+  const state = location.state as { bancoId?: string; returnTo?: string } | null;
+  const bancoId = state?.bancoId ?? "nubank"; // DESIGN ONLY
+  const returnTo = state?.returnTo; // DESIGN ONLY
   const bank = celcoinBrandsMock.find((item) => item.brandId === bancoId) ?? celcoinBrandsMock[0];
   const instrucoes = instrucoesPorBanco[bancoId] ?? INSTRUCOES_GENERICAS;
 
@@ -23,7 +26,7 @@ export default function OpenFinanceTransicaoBancoPage() {
       <div className="mx-auto w-full max-w-[640px] space-y-4 md:pt-8">
         <button
           type="button"
-          onClick={() => navigate(`${BASE}/selecionar-instituicao`, { state: { bancoId } })}
+          onClick={() => navigate(`${BASE}/selecionar-instituicao`, { state: { bancoId, returnTo } })}
           className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-background"
         >
           <ArrowLeft size={20} />
@@ -80,7 +83,7 @@ export default function OpenFinanceTransicaoBancoPage() {
         <div className="mx-auto w-full max-w-[640px]">
           <Button
             className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-            onClick={() => navigate(`${BASE}/retorno`, { state: { bancoId: bank.brandId } })}
+            onClick={() => navigate(`${BASE}/retorno`, { state: { bancoId: bank.brandId, returnTo } })}
           >
             Entendi, vamos lá <ArrowRight size={16} className="ml-2" />
           </Button>

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 import { useInteresse } from "@/context/InteresseContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
+import { useOpenFinance } from "@/context/OpenFinanceContext";
 import { cobrancaBenemedFalhou, getAssinaturaBenemedAtiva, temAssinaturaBenemedAtiva, vigenciaBenemedProximaDoFim } from "@/pages/assistencias/shared";
 
 type GrupoCard = "P" | "O" | "G";
@@ -70,6 +71,8 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
   const assinaturaBenemedAtiva = temAssinaturaBenemedAtiva();
   const interesseEnergia = interesses.includes("energia");
   const { streak, saldo } = useSeubolso();
+  const { bancosConectados } = useOpenFinance();
+  const semBancoConectado = bancosConectados.length === 0;
 
   // A checagem de assinatura ativa já está embutida em cobrancaBenemedFalhou() (exceto no
   // bypass via ?assinaturaCobranca=falhou, que funciona sozinho pra pré-visualização — ver
@@ -185,6 +188,17 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
         reexibirApos: 30,
       },
       {
+        id: "O5",
+        grupo: "O",
+        prioridade: 4,
+        icone: "Bank",
+        texto: "Conecte seu banco e veja sua vida financeira em um só lugar.",
+        cta: "Conectar",
+        destino: "/cadastro/open-finance/selecionar-instituicao",
+        dispensavel: true,
+        reexibirApos: 30,
+      },
+      {
         id: "G1",
         grupo: "G",
         prioridade: 9,
@@ -219,7 +233,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
       const hit = dispensados.find((item) => item.id === card.id);
       if (!hit) return false;
 
-      if ((card.id === "O1" || card.id === "O4") && card.reexibirApos) {
+      if ((card.id === "O1" || card.id === "O4" || card.id === "O5") && card.reexibirApos) {
         const prazoMs = card.reexibirApos * 24 * 60 * 60 * 1000;
         const dispensadoEm = new Date(hit.dispensadoEm).getTime();
         if (Number.isNaN(dispensadoEm)) return true;
@@ -236,6 +250,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
       if (card.id === "P6" && !vigenciaProximaDoFim) return false;
       if (card.id === "O2" && assinaturaBenemedAtiva) return false;
       if (card.id === "O3" && interesseEnergia) return false;
+      if (card.id === "O5" && !semBancoConectado) return false;
       if (card.id === "G1" && streak === 0) return false;
       if (card.id === "G2" && saldo < 500) return false;
       if (dispensadosSessao.includes(card.id)) return false;
@@ -248,7 +263,7 @@ export function RecomendacoesProvider({ children }: { children: ReactNode }) {
     }
 
     return ativos.sort((a, b) => a.prioridade - b.prioridade);
-  }, [assinaturaBenemedAtiva, cardsBase, cobrancaBenemedFalha, dispensados, dispensadosSessao, interesseEnergia, saldo, streak, forcarRecomendacoesVazias, vigenciaProximaDoFim]);
+  }, [assinaturaBenemedAtiva, cardsBase, cobrancaBenemedFalha, dispensados, dispensadosSessao, interesseEnergia, saldo, semBancoConectado, streak, forcarRecomendacoesVazias, vigenciaProximaDoFim]);
 
   const dispensar = (id: string) => {
     const card = cardsBase.find((item) => item.id === id);

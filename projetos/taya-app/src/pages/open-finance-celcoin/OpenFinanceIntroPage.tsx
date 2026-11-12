@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, Lightbulb, Lock, ShieldCheck } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +7,8 @@ const BASE = "/cadastro/open-finance";
 
 export default function OpenFinanceIntroPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as { returnTo?: string } | null)?.returnTo; // DESIGN ONLY
   const isOnboarding = typeof window !== "undefined" && !!sessionStorage.getItem("onboarding_step");
 
   return (
@@ -77,7 +79,7 @@ export default function OpenFinanceIntroPage() {
         <div className="mx-auto w-full max-w-[640px]">
           <Button
             className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-            onClick={() => navigate(`${BASE}/selecionar-instituicao`)}
+            onClick={() => navigate(`${BASE}/selecionar-instituicao`, { state: { returnTo } })}
           >
             Conectar meu banco <ArrowRight size={16} className="ml-2" />
           </Button>
@@ -85,7 +87,7 @@ export default function OpenFinanceIntroPage() {
             type="button"
             onClick={() => {
               if (typeof window !== "undefined") window.localStorage.setItem("openfinance_pendente", "true");
-              navigate(isOnboarding ? "/cadastro" : "/painel");
+              navigate(returnTo ?? (isOnboarding ? "/cadastro" : "/painel"));
             }}
             className="mt-3 w-full text-center text-sm font-medium text-primary"
           >
