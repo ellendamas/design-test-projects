@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { celcoinBrandsMock } from "./celcoinBrandsData";
 import { useOpenFinance } from "@/context/OpenFinanceContext";
-import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
+
+const BASE = "/cadastro/open-finance";
 
 // DESIGN ONLY: ?resultado=sucesso (default) | parcial | nao_autorizado | falha_tecnica
 // ?tentativas=N (default 1) simula quantas tentativas seguidas já falharam, pra testar a
@@ -27,18 +28,16 @@ import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
 //
 // O retorno é um redirect de volta pra Pode Já com um código, e aí a gente ainda troca esse
 // código por um token: por isso passa por um estado de "confirmando" antes do resultado,
-// mesmo não sendo um evento assíncrono de verdade. Na jornada real (ver
-// useOpenFinanceApiBase), o sucesso/parcial grava no OpenFinanceContext de verdade; no
-// protótipo de comparação solto, não.
+// mesmo não sendo um evento assíncrono de verdade. No sucesso/parcial, grava no
+// OpenFinanceContext de verdade.
 type Resultado = "sucesso" | "parcial" | "nao_autorizado" | "falha_tecnica";
 
 const SUPPORT_THRESHOLD = 3;
 
-export default function KlaviApiRetornoPage() {
+export default function OpenFinanceRetornoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { base, isReal } = useOpenFinanceApiBase();
   const { connectBankById, bancosConectados } = useOpenFinance();
   const [confirmando, setConfirmando] = useState(true);
   const isOnboarding = typeof window !== "undefined" && !!sessionStorage.getItem("onboarding_step");
@@ -55,22 +54,18 @@ export default function KlaviApiRetornoPage() {
   }, []);
 
   useEffect(() => {
-    if (!confirmando && (resultado === "sucesso" || resultado === "parcial") && isReal) {
+    if (!confirmando && (resultado === "sucesso" || resultado === "parcial")) {
       connectBankById(bank.brandId, bank.customerFriendlyName);
     }
-  }, [confirmando, resultado, isReal, bank.brandId, bank.customerFriendlyName, connectBankById]);
+  }, [confirmando, resultado, bank.brandId, bank.customerFriendlyName, connectBankById]);
 
   const voltarDepois = () => {
-    if (isReal) {
-      if (typeof window !== "undefined") window.localStorage.setItem("openfinance_pendente", "true");
-      navigate(isOnboarding ? "/cadastro" : "/painel");
-      return;
-    }
-    navigate("/prototipos/open-finance-klavi");
+    if (typeof window !== "undefined") window.localStorage.setItem("openfinance_pendente", "true");
+    navigate(isOnboarding ? "/cadastro" : "/painel");
   };
 
   const tentarNovamente = () => {
-    navigate(`${base}/transicao-banco`, { state: { bancoId } });
+    navigate(`${BASE}/transicao-banco`, { state: { bancoId } });
   };
 
   const supportCard = (
@@ -236,11 +231,9 @@ export default function KlaviApiRetornoPage() {
             </div>
           )}
           <p className="text-sm font-semibold text-foreground">{bank.customerFriendlyName}</p>
-          {isReal && (
-            <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-              {bancosConectados.length} {bancosConectados.length === 1 ? "banco conectado" : "bancos conectados"}
-            </span>
-          )}
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+            {bancosConectados.length} {bancosConectados.length === 1 ? "banco conectado" : "bancos conectados"}
+          </span>
           <CheckCircle size={18} weight="fill" className="ml-auto text-[#16A34A]" />
         </div>
       </div>
@@ -252,30 +245,19 @@ export default function KlaviApiRetornoPage() {
       <AnimatePresence>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed bottom-0 left-0 right-0 px-4 py-3">
           <div className="mx-auto w-full max-w-[640px]">
-            {isReal ? (
-              <>
-                <Button
-                  className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-                  onClick={() => navigate(`${base}/selecionar-instituicao`)}
-                >
-                  Conectar outro banco
-                </Button>
-                <Button
-                  variant="outline"
-                  className="mt-2 h-12 w-full rounded-xl border-border"
-                  onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
-                >
-                  Ir para o início <ArrowRight size={16} className="ml-2" />
-                </Button>
-              </>
-            ) : (
-              <Button
-                className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-                onClick={() => navigate("/prototipos/open-finance-klavi")}
-              >
-                Ir para o início <ArrowRight size={16} className="ml-2" />
-              </Button>
-            )}
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+              onClick={() => navigate(`${BASE}/selecionar-instituicao`)}
+            >
+              Conectar outro banco
+            </Button>
+            <Button
+              variant="outline"
+              className="mt-2 h-12 w-full rounded-xl border-border"
+              onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
+            >
+              Ir para o início <ArrowRight size={16} className="ml-2" />
+            </Button>
           </div>
         </motion.div>
       </AnimatePresence>

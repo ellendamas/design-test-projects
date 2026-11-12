@@ -6,20 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useOpenFinance } from "@/context/OpenFinanceContext";
 import { BRANDS_EM_DESTAQUE, celcoinBrandsPF } from "./celcoinBrandsData";
-import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
+
+const BASE = "/cadastro/open-finance";
 
 // DESIGN ONLY: lista de bancos no formato da API de Discovery da Celcoin (ver
-// celcoinBrandsData.ts). Na jornada real, pula direto pra tela de instrução do banco: não tem
-// mais etapa separada de documento nem de autorização LGPD (quem autoriza de verdade é o
-// próprio banco, depois do redirecionamento). No protótipo de comparação solto, mantém a
-// cadeia antiga (documento → LGPD) como referência de como seria com a Klavi.
+// celcoinBrandsData.ts). Pula direto pra tela de instrução do banco: não tem etapa separada
+// de documento nem de autorização LGPD (quem autoriza de verdade é o próprio banco, depois
+// do redirecionamento).
 //
 // ?jaConectado=nubank,itau ou ?jaConectado=todos simula bancos já conectados sem precisar
 // passar pela jornada de verdade antes: útil pra testar a tag "Conectado" e o clique num
 // banco já conectado, que não repete a jornada, só avisa.
-export default function KlaviApiSelecionarInstituicaoPage() {
+export default function OpenFinanceSelecionarInstituicaoPage() {
   const navigate = useNavigate();
-  const { base, isReal } = useOpenFinanceApiBase();
   const { bancosConectados } = useOpenFinance();
   const [searchParams] = useSearchParams();
   const [bankSearch, setBankSearch] = useState("");
@@ -42,7 +41,7 @@ export default function KlaviApiSelecionarInstituicaoPage() {
       toast(`Você já conectou o ${nome}.`);
       return;
     }
-    navigate(isReal ? `${base}/transicao-banco` : `${base}/confirmar-documento`, { state: { bancoId: brandId } });
+    navigate(`${BASE}/transicao-banco`, { state: { bancoId: brandId } });
   };
 
   return (
@@ -51,14 +50,14 @@ export default function KlaviApiSelecionarInstituicaoPage() {
         <div className="flex items-center justify-between">
           <button
             type="button"
-            onClick={() => navigate(base)}
+            onClick={() => navigate(BASE)}
             className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-background"
           >
             <ArrowLeft size={20} />
           </button>
-          <span className="text-xs font-medium text-muted-foreground">{isReal ? "Passo 1 de 2" : "Passo 1 de 4"}</span>
+          <span className="text-xs font-medium text-muted-foreground">Passo 1 de 2</span>
         </div>
-        <Progress value={isReal ? 50 : 25} className="h-1 bg-secondary [&>div]:bg-primary" />
+        <Progress value={50} className="h-1 bg-secondary [&>div]:bg-primary" />
 
         <div>
           <h2 className="text-2xl font-bold text-foreground">Qual é o seu banco principal?</h2>

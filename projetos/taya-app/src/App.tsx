@@ -88,16 +88,10 @@ import OpenFinanceSelectBankPage from "@/pages/open-finance/OpenFinanceSelectBan
 import OpenFinanceGuidePage from "@/pages/open-finance/OpenFinanceGuidePage";
 import OpenFinanceConnectingPage from "@/pages/open-finance/OpenFinanceConnectingPage";
 import OpenFinanceConnectedPage from "@/pages/open-finance/OpenFinanceConnectedPage";
-import OpenFinanceKlaviComparePage from "@/pages/open-finance-klavi/OpenFinanceKlaviComparePage";
-import KlaviWhitelabelIntroPage from "@/pages/open-finance-klavi/whitelabel/KlaviWhitelabelIntroPage";
-import KlaviWhitelabelTransicaoPage from "@/pages/open-finance-klavi/whitelabel/KlaviWhitelabelTransicaoPage";
-import KlaviWhitelabelRetornoPage from "@/pages/open-finance-klavi/whitelabel/KlaviWhitelabelRetornoPage";
-import KlaviApiIntroPage from "@/pages/open-finance-klavi/api-only/KlaviApiIntroPage";
-import KlaviApiSelecionarInstituicaoPage from "@/pages/open-finance-klavi/api-only/KlaviApiSelecionarInstituicaoPage";
-import KlaviApiConfirmarDocumentoPage from "@/pages/open-finance-klavi/api-only/KlaviApiConfirmarDocumentoPage";
-import KlaviApiAutorizacaoLgpdPage from "@/pages/open-finance-klavi/api-only/KlaviApiAutorizacaoLgpdPage";
-import KlaviApiTransicaoBancoPage from "@/pages/open-finance-klavi/api-only/KlaviApiTransicaoBancoPage";
-import KlaviApiRetornoPage from "@/pages/open-finance-klavi/api-only/KlaviApiRetornoPage";
+import OpenFinanceIntroPage from "@/pages/open-finance-celcoin/OpenFinanceIntroPage";
+import OpenFinanceSelecionarInstituicaoPage from "@/pages/open-finance-celcoin/OpenFinanceSelecionarInstituicaoPage";
+import OpenFinanceTransicaoBancoPage from "@/pages/open-finance-celcoin/OpenFinanceTransicaoBancoPage";
+import OpenFinanceRetornoPage from "@/pages/open-finance-celcoin/OpenFinanceRetornoPage";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
 import ConsignadoCLTLandingPage from "@/pages/consignado-clt/LandingPage";
@@ -4264,33 +4258,21 @@ function App() {
             <Route path="/credito-pessoal/contrato/:id" element={getStoredUser() ? <CreditoPessoalContratoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <DuvidasPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seguro-vida" element={getStoredUser() ? <SeguroVidaLandingPage /> : <Navigate to="/boas-vindas" replace />} />
-            {/* Jornada de Open Finance real: via API, com a Celcoin (decisão de produto, nov/2026,
-                depois de descartar a Klavi). Sem etapa própria de autorização LGPD: pela doc da
-                Celcoin, quem autoriza de verdade é a própria tela do banco, depois do
-                redirecionamento (ver KlaviApiTransicaoBancoPage). A tela de LGPD continua
-                existindo só no protótipo de comparação solto, como referência. */}
-            <Route path="/cadastro/open-finance" element={getStoredUser() ? <KlaviApiIntroPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/cadastro/open-finance/selecionar-instituicao" element={getStoredUser() ? <KlaviApiSelecionarInstituicaoPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/cadastro/open-finance/transicao-banco" element={getStoredUser() ? <KlaviApiTransicaoBancoPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/cadastro/open-finance/retorno" element={getStoredUser() ? <KlaviApiRetornoPage /> : <Navigate to="/boas-vindas" replace />} />
-            {/* Jornada genérica anterior (não-Klavi), mantida intocada e acessível por URL direta.
-                Pode ser reaproveitada com outro parceiro de Open Finance no futuro. Não é mais o
+            {/* Jornada de Open Finance real, via API, com a Celcoin. Sem etapa própria de
+                autorização LGPD: pela documentação da Celcoin, quem autoriza de verdade é a
+                própria tela do banco, depois do redirecionamento (ver
+                OpenFinanceTransicaoBancoPage). */}
+            <Route path="/cadastro/open-finance" element={getStoredUser() ? <OpenFinanceIntroPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/open-finance/selecionar-instituicao" element={getStoredUser() ? <OpenFinanceSelecionarInstituicaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/open-finance/transicao-banco" element={getStoredUser() ? <OpenFinanceTransicaoBancoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/cadastro/open-finance/retorno" element={getStoredUser() ? <OpenFinanceRetornoPage /> : <Navigate to="/boas-vindas" replace />} />
+            {/* Jornada genérica anterior de Open Finance, mantida intocada e acessível por URL
+                direta. Pode ser reaproveitada com outro parceiro no futuro. Não é mais o
                 destino de nenhum CTA do app, só continua montada aqui de propósito. */}
             <Route path="/cadastro/selecionar-banco" element={getStoredUser() ? <OpenFinanceSelectBankPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/cadastro/guia-banco/:bancoId" element={getStoredUser() ? <OpenFinanceGuidePage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/cadastro/conectando" element={getStoredUser() ? <OpenFinanceConnectingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/cadastro/conectado" element={getStoredUser() ? <OpenFinanceConnectedPage /> : <Navigate to="/boas-vindas" replace />} />
-            {/* Protótipo interno de comparação Klavi (Whitelabel vs API Only): acesso direto por URL, sem gate de login */}
-            <Route path="/prototipos/open-finance-klavi" element={<OpenFinanceKlaviComparePage />} />
-            <Route path="/prototipos/open-finance-klavi/whitelabel" element={<KlaviWhitelabelIntroPage />} />
-            <Route path="/prototipos/open-finance-klavi/whitelabel/transicao" element={<KlaviWhitelabelTransicaoPage />} />
-            <Route path="/prototipos/open-finance-klavi/whitelabel/retorno" element={<KlaviWhitelabelRetornoPage />} />
-            <Route path="/prototipos/open-finance-klavi/api-only" element={<KlaviApiIntroPage />} />
-            <Route path="/prototipos/open-finance-klavi/api-only/selecionar-instituicao" element={<KlaviApiSelecionarInstituicaoPage />} />
-            <Route path="/prototipos/open-finance-klavi/api-only/confirmar-documento" element={<KlaviApiConfirmarDocumentoPage />} />
-            <Route path="/prototipos/open-finance-klavi/api-only/autorizacao-lgpd" element={<KlaviApiAutorizacaoLgpdPage />} />
-            <Route path="/prototipos/open-finance-klavi/api-only/transicao-banco" element={<KlaviApiTransicaoBancoPage />} />
-            <Route path="/prototipos/open-finance-klavi/api-only/retorno" element={<KlaviApiRetornoPage />} />
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/provedores" element={getStoredUser() ? <ConsignadoCLTProvedoresPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/redirecionando/unico" element={getStoredUser() ? <ConsignadoCLTRedirecionandoUnicoPage /> : <Navigate to="/boas-vindas" replace />} />

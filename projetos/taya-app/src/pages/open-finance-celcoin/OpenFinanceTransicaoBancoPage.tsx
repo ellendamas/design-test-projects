@@ -3,17 +3,17 @@ import { ArrowLeft, ArrowRight, Lock } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { celcoinBrandsMock, INSTRUCOES_GENERICAS, instrucoesPorBanco } from "./celcoinBrandsData";
-import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
+
+const BASE = "/cadastro/open-finance";
 
 // DESIGN ONLY: bancoId tem fallback "nubank" pra permitir acesso direto por URL. A Celcoin não
 // manda logo real aqui (ver celcoinBrandsData.ts), por isso não tem ilustração por banco: só o
-// passo a passo em texto, que é conteúdo nosso. Na jornada real, pela doc da Celcoin, quem
-// autentica e autoriza o compartilhamento é a própria tela do banco depois do
-// redirecionamento, então essa é a última tela nossa antes de sair da Pode Já.
-export default function KlaviApiTransicaoBancoPage() {
+// passo a passo em texto, que é conteúdo nosso. Quem autentica e autoriza o compartilhamento é
+// a própria tela do banco depois do redirecionamento, então essa é a última tela nossa antes
+// de sair da Pode Já.
+export default function OpenFinanceTransicaoBancoPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { base, isReal } = useOpenFinanceApiBase();
   const bancoId = (location.state as { bancoId?: string } | null)?.bancoId ?? "nubank"; // DESIGN ONLY
   const bank = celcoinBrandsMock.find((item) => item.brandId === bancoId) ?? celcoinBrandsMock[0];
   const instrucoes = instrucoesPorBanco[bancoId] ?? INSTRUCOES_GENERICAS;
@@ -23,7 +23,7 @@ export default function KlaviApiTransicaoBancoPage() {
       <div className="mx-auto w-full max-w-[640px] space-y-4 md:pt-8">
         <button
           type="button"
-          onClick={() => navigate(isReal ? `${base}/selecionar-instituicao` : `${base}/autorizacao-lgpd`, { state: { bancoId } })}
+          onClick={() => navigate(`${BASE}/selecionar-instituicao`, { state: { bancoId } })}
           className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-background"
         >
           <ArrowLeft size={20} />
@@ -80,7 +80,7 @@ export default function KlaviApiTransicaoBancoPage() {
         <div className="mx-auto w-full max-w-[640px]">
           <Button
             className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-            onClick={() => navigate(`${base}/retorno`, { state: { bancoId: bank.brandId } })}
+            onClick={() => navigate(`${BASE}/retorno`, { state: { bancoId: bank.brandId } })}
           >
             Entendi, vamos lá <ArrowRight size={16} className="ml-2" />
           </Button>
