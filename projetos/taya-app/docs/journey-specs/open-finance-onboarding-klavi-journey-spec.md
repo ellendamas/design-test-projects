@@ -123,6 +123,19 @@ solto, e ajusta:
   "Conectar outro banco" (volta pra seleção) e "Ir para o início" (`/cadastro` ou
   `/painel`), replicando o padrão da `OpenFinanceConnectedPage` antiga. O nome e o avatar
   do banco exibidos vêm do formato Celcoin (nome + logo genérico, sem cor nem inicial).
+  Além de sucesso, agora cobre mais 3 resultados reais da Celcoin, todos simuláveis por
+  parâmetro de URL em vez de variável interna, a pedido da Ellen:
+  `?resultado=sucesso|parcial|nao_autorizado|falha_tecnica` e `?tentativas=N` (a partir de 3,
+  mostra um card de "falar com o suporte", mesmo padrão usado na escalação da confirmação de
+  identidade do onboarding). `parcial` cobre o 403 "no resource allowed" documentado pela
+  Celcoin (consentimento aprovado, mas nem todos os dados liberados); `nao_autorizado`
+  reconhece que a Celcoin não distingue recusa explícita de simples não resposta a tempo
+  (mesmo status REJECTED pros dois); `falha_tecnica` cobre quando o banco já autorizou mas a
+  troca do código pelo token falha do nosso lado, pra não jogar a culpa no banco à toa.
+- **of_selecionar** ganhou simulação de bancos já conectados via `?jaConectado=nubank,itau`
+  ou `?jaConectado=todos`, e clicar num banco já conectado não navega mais: só mostra um
+  toast avisando. Antes disso a jornada deixava repetir a conexão de um banco já conectado
+  sem necessidade.
 
 ## 6) Diff de UX por tela
 
@@ -155,9 +168,12 @@ solto, e ajusta:
 | openfinance_cadastro_institution_selected | Clique em um banco da lista | of_selecionar | openfinance_cadastro | selecionar_instituicao | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
 | openfinance_cadastro_bank_transition_confirmed | CTA "Entendi, vamos lá" | of_transicao | openfinance_cadastro | transicao_banco | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
 | openfinance_cadastro_connection_pending | Entrada na tela de retorno, estado "confirmando" | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
-| openfinance_cadastro_connection_succeeded | Resultado assíncrono = sucesso; grava em OpenFinanceContext | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, connection_result, total_bancos_conectados | - | content-strategy | pending |
-| openfinance_cadastro_connection_failed | Resultado assíncrono = erro | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, connection_result | - | content-strategy | pending |
-| openfinance_cadastro_connection_cancelled | Resultado assíncrono = cancelado | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, connection_result | - | content-strategy | pending |
+| openfinance_cadastro_connection_succeeded | Resultado = sucesso; grava em OpenFinanceContext | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, connection_result, total_bancos_conectados | - | content-strategy | pending |
+| openfinance_cadastro_connection_partial | Resultado = parcial (403 "no resource allowed" da Celcoin); grava em OpenFinanceContext mesmo assim | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, connection_result | - | content-strategy | pending |
+| openfinance_cadastro_connection_unauthorized | Resultado = nao_autorizado (a Celcoin não distingue recusa explícita de timeout) | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, connection_result, attempt_number | - | content-strategy | pending |
+| openfinance_cadastro_connection_technical_error | Resultado = falha_tecnica (falha nossa depois da autorização no banco) | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, connection_result, attempt_number | - | content-strategy | pending |
+| openfinance_cadastro_support_escalation_shown | Card de suporte exibido (attempt_number >= 3) | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, attempt_number | - | content-strategy | pending |
+| openfinance_cadastro_already_connected_tapped | Clique num banco já conectado (sem navegar, só aviso) | of_selecionar | openfinance_cadastro | selecionar_instituicao | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
 | openfinance_cadastro_connection_retry_started | CTA "Tentar novamente" (erro ou cancelado) | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
 | openfinance_cadastro_another_bank_started | CTA "Conectar outro banco" (sucesso) | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name | - | content-strategy | pending |
 
@@ -223,3 +239,5 @@ estudo da documentação da Celcoin.
 | O logo de cada banco (`CustomerFriendlyLogoUri`) vem pronto da API, em que formato? A tela de seleção está mockada com um ícone genérico até isso ser confirmado. | Erasmo (backend) | [A CONFIRMAR] | aberta |
 | Qual deve ser o estado vazio da busca em `of_selecionar` quando nenhum resultado é encontrado? Ainda não tem copy definida (herdado do protótipo). | Ellen | [A CONFIRMAR] | aberta |
 | "Conectar outro banco" deveria reexibir os bancos já conectados (como a jornada antiga fazia com `modo=adicionar`)? Não foi implementado nesta rodada. | Ellen | [A CONFIRMAR] | aberta |
+| O limite de 3 tentativas pra mostrar o card de suporte em `of_retorno` (`SUPPORT_THRESHOLD`) foi um número que escolhi sem validar com ninguém. Esse número faz sentido, ou tem algum dado de produção sobre quantas tentativas as pessoas costumam fazer antes de desistir? | Ellen / Erasmo | [A CONFIRMAR] | aberta |
+| Quando o resultado é `parcial` (banco aprovou, mas não liberou todos os dados), a Pode Já consegue saber especificamente qual dado faltou, pra avisar o usuário com mais precisão, ou só sabe que faltou algo? | Erasmo (backend) | [A CONFIRMAR] | aberta |

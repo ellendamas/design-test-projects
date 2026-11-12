@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Bank, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useOpenFinance } from "@/context/OpenFinanceContext";
@@ -12,19 +13,35 @@ import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
 // mais etapa separada de documento nem de autorização LGPD (quem autoriza de verdade é o
 // próprio banco, depois do redirecionamento). No protótipo de comparação solto, mantém a
 // cadeia antiga (documento → LGPD) como referência de como seria com a Klavi.
+//
+// ?jaConectado=nubank,itau ou ?jaConectado=todos simula bancos já conectados sem precisar
+// passar pela jornada de verdade antes: útil pra testar a tag "Conectado" e o clique num
+// banco já conectado, que não repete a jornada, só avisa.
 export default function KlaviApiSelecionarInstituicaoPage() {
   const navigate = useNavigate();
   const { base, isReal } = useOpenFinanceApiBase();
   const { bancosConectados } = useOpenFinance();
+  const [searchParams] = useSearchParams();
   const [bankSearch, setBankSearch] = useState("");
 
+  const jaConectadoParam = searchParams.get("jaConectado"); // DESIGN ONLY
   const connectedIds = new Set(bancosConectados.map((b) => b.id));
+  if (jaConectadoParam === "todos") {
+    celcoinBrandsPF.forEach((brand) => connectedIds.add(brand.brandId));
+  } else if (jaConectadoParam) {
+    jaConectadoParam.split(",").forEach((id) => connectedIds.add(id.trim()));
+  }
+
   const query = bankSearch.trim().toLowerCase();
   const matches = celcoinBrandsPF.filter((brand) => brand.customerFriendlyName.toLowerCase().includes(query));
   const destaque = matches.filter((brand) => BRANDS_EM_DESTAQUE.includes(brand.brandId));
   const outros = matches.filter((brand) => !BRANDS_EM_DESTAQUE.includes(brand.brandId));
 
-  const onBankClick = (brandId: string) => {
+  const onBankClick = (brandId: string, nome: string) => {
+    if (connectedIds.has(brandId)) {
+      toast(`Você já conectou o ${nome}.`);
+      return;
+    }
     navigate(isReal ? `${base}/transicao-banco` : `${base}/confirmar-documento`, { state: { bancoId: brandId } });
   };
 
@@ -65,7 +82,7 @@ export default function KlaviApiSelecionarInstituicaoPage() {
             <button
               key={brand.brandId}
               type="button"
-              onClick={() => onBankClick(brand.brandId)}
+              onClick={() => onBankClick(brand.brandId, brand.customerFriendlyName)}
               className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-3 py-3 text-left transition-colors hover:bg-[#FAFAFA]"
             >
               <div className="flex items-center gap-3">
@@ -78,7 +95,7 @@ export default function KlaviApiSelecionarInstituicaoPage() {
                 )}
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-foreground">{brand.customerFriendlyName}</p>
-                  {isReal && connectedIds.has(brand.brandId) && (
+                  {connectedIds.has(brand.brandId) && (
                     <span className="rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-semibold text-[#15803D]">Conectado</span>
                   )}
                 </div>
@@ -95,7 +112,7 @@ export default function KlaviApiSelecionarInstituicaoPage() {
             <button
               key={brand.brandId}
               type="button"
-              onClick={() => onBankClick(brand.brandId)}
+              onClick={() => onBankClick(brand.brandId, brand.customerFriendlyName)}
               className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-3 py-3 text-left transition-colors hover:bg-[#FAFAFA]"
             >
               <div className="flex items-center gap-3">
@@ -108,7 +125,7 @@ export default function KlaviApiSelecionarInstituicaoPage() {
                 )}
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-foreground">{brand.customerFriendlyName}</p>
-                  {isReal && connectedIds.has(brand.brandId) && (
+                  {connectedIds.has(brand.brandId) && (
                     <span className="rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-semibold text-[#15803D]">Conectado</span>
                   )}
                 </div>
