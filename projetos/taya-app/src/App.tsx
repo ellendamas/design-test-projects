@@ -55,6 +55,7 @@ import {
   Users,
   Wallet,
   VideoCamera,
+  WarningCircle,
   WhatsappLogo,
   X,
 } from "@phosphor-icons/react";
@@ -84,6 +85,7 @@ import { contratos } from "@/data/contratos";
 import { usePrivacy } from "@/context/PrivacyContext";
 import { useNotificacoes } from "@/context/NotificacoesContext";
 import { useSeubolso } from "@/context/SeubolsoContext";
+import { useOpenFinance } from "@/context/OpenFinanceContext";
 import OpenFinanceSelectBankPage from "@/pages/open-finance/OpenFinanceSelectBankPage";
 import OpenFinanceGuidePage from "@/pages/open-finance/OpenFinanceGuidePage";
 import OpenFinanceConnectingPage from "@/pages/open-finance/OpenFinanceConnectingPage";
@@ -996,6 +998,305 @@ function DadosBancariosPage() {
         />
       </div>
     </SubPageLayout>
+  );
+}
+
+// Gestão da integração de Open Finance (Minha Conta). Duas ações distintas, confirmadas
+// pelo Erasmo (backend, 13/11/2026): desconectar um banco (para de buscar dado novo, mas
+// não apaga o que já foi coletado) e solicitar a exclusão dos dados via LGPD (apaga o que já
+// foi coletado, é separado de desconectar). Não existe ainda uma tela de insights/saldo no
+// app: essa página só gerencia a conexão em si, ver journey-spec de insights (próxima fase).
+// Motivos de exclusão dos dados de Open Finance: conteúdo nosso (a API da Celcoin não
+// pergunta isso), pra entender a motivação, não pra travar o pedido. Ordem embaralhada a
+// cada visita, mesmo padrão já usado na jornada de exclusão de conta.
+const MOTIVOS_EXCLUSAO_OPEN_FINANCE = [
+  { id: "nao_uso_mais", label: "Não uso mais o Open Finance" },
+  { id: "prefiro_nao_compartilhar", label: "Prefiro não ter meus dados bancários armazenados" },
+  { id: "vou_usar_outro_banco", label: "Vou conectar outro banco no lugar deste" },
+  { id: "tive_problema", label: "Tive algum problema com a funcionalidade" },
+  { id: "so_queria_testar", label: "Só queria ver como funcionava" },
+  { id: "outro", label: "Outro motivo" },
+] as const;
+
+function embaralhar<T>(lista: readonly T[]): T[] {
+  const embaralhado = [...lista];
+  for (let i = embaralhado.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+  }
+  return embaralhado;
+}
+
+function OpenFinanceGestaoPage() {
+  const navigate = useNavigate();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const { bancosConectados, disconnectBankById } = useOpenFinance();
+  const [bancoParaDesconectar, setBancoParaDesconectar] = useState<string | null>(null);
+  const [motivoAberto, setMotivoAberto] = useState(false);
+  const [motivoSelecionado, setMotivoSelecionado] = useState<string | null>(null);
+  const [comentarioExclusao, setComentarioExclusao] = useState("");
+  const [exclusaoAberta, setExclusaoAberta] = useState(false);
+  const [exclusaoConfirmada, setExclusaoConfirmada] = useState(false);
+
+  // DESIGN ONLY: "Conectar banco"/"Conectar outro banco" saindo daqui precisam voltar pra cá
+  // no final da jornada, não pro painel: por isso o `returnTo`, ver
+  // OpenFinanceSelecionarInstituicaoPage e OpenFinanceRetornoPage.
+  const irConectarBanco = () =>
+    navigate("/cadastro/open-finance/selecionar-instituicao", { state: { returnTo: "/minha-conta/open-finance" } });
+
+  const motivosEmbaralhados = useMemo(() => embaralhar(MOTIVOS_EXCLUSAO_OPEN_FINANCE), []);
+
+  const bancoSelecionado = bancosConectados.find((b) => b.id === bancoParaDesconectar) ?? null;
+
+  const confirmarDesconexao = () => {
+    if (bancoParaDesconectar) disconnectBankById(bancoParaDesconectar);
+    setBancoParaDesconectar(null);
+    toast("Banco desconectado.");
+  };
+
+  const confirmarExclusaoDados = () => {
+    bancosConectados.forEach((b) => disconnectBankById(b.id));
+    setExclusaoAberta(false);
+    setExclusaoConfirmada(true);
+  };
+
+  if (exclusaoConfirmada) {
+    return (
+      <SubPageLayout title="Open Finance">
+        <div className="flex flex-col items-center space-y-4 py-12 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF3EE]">
+            <CheckCircle size={28} className="text-[#FD5F31]" weight="fill" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-foreground">Solicitação registrada</p>
+            <p className="text-sm text-muted-foreground">
+              Vamos excluir os dados que coletamos via Open Finance e te avisamos quando
+              terminar. Seus bancos já foram desconectados.
+            </p>
+          </div>
+          <Button className="h-11 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" onClick={() => navigate("/minha-conta")}>
+            Voltar para minha conta
+          </Button>
+        </div>
+      </SubPageLayout>
+    );
+  }
+
+  // Etapa de motivo: mesmo padrão de tela cheia da exclusão de conta, antes de qualquer
+  // confirmação destrutiva: entender a motivação, não travar o pedido nela.
+  if (motivoAberto) {
+    return (
+      <SubPageLayout title="Open Finance" hideNav>
+        <div className="space-y-4 pb-24">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Por que você quer excluir seus dados?</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Isso ajuda a gente a entender e melhorar. Não muda o resultado do seu pedido.
+            </p>
+          </div>
+          <div className="space-y-2">
+            {motivosEmbaralhados.map((motivo) => (
+              <button
+                key={motivo.id}
+                type="button"
+                onClick={() => setMotivoSelecionado(motivo.id)}
+                className={`w-full rounded-xl border px-4 py-3 text-left text-sm font-medium ${
+                  motivoSelecionado === motivo.id ? "border-primary bg-primary-light text-primary" : "border-border text-foreground"
+                }`}
+              >
+                {motivo.label}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Quer contar mais? (opcional)</Label>
+            <textarea
+              value={comentarioExclusao}
+              onChange={(e) => setComentarioExclusao(e.target.value.slice(0, 280))}
+              maxLength={280}
+              rows={3}
+              className="w-full rounded-xl border border-border p-3 text-sm"
+              placeholder="Conte o que aconteceu, se quiser."
+            />
+          </div>
+        </div>
+        <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-white px-4 py-3">
+          <div className="mx-auto w-full max-w-[640px] space-y-2">
+            <Button
+              className="h-12 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28] disabled:opacity-40"
+              disabled={!motivoSelecionado}
+              onClick={() => { setMotivoAberto(false); setExclusaoAberta(true); }}
+            >
+              Continuar
+            </Button>
+            <button type="button" className="h-11 w-full text-center text-sm font-medium text-muted-foreground" onClick={() => setMotivoAberto(false)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </SubPageLayout>
+    );
+  }
+
+  const desconectarModalContent = (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Você pode conectar o {bancoSelecionado?.nome} de novo quando quiser. Os dados já
+        importados continuam no seu histórico.
+      </p>
+      <Button className="h-11 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]" onClick={confirmarDesconexao}>
+        Desconectar
+      </Button>
+      <button type="button" className="h-11 w-full text-center text-sm font-medium text-muted-foreground" onClick={() => setBancoParaDesconectar(null)}>
+        Cancelar
+      </button>
+    </div>
+  );
+
+  const exclusaoModalContent = (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Isso apaga os dados que já coletamos pelo Open Finance e desconecta todos os seus
+        bancos. Não afeta o resto da sua conta na Pode Já. Não dá pra desfazer.
+      </p>
+      <Button className="h-11 w-full rounded-xl bg-[#DC2626] text-white hover:bg-[#B91C1C]" onClick={confirmarExclusaoDados}>
+        Solicitar exclusão
+      </Button>
+      <button type="button" className="h-11 w-full text-center text-sm font-medium text-muted-foreground" onClick={() => setExclusaoAberta(false)}>
+        Cancelar
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      <SubPageLayout title="Open Finance">
+        <div className="space-y-4 pb-6">
+          {bancosConectados.length === 0 ? (
+            <Card className="border-border shadow-sm">
+              <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-light text-primary">
+                  <Bank size={22} />
+                </div>
+                <p className="text-sm font-semibold text-foreground">Você ainda não conectou nenhum banco</p>
+                <p className="text-xs text-muted-foreground">
+                  Conecte seu banco pra ver sua vida financeira em um só lugar.
+                </p>
+                <Button
+                  className="h-11 w-full rounded-xl bg-[#FD5F31] text-white hover:bg-[#D94E28]"
+                  onClick={irConectarBanco}
+                >
+                  Conectar banco
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <Card className="border-border shadow-sm">
+                <CardContent className="p-0">
+                  <div className="flex items-center gap-2 px-4 py-3">
+                    <span className="text-primary"><Bank size={18} /></span>
+                    <p className="text-sm font-medium text-foreground">Bancos conectados</p>
+                  </div>
+                  {bancosConectados.map((banco) => (
+                    <div key={banco.id} className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 last:border-0">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: banco.cor }}>
+                          {banco.nome.charAt(0)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-foreground">{banco.nome}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Conectado em {new Date(banco.conectadoEm).toLocaleDateString("pt-BR")}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setBancoParaDesconectar(banco.id)}
+                        className="shrink-0 text-xs font-semibold text-[#FD5F31]"
+                      >
+                        Desconectar
+                      </button>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+              <button
+                type="button"
+                onClick={irConectarBanco}
+                className="w-full text-center text-sm font-semibold text-[#FD5F31]"
+              >
+                Conectar outro banco
+              </button>
+            </>
+          )}
+
+          <Card className="border-border shadow-sm">
+            <CardContent className="space-y-3 p-4">
+              <div className="flex items-center gap-2">
+                <WarningCircle size={18} className="text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Seus dados de Open Finance</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Desconectar um banco só para de buscar dado novo. Se quiser apagar os dados que
+                já coletamos, você pode solicitar a exclusão a qualquer momento, conforme a
+                LGPD.
+              </p>
+              <button
+                type="button"
+                onClick={() => { setMotivoSelecionado(null); setComentarioExclusao(""); setMotivoAberto(true); }}
+                className="text-xs font-semibold text-[#DC2626]"
+              >
+                Solicitar exclusão dos meus dados
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+      </SubPageLayout>
+
+      {isDesktop ? (
+        <Dialog open={!!bancoParaDesconectar} onOpenChange={(o) => { if (!o) setBancoParaDesconectar(null); }}>
+          <DialogContent className="max-w-md">
+            <DialogClose onClose={() => setBancoParaDesconectar(null)} />
+            <DialogHeader>
+              <DialogTitle>Desconectar {bancoSelecionado?.nome}?</DialogTitle>
+            </DialogHeader>
+            {desconectarModalContent}
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer open={!!bancoParaDesconectar} onOpenChange={(o) => { if (!o) setBancoParaDesconectar(null); }}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Desconectar {bancoSelecionado?.nome}?</DrawerTitle>
+            </DrawerHeader>
+            {desconectarModalContent}
+          </DrawerContent>
+        </Drawer>
+      )}
+
+      {isDesktop ? (
+        <Dialog open={exclusaoAberta} onOpenChange={setExclusaoAberta}>
+          <DialogContent className="max-w-md">
+            <DialogClose onClose={() => setExclusaoAberta(false)} />
+            <DialogHeader>
+              <DialogTitle>Solicitar exclusão dos seus dados?</DialogTitle>
+            </DialogHeader>
+            {exclusaoModalContent}
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer open={exclusaoAberta} onOpenChange={setExclusaoAberta}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Solicitar exclusão dos seus dados?</DrawerTitle>
+            </DrawerHeader>
+            {exclusaoModalContent}
+          </DrawerContent>
+        </Drawer>
+      )}
+    </>
   );
 }
 
@@ -4117,6 +4418,7 @@ function App() {
                     { label: "Meus dados", action: () => navigate("/minha-conta/meus-dados") },
                     { label: "Editar endereço", action: () => navigate("/minha-conta/editar-endereco") },
                     { label: "Dados bancários", action: () => navigate("/minha-conta/dados-bancarios") },
+                    { label: "Open Finance", action: () => navigate("/minha-conta/open-finance") },
                     // Ponto de acesso fixo ao Indique e ganhe — sem ele, quem via o banner e não
                     // indicou na hora (ou quem já dispensou/não vê mais o card em "Para você
                     // agora", por causa da regra de recorrência) não tinha como achar o link de
@@ -4213,6 +4515,7 @@ function App() {
             <Route path="/minha-conta/meus-dados" element={getStoredUser() ? <MeusDadosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/editar-endereco" element={getStoredUser() ? <EditarEnderecoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/dados-bancarios" element={getStoredUser() ? <DadosBancariosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/open-finance" element={getStoredUser() ? <OpenFinanceGestaoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/alterar-senha" element={getStoredUser() ? <AlterarSenhaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/verificar-email" element={getStoredUser() ? <VerificarContato tipo="email" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/verificar-celular" element={getStoredUser() ? <VerificarContato tipo="celular" /> : <Navigate to="/boas-vindas" replace />} />

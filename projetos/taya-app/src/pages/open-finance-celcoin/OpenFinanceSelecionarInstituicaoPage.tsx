@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Bank, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -14,14 +14,23 @@ const BASE = "/cadastro/open-finance";
 // de documento nem de autorização LGPD (quem autoriza de verdade é o próprio banco, depois
 // do redirecionamento).
 //
+// `returnTo`, em location.state, é pra onde a jornada deve sair quando terminar ou quando a
+// seta de voltar é usada aqui (primeira tela do fluxo de verdade). Sem ele, a seta de voltar
+// vai pra introdução do cadastro: errado quando essa tela é aberta direto, por fora do
+// onboarding (ex.: "Conectar banco" em Minha Conta > Open Finance). Precisa seguir pra
+// frente em todo navigate() dentro do fluxo, pra sobreviver até a tela de retorno.
+//
 // ?jaConectado=nubank,itau ou ?jaConectado=todos simula bancos já conectados sem precisar
 // passar pela jornada de verdade antes: útil pra testar a tag "Conectado" e o clique num
 // banco já conectado, que não repete a jornada, só avisa.
 export default function OpenFinanceSelecionarInstituicaoPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { bancosConectados } = useOpenFinance();
   const [searchParams] = useSearchParams();
   const [bankSearch, setBankSearch] = useState("");
+
+  const returnTo = (location.state as { returnTo?: string } | null)?.returnTo; // DESIGN ONLY
 
   const jaConectadoParam = searchParams.get("jaConectado"); // DESIGN ONLY
   const connectedIds = new Set(bancosConectados.map((b) => b.id));
@@ -41,7 +50,7 @@ export default function OpenFinanceSelecionarInstituicaoPage() {
       toast(`Você já conectou o ${nome}.`);
       return;
     }
-    navigate(`${BASE}/transicao-banco`, { state: { bancoId: brandId } });
+    navigate(`${BASE}/transicao-banco`, { state: { bancoId: brandId, returnTo } });
   };
 
   return (
@@ -50,7 +59,7 @@ export default function OpenFinanceSelecionarInstituicaoPage() {
         <div className="flex items-center justify-between">
           <button
             type="button"
-            onClick={() => navigate(BASE)}
+            onClick={() => navigate(returnTo ?? BASE)}
             className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-background"
           >
             <ArrowLeft size={20} />
