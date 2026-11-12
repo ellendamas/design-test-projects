@@ -46,29 +46,29 @@ export const instrucoesPorBanco: Record<string, string[]> = {
     "Você volta para a Pode Já automaticamente",
   ],
   itau: [
-    "O app ou o site do Itaú vai abrir",
+    "O app do Itaú vai abrir",
     "Entre com sua senha eletrônica",
     "Confirme a autorização e volte para a Pode Já",
   ],
   bradesco: [
-    "O app ou o site do Bradesco vai abrir",
+    "O app do Bradesco vai abrir",
     "Use sua senha ou biometria para entrar",
     "Confirme a autorização e volte para a Pode Já",
   ],
   bb: [
-    "O app ou o site do Banco do Brasil vai abrir",
+    "O app do Banco do Brasil vai abrir",
     "Digite sua senha de acesso",
     "Confirme a autorização e volte para a Pode Já",
   ],
   caixa: [
-    "O app ou o site da Caixa vai abrir",
+    "O app da Caixa vai abrir",
     "Faça login com sua senha",
     "Confirme a autorização e volte para a Pode Já",
   ],
 };
 
 export const INSTRUCOES_GENERICAS = [
-  "O app ou o site do seu banco vai abrir",
+  "O app do seu banco vai abrir",
   "Faça login e confirme a autorização",
   "Você volta para a Pode Já automaticamente",
 ];

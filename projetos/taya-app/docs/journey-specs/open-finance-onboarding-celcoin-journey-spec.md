@@ -222,11 +222,12 @@ tem os dados mockados de instituições e os textos de instrução por banco (ve
 - Impacto em escopo: a jornada de conexão bancária do cadastro passa a ter 4 telas (proposta
   de valor, seleção de instituição, instrução do banco, retorno). A etapa de autorização
   acontece na própria tela do banco, fora do nosso controle visual.
-- Riscos e dependências: depende da confirmação do Erasmo sobre vários pontos técnicos da
-  Celcoin que a documentação pública não deixou claros (ver open questions): prazo de
-  consentimento, onde a revogação acontece, se o redirecionamento abre o app nativo do banco
-  ou só uma página web, e se o diretório de instituições que encontrei (sob `/open/itp/`) é
-  o mesmo usado para consentimento de dados.
+- Riscos e dependências: os pontos técnicos da Celcoin que a documentação pública não deixou
+  claros já foram confirmados pelo Erasmo em 13/11/2026 (ver seção 10). Seguem em aberto só
+  as decisões de produto que dependem da Ellen e a definição de escopo da próxima fase
+  (botão de desconectar banco + solicitação de exclusão de dados via LGPD, que o Erasmo
+  confirmou serem necessários, mas que são telas de "Minha Conta"/configuração, fora do
+  escopo deste documento de cadastro).
 - Impacto esperado em métricas: jornada curta (4 telas) pode favorecer a taxa de conclusão
   dessa etapa; recomenda-se medir via os eventos desta tabela depois do lançamento.
 - Plano de rollout: liberar como parte do onboarding assim que o backend confirmar a
@@ -235,17 +236,23 @@ tem os dados mockados de instituições e os textos de instrução por banco (ve
 
 ## 10) Open questions
 
-Lista compilada em 12/11/2026 para endereçar ao Erasmo de uma vez, depois de finalizado o
-estudo da documentação da Celcoin.
+### Respondidas pelo Erasmo em 13/11/2026
+
+| pergunta | resposta do Erasmo | impacto |
+|---|---|---|
+| Qual é o prazo de retenção/validade do consentimento que a Pode Já vai usar? | "PodeJá controla": é a Pode Já quem fixa o prazo ao criar o consentimento, o usuário não escolhe. | Nenhuma tela nossa precisa de um seletor de prazo; não há copy hoje que afirme um número de meses, então nada a corrigir na jornada de cadastro. |
+| Onde o usuário revoga o consentimento? | "Devemos expor esse botão. A qualquer momento o cliente pode não só revogar, mas via LGPD solicitar a exclusão dos dados." | Confirma que a Pode Já vai ter uma ação de "desconectar banco" dentro do app, e que existe também um pedido de exclusão de dados via LGPD, separado da revogação de consentimento. As duas coisas são telas de configuração/"Minha Conta", fora do escopo deste documento de cadastro: guardado para a próxima fase (ver memória do projeto). |
+| O redirecionamento pro banco abre o app nativo do banco, ou é sempre uma página web? | "meu entendimento, sempre vai abrir a App do Banco para autorização. No final, ele vai chamar a url de callback, que seria uma pagina de aterrissagem no nosso ambiente." | Copy de `of_transicao` atualizada: "O app do seu banco vai abrir" (tirou o "ou o site", que estava lá por falta de confirmação). A tela "confirmando" de `of_retorno` já representa essa página de aterrissagem no nosso ambiente. |
+| O diretório de instituições (`GET /open/itp/participants/brands`) é o mesmo catálogo usado para consentimento de dados, ou é separado (pagamentos/ITP)? | "sim, essa é a estrutura pré aprovação, onde lista os participantes para autorização." | Confirma que `celcoinBrandsData.ts` está modelado no endpoint certo. Segue mockado só por falta de credencial de API pra testar de verdade. |
+| O logo de cada banco vem pronto da API, em que formato? | "sim, podemos mapear o padrao da imagem e utilizar sempre da API. Inclusive é mais indicação para questoes de gestão." | Confirma a abordagem: usar sempre o logo da API (`customerFriendlyLogoUri`), sem manter uma biblioteca própria de ícones por banco. Segue `null` no mock, aguardando acesso real à API. |
+
+### Ainda em aberto
 
 | pergunta | owner | prazo | status |
 |---|---|---|---|
-| Qual é o prazo de retenção/validade do consentimento que a Pode Já vai usar? A API da Celcoin aceita até 1 ano no máximo (`expirationDateTime`), mas não fica claro se é a Pode Já quem fixa esse valor ao criar o consentimento, ou se o usuário escolhe. | Erasmo (backend) | [A CONFIRMAR] | aberta |
-| Onde o usuário revoga o consentimento? A API tem um endpoint de revogação (`DELETE /consents/{id}`), mas não ficou claro se isso acontece só dentro do app do banco, ou se a Pode Já vai expor um botão de "desconectar banco" que chama essa API em nome do usuário (nossa copy hoje promete "direto na Pode Já"). | Erasmo (backend) | [A CONFIRMAR] | aberta |
-| O redirecionamento pro banco (`authorizationUrl`) abre o app nativo do banco no celular, ou é sempre uma página web (login do banco no navegador)? Isso muda a copy de expectativa que usamos em `of_transicao` ("o app ou o site do seu banco vai abrir"). | Erasmo (backend) | [A CONFIRMAR] | aberta |
-| O diretório de instituições que encontrei na documentação pública (`GET /open/itp/participants/brands`) é o mesmo catálogo usado para o consentimento de dados (`/open/dat/`), ou é um catálogo separado, específico de pagamentos (ITP)? Preciso confirmar antes de pedir pros devs ligarem a tela de seleção nele. | Erasmo (backend) | [A CONFIRMAR] | aberta |
-| O logo de cada banco (`CustomerFriendlyLogoUri`) vem pronto da API, em que formato? A tela de seleção está mockada com um ícone genérico até isso ser confirmado. | Erasmo (backend) | [A CONFIRMAR] | aberta |
 | Qual deve ser o estado vazio da busca em `of_selecionar` quando nenhum resultado é encontrado? Ainda não tem copy definida. | Ellen | [A CONFIRMAR] | aberta |
 | "Conectar outro banco" deveria reexibir os bancos já conectados (como a jornada genérica anterior fazia com `modo=adicionar`)? Não foi implementado nesta rodada. | Ellen | [A CONFIRMAR] | aberta |
+| O limite de 3 tentativas pra mostrar o card de suporte em `of_retorno` (`SUPPORT_THRESHOLD`) foi um número escolhido sem validação. Esse número faz sentido? | Ellen / Erasmo | [A CONFIRMAR] | aberta |
+| Quando o resultado é `parcial`, a Pode Já consegue saber especificamente qual dado faltou, pra avisar o usuário com mais precisão, ou só sabe que faltou algo? | Erasmo (backend) | [A CONFIRMAR] | aberta |
 | O limite de 3 tentativas pra mostrar o card de suporte em `of_retorno` (`SUPPORT_THRESHOLD`) foi um número escolhido sem validação. Esse número faz sentido, ou tem algum dado de produção sobre quantas tentativas as pessoas costumam fazer antes de desistir? | Ellen / Erasmo | [A CONFIRMAR] | aberta |
 | Quando o resultado é `parcial` (banco aprovou, mas não liberou todos os dados), a Pode Já consegue saber especificamente qual dado faltou, pra avisar o usuário com mais precisão, ou só sabe que faltou algo? | Erasmo (backend) | [A CONFIRMAR] | aberta |
