@@ -2286,8 +2286,12 @@ function App() {
       localStorage.setItem("podeja_telefone_validado", "true");
       setMfaErro(null);
       // DESIGN ONLY: leva pra jornada de Open Finance aqui no meio do onboarding, antes do
-      // passo de senha. Salva o passo pra retomar (4 = Senha) e um usuário provisório pra
-      // satisfazer o gate de login das rotas /cadastro/open-finance*.
+      // passo de senha. `setStep(4)` é o que importa de verdade: o App() nunca desmonta entre
+      // rotas (navegação é tudo client-side), então o estado `step` em memória tem que avançar
+      // aqui mesmo — gravar só no sessionStorage não é o suficiente, porque o useState que lê
+      // de lá só roda uma vez, no primeiro carregamento da página. Mantemos o sessionStorage
+      // também, como resumo pro caso raro de recarregar a página de verdade no meio do caminho.
+      setStep(4);
       sessionStorage.setItem("onboarding_step", "4");
       if (typeof window !== "undefined" && name && email) {
         window.localStorage.setItem("podeja_user", JSON.stringify({ name, email }));
@@ -4202,12 +4206,13 @@ function App() {
             <Route path="/credito-pessoal/contrato/:id" element={getStoredUser() ? <CreditoPessoalContratoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <DuvidasPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seguro-vida" element={getStoredUser() ? <SeguroVidaLandingPage /> : <Navigate to="/boas-vindas" replace />} />
-            {/* Jornada de Open Finance real: decisão de produto (nov/2026) foi integrar via API da Klavi
-                (não a opção Whitelabel). /cadastro/open-finance monta os componentes de
-                open-finance-klavi/api-only. */}
+            {/* Jornada de Open Finance real: via API, com a Celcoin (decisão de produto, nov/2026,
+                depois de descartar a Klavi). Sem etapa própria de autorização LGPD: pela doc da
+                Celcoin, quem autoriza de verdade é a própria tela do banco, depois do
+                redirecionamento (ver KlaviApiTransicaoBancoPage). A tela de LGPD continua
+                existindo só no protótipo de comparação solto, como referência. */}
             <Route path="/cadastro/open-finance" element={getStoredUser() ? <KlaviApiIntroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/cadastro/open-finance/selecionar-instituicao" element={getStoredUser() ? <KlaviApiSelecionarInstituicaoPage /> : <Navigate to="/boas-vindas" replace />} />
-            <Route path="/cadastro/open-finance/autorizacao-lgpd" element={getStoredUser() ? <KlaviApiAutorizacaoLgpdPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/cadastro/open-finance/transicao-banco" element={getStoredUser() ? <KlaviApiTransicaoBancoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/cadastro/open-finance/retorno" element={getStoredUser() ? <KlaviApiRetornoPage /> : <Navigate to="/boas-vindas" replace />} />
             {/* Jornada genérica anterior (não-Klavi), mantida intocada e acessível por URL direta.

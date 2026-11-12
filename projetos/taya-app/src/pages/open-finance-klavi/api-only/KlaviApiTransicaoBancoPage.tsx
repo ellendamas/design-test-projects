@@ -1,40 +1,41 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, DeviceMobile, Lock } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, Lock } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { openFinanceBanks, type OpenFinanceBankId } from "@/pages/open-finance/openFinanceData";
+import { celcoinBrandsMock, INSTRUCOES_GENERICAS, instrucoesPorBanco } from "./celcoinBrandsData";
 import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
 
-// DESIGN ONLY: bancoId tem fallback "nubank" pra permitir acesso direto por URL.
-// Reaproveita o conceito e os passos reais de src/pages/open-finance/OpenFinanceGuidePage.tsx:
-// mesmo na opção API Only, quem autentica o usuário no fim é o próprio banco, então esse
-// passo reflete o mecanismo real do Open Finance.
+// DESIGN ONLY: bancoId tem fallback "nubank" pra permitir acesso direto por URL. A Celcoin não
+// manda logo real aqui (ver celcoinBrandsData.ts), por isso não tem ilustração por banco: só o
+// passo a passo em texto, que é conteúdo nosso. Na jornada real, pela doc da Celcoin, quem
+// autentica e autoriza o compartilhamento é a própria tela do banco depois do
+// redirecionamento, então essa é a última tela nossa antes de sair da Pode Já.
 export default function KlaviApiTransicaoBancoPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { base } = useOpenFinanceApiBase();
-  const bancoId = ((location.state as { bancoId?: OpenFinanceBankId } | null)?.bancoId ?? "nubank") as OpenFinanceBankId; // DESIGN ONLY
-  const bank = openFinanceBanks.find((item) => item.id === bancoId) ?? openFinanceBanks[0];
+  const { base, isReal } = useOpenFinanceApiBase();
+  const bancoId = (location.state as { bancoId?: string } | null)?.bancoId ?? "nubank"; // DESIGN ONLY
+  const bank = celcoinBrandsMock.find((item) => item.brandId === bancoId) ?? celcoinBrandsMock[0];
+  const instrucoes = instrucoesPorBanco[bancoId] ?? INSTRUCOES_GENERICAS;
 
   return (
     <main className="mx-auto min-h-screen w-full bg-background px-4 pb-28 pt-6 md:px-8">
       <div className="mx-auto w-full max-w-[640px] space-y-4 md:pt-8">
         <button
           type="button"
-          onClick={() => navigate(`${base}/autorizacao-lgpd`, { state: { bancoId } })}
+          onClick={() => navigate(isReal ? `${base}/selecionar-instituicao` : `${base}/autorizacao-lgpd`, { state: { bancoId } })}
           className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-background"
         >
           <ArrowLeft size={20} />
         </button>
 
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Como funciona no {bank.name}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Siga esses passos quando o app abrir:</p>
-          <p className="mt-2 text-xs font-semibold text-primary">{bank.eta}</p>
+          <h2 className="text-2xl font-bold text-foreground">Como funciona no {bank.customerFriendlyName}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Siga esses passos quando a página abrir:</p>
         </div>
 
         <div className="space-y-2">
-          {bank.steps.map((text, idx) => (
+          {instrucoes.map((text, idx) => (
             <div key={text} className="flex items-start gap-3 rounded-xl border border-border bg-white p-3">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
                 {idx + 1}
@@ -42,16 +43,6 @@ export default function KlaviApiTransicaoBancoPage() {
               <p className="text-sm font-semibold text-foreground">{text}</p>
             </div>
           ))}
-        </div>
-
-        <div
-          className="flex h-[140px] items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${bank.color}26` }}
-        >
-          <div className="text-center">
-            <DeviceMobile size={48} style={{ color: bank.color }} className="mx-auto" />
-            <p className="mt-2 text-xs text-muted-foreground">Ilustração em breve</p>
-          </div>
         </div>
 
         <Card className="border-0 bg-primary-light">
@@ -69,7 +60,7 @@ export default function KlaviApiTransicaoBancoPage() {
         <div className="mx-auto w-full max-w-[640px]">
           <Button
             className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-            onClick={() => navigate(`${base}/retorno`, { state: { bancoId: bank.id } })}
+            onClick={() => navigate(`${base}/retorno`, { state: { bancoId: bank.brandId } })}
           >
             Entendi, vamos lá <ArrowRight size={16} className="ml-2" />
           </Button>

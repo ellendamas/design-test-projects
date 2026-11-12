@@ -34,7 +34,7 @@ type OpenFinanceContextType = {
   resumoMes: ResumoMes | null;
   ondaAtiva: OndaTipo;
   dismissedInsightIds: string[];
-  connectBankById: (bankId: string) => void;
+  connectBankById: (bankId: string, nome?: string) => void;
   disconnectBankById: (bankId: string) => void;
   dismissInsight: (insightId: string) => void;
 };
@@ -93,13 +93,16 @@ export function OpenFinanceProvider({ children }: { children: ReactNode }) {
   const [ondaAtiva] = useState<OndaTipo>("onda1");
   const [dismissedInsightIds, setDismissedInsightIds] = useState<string[]>([]);
 
-  const connectBankById = (bankId: string) => {
+  // `nome` é opcional pra manter compatibilidade com quem já chamava isso só com o id (jornada
+  // genérica antiga, com os 5 bancos fixos de bankMap). A lista de bancos da Celcoin não tem
+  // essas 5 entradas fixas, então quem usa um banco fora do bankMap passa o nome junto.
+  const connectBankById = (bankId: string, nome?: string) => {
     const bank = bankMap[bankId];
-    if (!bank) return;
+    if (!bank && !nome) return;
     setBancosConectados((prev) => {
       if (prev.some((item) => item.id === bankId)) return prev;
       const today = new Date().toISOString().slice(0, 10);
-      return [...prev, { id: bankId, nome: bank.nome, cor: bank.cor, conectadoEm: today, saldo: 0 }];
+      return [...prev, { id: bankId, nome: bank?.nome ?? nome!, cor: bank?.cor ?? "#6B7280", conectadoEm: today, saldo: 0 }];
     });
   };
 

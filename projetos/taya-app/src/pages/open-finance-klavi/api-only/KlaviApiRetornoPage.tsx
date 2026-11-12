@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, ArrowSquareOut, Check, CheckCircle, Prohibit, WarningCircle } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, Bank as BankIcon, Check, CheckCircle, Prohibit, WarningCircle } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { openFinanceBanks, type OpenFinanceBankId } from "@/pages/open-finance/openFinanceData";
+import { celcoinBrandsMock } from "./celcoinBrandsData";
 import { useOpenFinance } from "@/context/OpenFinanceContext";
 import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
 
 // DESIGN ONLY: ?resultado=sucesso (default) | erro | cancelado; bancoId tem fallback
-// "nubank" pra permitir acesso direto por URL. Mesmo na opção API Only a confirmação
-// final chega por evento assíncrono da Klavi, por isso passa por um estado de
-// "confirmando" antes do resultado. Na jornada real (ver useOpenFinanceApiBase), o sucesso
-// grava no OpenFinanceContext de verdade; no protótipo de comparação solto, não.
+// "nubank" pra permitir acesso direto por URL. Pela doc da Celcoin, o retorno é um redirect
+// de volta pra Pode Já com um código, e aí a gente ainda troca esse código por um token e
+// busca os primeiros dados: por isso passa por um estado de "confirmando" antes do resultado,
+// mesmo não sendo um evento assíncrono de verdade. Na jornada real (ver useOpenFinanceApiBase),
+// o sucesso grava no OpenFinanceContext de verdade; no protótipo de comparação solto, não.
 type Resultado = "sucesso" | "erro" | "cancelado";
 
 export default function KlaviApiRetornoPage() {
@@ -24,8 +25,8 @@ export default function KlaviApiRetornoPage() {
   const [confirmando, setConfirmando] = useState(true);
   const isOnboarding = typeof window !== "undefined" && !!sessionStorage.getItem("onboarding_step");
 
-  const bancoId = ((location.state as { bancoId?: OpenFinanceBankId } | null)?.bancoId ?? "nubank") as OpenFinanceBankId; // DESIGN ONLY
-  const bank = openFinanceBanks.find((item) => item.id === bancoId) ?? openFinanceBanks[0];
+  const bancoId = (location.state as { bancoId?: string } | null)?.bancoId ?? "nubank"; // DESIGN ONLY
+  const bank = celcoinBrandsMock.find((item) => item.brandId === bancoId) ?? celcoinBrandsMock[0];
   const resultado = (searchParams.get("resultado") ?? "sucesso") as Resultado; // DESIGN ONLY
 
   useEffect(() => {
@@ -35,9 +36,9 @@ export default function KlaviApiRetornoPage() {
 
   useEffect(() => {
     if (!confirmando && resultado === "sucesso" && isReal) {
-      connectBankById(bank.id);
+      connectBankById(bank.brandId, bank.customerFriendlyName);
     }
-  }, [confirmando, resultado, isReal, bank.id, connectBankById]);
+  }, [confirmando, resultado, isReal, bank.brandId, bank.customerFriendlyName, connectBankById]);
 
   const voltarDepois = () => {
     if (isReal) {
@@ -54,7 +55,7 @@ export default function KlaviApiRetornoPage() {
         <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1, repeat: Infinity }}>
           <ArrowSquareOut size={48} />
         </motion.div>
-        <h2 className="mt-6 text-2xl font-bold">Confirmando com o {bank.name}...</h2>
+        <h2 className="mt-6 text-2xl font-bold">Confirmando com o {bank.customerFriendlyName}...</h2>
         <p className="mt-2 text-sm text-white/80">Isso pode levar alguns instantes.</p>
       </main>
     );
@@ -66,8 +67,8 @@ export default function KlaviApiRetornoPage() {
         <WarningCircle size={64} weight="fill" className="text-[#DC2626]" />
         <h2 className="mt-5 text-2xl font-bold text-foreground">Não conseguimos confirmar sua conexão</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Isso pode acontecer quando a autorização não foi concluída no {bank.name}. Nenhum dado foi
-          compartilhado.
+          Isso pode acontecer quando a autorização não foi concluída no {bank.customerFriendlyName}. Nenhum
+          dado foi compartilhado.
         </p>
         <div className="mt-6 w-full space-y-2">
           <Button
@@ -143,13 +144,14 @@ export default function KlaviApiRetornoPage() {
 
       <div className="mt-5 w-full rounded-xl border border-[#E5E7EB] bg-white p-3 text-left">
         <div className="flex items-center gap-2">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{ backgroundColor: bank.color }}
-          >
-            {bank.initials}
-          </div>
-          <p className="text-sm font-semibold text-foreground">{bank.name}</p>
+          {bank.customerFriendlyLogoUri ? (
+            <img src={bank.customerFriendlyLogoUri} alt="" className="h-8 w-8 rounded-full object-contain" />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+              <BankIcon size={16} />
+            </div>
+          )}
+          <p className="text-sm font-semibold text-foreground">{bank.customerFriendlyName}</p>
           <CheckCircle size={18} weight="fill" className="ml-auto text-[#16A34A]" />
         </div>
         {isReal && (
@@ -181,7 +183,7 @@ export default function KlaviApiRetornoPage() {
               <Button
                 variant="outline"
                 className="mt-2 h-12 w-full rounded-xl border-border"
-                onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel", isOnboarding ? { state: { step: 5 } } : undefined)}
+                onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
               >
                 Ir para o início <ArrowRight size={16} className="ml-2" />
               </Button>

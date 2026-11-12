@@ -3,39 +3,45 @@ agent: content-strategy
 project: taya-app
 journey: open-finance-onboarding-klavi
 platform: Mobile
-date: 2026-11-09
+date: 2026-11-12
 depends_on: [ux-research, visual-design, open-finance-klavi-comparacao]
 status: draft
 ---
 
-# Journey Spec - Open Finance real via Klavi (API Only) no cadastro
+# Journey Spec - Open Finance real via API no cadastro (Celcoin)
 
-Este spec cobre a integração da opção "API Only" do protótipo de comparação na jornada
-real de cadastro. Para o detalhamento completo de cada tela (componentes, microcopy,
-acessibilidade), ver a seção 5 de
-[open-finance-klavi-comparacao-journey-spec.md](./open-finance-klavi-comparacao-journey-spec.md)
-— os componentes React são os mesmos, reaproveitados sem duplicação de arquivo. Este
-documento cobre apenas o que muda ao sair do protótipo solto e entrar na jornada real.
+Este spec cobre a integração via API na jornada real de cadastro. Para o detalhamento
+completo de cada tela (componentes, microcopy, acessibilidade), ver a seção 5 de
+[open-finance-klavi-comparacao-journey-spec.md](./open-finance-klavi-comparacao-journey-spec.md):
+os componentes React são os mesmos, reaproveitados sem duplicação de arquivo (os nomes de
+arquivo continuam com prefixo `Klavi` por motivo histórico, da avaliação inicial). Este
+documento cobre o que muda ao sair do protótipo solto e entrar na jornada real.
+
+**Atualização de 12/11/2026**: a decisão final de parceiro mudou de Klavi para **Celcoin**
+(o Erasmo confirmou que a API de insights da Klavi era restrita demais; a Celcoin dá mais
+liberdade). Pesquisei a documentação pública da Celcoin
+(developers.celcoin.com.br/docs/marcas-no-open-finance e páginas relacionadas de
+consentimento e diretório de marcas) e isso mudou a jornada: ver seção 5 e open questions.
 
 ## 1) Resumo executivo da jornada
 
-- Problema que a mudança resolve: a decisão de produto saiu (09/11/2026) — a integração
-  com a Klavi vai ser via API, não via jornada hospedada pelo parceiro (Whitelabel). A
-  jornada de conexão de banco no cadastro precisa refletir essa decisão.
+- Problema que a mudança resolve: a jornada de conexão de banco no cadastro precisa
+  refletir o mecanismo real de consentimento do parceiro de Open Finance escolhido
+  (Celcoin), via API.
 - Resultado esperado para o usuário: ao criar conta ou tocar em "Conectar agora", o usuário
-  passa a navegar pela jornada API Only (proposta de valor, seleção de instituição,
-  confirmação de documento, autorização LGPD, transição para o banco, retorno) em vez da
-  jornada genérica anterior.
+  passa a navegar pela jornada via API (proposta de valor, seleção de instituição,
+  instrução de como funciona no banco, retorno) em vez da jornada genérica anterior.
 - Impacto esperado para o negócio: a jornada de conexão bancária do onboarding passa a
-  refletir o mecanismo real de consentimento da Klavi (CPF/CNPJ + LGPD como etapas
-  explícitas), reduzindo o risco de retrabalho quando a integração de backend ficar pronta.
+  refletir o mecanismo real de consentimento da Celcoin — o usuário é redirecionado pra
+  autorizar diretamente na tela do próprio banco, não numa tela nossa de LGPD — reduzindo
+  o risco de retrabalho quando a integração de backend ficar pronta.
 
 ## 2) Escopo e contexto
 
 - Tipo: mudança de roteamento/integração (telas já existiam como protótipo de comparação).
 - Origem: decisão do Barreto (GPM) e do time de backend, após avaliação do protótipo
   comparativo e troca de mensagens com o Erasmo (tech) sobre como a API de Open Finance da
-  Pode Já vai ser montada em cima da API da Klavi.
+  Pode Já vai ser montada. Revisado em 12/11/2026 após a troca de parceiro para Celcoin.
 - Fora de escopo:
   - Qualquer alteração nos arquivos da jornada genérica anterior
     (`src/pages/open-finance/*`, `OpenFinanceContext.tsx`, `openFinanceData.ts`), que
@@ -43,34 +49,41 @@ documento cobre apenas o que muda ao sair do protótipo solto e entrar na jornad
     `/cadastro/guia-banco/:bancoId`, `/cadastro/conectando`, `/cadastro/conectado`),
     reservados para reaproveitamento com outro parceiro de Open Finance no futuro.
   - O protótipo de comparação solto (`/prototipos/open-finance-klavi/*`), que continua
-    funcionando do mesmo jeito, sem gate de login, para referência futura.
-  - Integração real com a API da Klavi (telas continuam com dados mockados; backend ainda
-    não confirmou os detalhes finais do consentimento).
-  - Etapa de consentimento tratada como estável: o Erasmo sinalizou que pode ainda mudar
-    pra um modelo híbrido (parte do consentimento acontecendo num ambiente seguro do
-    parceiro). Isso não foi incorporado aqui — ver open questions.
+    funcionando do mesmo jeito, sem gate de login, para referência futura. Ele não foi
+    atualizado para refletir a Celcoin: continua mostrando a cadeia antiga
+    (documento → LGPD) como registro histórico da comparação original.
+  - Integração real com a API da Celcoin (telas continuam com dados mockados: a API de
+    diretório de instituições exige autenticação que não temos pra simular de verdade,
+    ver seção 5).
+  - Dados e insights que o Open Finance traz depois de conectado (próxima fase, por pedido
+    da Ellen em 12/11/2026 — foco desta rodada é só o onboarding).
 
 ## 3) Mapa da jornada (passo a passo)
 
 | step_id | objetivo do user | trigger | tela destino | resultado esperado |
 |---|---|---|---|---|
-| of_intro | Entender o valor de conectar o banco | CTA "Conectar agora" (dashboard) ou passo 5 do onboarding | of_intro | Decide conectar ou pular |
-| of_selecionar | Escolher o banco | CTA "Conectar meu banco" | of_selecionar | Seleciona um banco disponível |
-| of_documento | Confirmar CPF ou CNPJ | Seleção de um banco disponível | of_documento | Documento preenchido |
-| of_lgpd | Autorizar compartilhamento (LGPD) | CTA "Continuar" | of_lgpd | Checkbox marcado e autorizado |
-| of_transicao | Entender os passos no app do banco | CTA "Autorizar e continuar" | of_transicao | Confirma que entendeu os passos |
+| of_intro | Entender o valor de conectar o banco | CTA "Conectar agora" (dashboard) ou passo 3 do onboarding (MFA) | of_intro | Decide conectar ou pular |
+| of_selecionar | Escolher o banco | CTA "Conectar meu banco" | of_selecionar | Seleciona um banco da lista |
+| of_transicao | Entender os passos no banco | Seleção de um banco | of_transicao | Confirma que entendeu os passos |
 | of_retorno | Saber o resultado da conexão e seguir | CTA "Entendi, vamos lá" (simula retorno) | of_retorno | Vê sucesso, erro ou cancelamento; banco entra em `OpenFinanceContext` se sucesso |
+
+**Removido nesta atualização (12/11/2026)**: as etapas `of_documento` (confirmação de
+CPF/CNPJ) e `of_lgpd` (autorização LGPD numa tela nossa) saíram da jornada real. Pela doc da
+Celcoin, quem autoriza de verdade o compartilhamento é a própria tela do banco, depois do
+redirecionamento (não existe uma etapa de consentimento renderizada por nós ou pela Celcoin).
+As telas continuam existindo e reacessíveis só no protótipo de comparação solto, como
+registro de como seria com a Klavi.
 
 ## 4) Inventário de telas
 
 | screen_id | nome da tela | rota real | componente (reaproveitado) | status | owner |
 |---|---|---|---|---|---|
 | of_intro | Open Finance: proposta de valor | `/cadastro/open-finance` | `KlaviApiIntroPage` | changed (rota realocada da `OpenFinanceValuePage`) | Ellen |
-| of_selecionar | Open Finance: seleção de instituição | `/cadastro/open-finance/selecionar-instituicao` | `KlaviApiSelecionarInstituicaoPage` | new (rota) | Ellen |
-| of_documento | Open Finance: confirmação de documento | `/cadastro/open-finance/confirmar-documento` | `KlaviApiConfirmarDocumentoPage` | new (rota) | Ellen |
-| of_lgpd | Open Finance: autorização LGPD | `/cadastro/open-finance/autorizacao-lgpd` | `KlaviApiAutorizacaoLgpdPage` | new (rota) | Ellen |
-| of_transicao | Open Finance: transição para o banco | `/cadastro/open-finance/transicao-banco` | `KlaviApiTransicaoBancoPage` | new (rota) | Ellen |
-| of_retorno | Open Finance: retorno e resultado | `/cadastro/open-finance/retorno` | `KlaviApiRetornoPage` | new (rota) | Ellen |
+| of_selecionar | Open Finance: seleção de instituição | `/cadastro/open-finance/selecionar-instituicao` | `KlaviApiSelecionarInstituicaoPage` | changed (lista de bancos trocada pro formato da API da Celcoin) | Ellen |
+| of_transicao | Open Finance: instrução de como funciona no banco | `/cadastro/open-finance/transicao-banco` | `KlaviApiTransicaoBancoPage` | changed (ilustração removida; agora é a última tela antes do redirecionamento, sem etapa de LGPD antes) | Ellen |
+| of_retorno | Open Finance: retorno e resultado | `/cadastro/open-finance/retorno` | `KlaviApiRetornoPage` | changed (nome do banco e avatar vêm do formato Celcoin) | Ellen |
+| ~~of_documento~~ | ~~Confirmação de documento~~ | removida da rota real (12/11/2026) | `KlaviApiConfirmarDocumentoPage` | removed do fluxo real; preservada só no protótipo de comparação | Ellen |
+| ~~of_lgpd~~ | ~~Autorização LGPD~~ | removida da rota real (12/11/2026) | `KlaviApiAutorizacaoLgpdPage` | removed do fluxo real; preservada só no protótipo de comparação | Ellen |
 
 ## 5) O que muda por tela em relação ao protótipo de comparação
 
@@ -84,30 +97,43 @@ solto, e ajusta:
   protótipo) por uma barra de progresso "Passo 4 de 5" igual à `OpenFinanceValuePage`
   antiga, e adiciona o link "Prefiro fazer isso depois" (grava
   `openfinance_pendente` e volta pro cadastro ou painel).
-- **of_selecionar, of_documento, of_lgpd, of_transicao**: sem mudança de conteúdo, só os
-  `navigate()` internos passam a apontar para as rotas reais em vez das rotas de
-  protótipo.
+- **of_selecionar**: a lista de bancos passa a usar `celcoinBrandsData.ts` (novo arquivo),
+  que espelha campo a campo a resposta real da API de Discovery da Celcoin
+  (`CustomerFriendlyName`, `CustomerFriendlyLogoUri`, flags de suporte a PF/PJ). Tentei
+  consumir a API de verdade pra pegar logos reais, mas ela exige autenticação que não
+  temos aqui (retornou 401 no teste). Os dados ficaram mockados nesse mesmo formato, com
+  `customerFriendlyLogoUri: null` em todos os itens: os devs precisam trocar isso pela
+  chamada real em produção. Enquanto isso, a tela mostra um ícone genérico de banco no
+  lugar do logo. Também sumiu a distinção "banco disponível / em breve": a lista real da
+  Celcoin só devolve instituições que participam de verdade, então todo item da lista é
+  clicável. No modo real, ao escolher um banco, pula direto pra `of_transicao` (sem
+  `of_documento` nem `of_lgpd` no meio). No protótipo solto, mantém a cadeia antiga.
+- **of_transicao**: perdeu o bloco de ilustração por banco ("Ilustração em breve") — a
+  Ellen decidiu tirar porque exigiria buscar uma imagem de cada banco, trabalho demais
+  pro valor que agrega. Ficou só o passo a passo em texto. No modo real, o botão de voltar
+  leva direto pra `of_selecionar` (sem `of_lgpd` no meio). O passo a passo detalhado
+  continua só pros 5 bancos em destaque (`instrucoesPorBanco` em `celcoinBrandsData.ts`);
+  qualquer outro banco usa um texto genérico, porque não é viável manter instrução
+  específica pra cada instituição da lista real.
 - **of_retorno**: no sucesso, chama `connectBankById` do `OpenFinanceContext` de verdade
-  (o protótipo solto nunca grava no contexto real, só a jornada real faz isso). Os CTAs
-  finais passam a ser "Conectar outro banco" (volta pra seleção) e "Ir para o início"
-  (`/cadastro` com `step: 5` se for onboarding, ou `/painel`), replicando o padrão da
-  `OpenFinanceConnectedPage` antiga. Nos estados de erro/cancelado, o botão "Fazer isso
-  depois" também usa o padrão real de pular (`openfinance_pendente` + navegação
-  condicional), em vez de voltar pra tela de comparação.
-- Copy da etapa LGPD foi ajustada (nesta mesma rodada, afeta os dois modos por ser o
-  mesmo componente): a linha sobre prazo de retenção deixou de dizer "enquanto a
-  autorização estiver ativa" e passou a dizer "por um prazo determinado, que você
-  confirma antes de autorizar" — reflete a confirmação do backend de que o prazo não é
-  indeterminado, sem afirmar um número de meses que ainda não foi fechado oficialmente.
+  (o protótipo solto nunca grava no contexto real, só a jornada real faz isso). Como a
+  lista de bancos agora inclui instituições fora das 5 fixas do `OpenFinanceContext`,
+  `connectBankById` passou a aceitar o nome do banco como segundo parâmetro, pra
+  funcionar com qualquer item da lista, não só os 5 originais. Os CTAs finais são
+  "Conectar outro banco" (volta pra seleção) e "Ir para o início" (`/cadastro` ou
+  `/painel`), replicando o padrão da `OpenFinanceConnectedPage` antiga. O nome e o avatar
+  do banco exibidos vêm do formato Celcoin (nome + logo genérico, sem cor nem inicial).
 
 ## 6) Diff de UX por tela
 
 | screen_id | tipo de mudança | o que mudou | por que mudou | impacto esperado |
 |---|---|---|---|---|
-| of_intro | changed | `/cadastro/open-finance` passa a montar `KlaviApiIntroPage` em vez de `OpenFinanceValuePage` | Decisão de integrar via API da Klavi (API Only) | Onboarding reflete o fluxo real de consentimento desde a primeira tela |
-| of_selecionar..of_transicao | new (rota) | Telas novas no fluxo real, reaproveitando componentes já existentes no protótipo | Mesma decisão acima | Fluxo completo de 6 telas substitui o fluxo antigo de 5 telas no caminho padrão |
-| of_retorno | changed | Liga ao `OpenFinanceContext` de verdade; CTAs finais seguem o padrão da tela antiga equivalente | Sucesso real precisa refletir no dashboard (saldo, vida financeira) | Dashboard e "bancos conectados" passam a funcionar com a nova jornada |
-| (jornada genérica) | removed (do caminho padrão, arquivos preservados) | Deixa de ser o destino de qualquer CTA do app | Substituída pela jornada Klavi API Only | Acessível só por URL direta; reservada para outro parceiro |
+| of_intro | changed | `/cadastro/open-finance` passa a montar `KlaviApiIntroPage` em vez de `OpenFinanceValuePage` | Decisão de integrar via API | Onboarding reflete o fluxo real de consentimento desde a primeira tela |
+| of_selecionar | changed | Lista de bancos no formato da API da Celcoin (logo real pendente); sem distinção "disponível/em breve"; pula direto pra `of_transicao` | Troca de parceiro (Klavi → Celcoin) e decisão de simular o formato real da API | Picker fica mais realista pros devs se basearem; um passo a menos até o redirecionamento |
+| of_transicao | changed | Removida a ilustração por banco; vira a última tela antes de sair da Pode Já | Custo de manter ilustração por banco; LGPD não é mais etapa nossa | Tela mais simples; expectativa correta de que o próximo passo é sair do app |
+| of_retorno | changed | Liga ao `OpenFinanceContext` de verdade (agora aceita qualquer banco, não só os 5 fixos); nome/avatar vêm do formato Celcoin | Sucesso real precisa refletir no dashboard; lista de bancos deixou de ser fixa | Dashboard e "bancos conectados" funcionam com qualquer banco da lista |
+| of_documento, of_lgpd | removed (do caminho padrão, arquivos e rota de protótipo preservados) | Saem do fluxo real | Celcoin: quem autoriza de verdade é a tela do próprio banco, não uma etapa nossa | Fluxo real cai de 6 para 4 telas (intro, selecionar, transição, retorno) |
+| (jornada genérica) | removed (do caminho padrão, arquivos preservados) | Deixa de ser o destino de qualquer CTA do app | Substituída pela jornada via API | Acessível só por URL direta; reservada para outro parceiro |
 
 ## 7) Taxonomia de eventos Amplitude
 
@@ -126,10 +152,7 @@ solto, e ajusta:
 | openfinance_cadastro_intro_viewed | Tela de proposta de valor carregada | of_intro | openfinance_cadastro | intro | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, is_onboarding | - | content-strategy | pending |
 | openfinance_cadastro_connect_started | CTA "Conectar meu banco" | of_intro | openfinance_cadastro | intro | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, is_onboarding | - | content-strategy | pending |
 | openfinance_cadastro_skipped | CTA "Prefiro fazer isso depois" (intro) | of_intro | openfinance_cadastro | intro | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, is_onboarding | - | content-strategy | pending |
-| openfinance_cadastro_institution_selected | Clique em um banco disponível | of_selecionar | openfinance_cadastro | selecionar_instituicao | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
-| openfinance_cadastro_institution_unavailable | Clique em banco indisponível (toast "Em breve") | of_selecionar | openfinance_cadastro | selecionar_instituicao | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
-| openfinance_cadastro_document_confirmed | CTA "Continuar" na confirmação de documento | of_documento | openfinance_cadastro | confirmar_documento | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
-| openfinance_cadastro_lgpd_authorized | CTA "Autorizar e continuar" com checkbox marcado | of_lgpd | openfinance_cadastro | autorizacao_lgpd | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
+| openfinance_cadastro_institution_selected | Clique em um banco da lista | of_selecionar | openfinance_cadastro | selecionar_instituicao | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
 | openfinance_cadastro_bank_transition_confirmed | CTA "Entendi, vamos lá" | of_transicao | openfinance_cadastro | transicao_banco | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
 | openfinance_cadastro_connection_pending | Entrada na tela de retorno, estado "confirmando" | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id | - | content-strategy | pending |
 | openfinance_cadastro_connection_succeeded | Resultado assíncrono = sucesso; grava em OpenFinanceContext | of_retorno | openfinance_cadastro | retorno | user_id, session_id, timestamp, platform, flow_name, step_name, screen_name, institution_id, connection_result, total_bancos_conectados | - | content-strategy | pending |
@@ -169,27 +192,34 @@ solto, e ajusta:
 
 ## 9) Impacto para PO/PM
 
-- Impacto em escopo: a jornada de conexão bancária do cadastro muda de 5 para 6 telas, com
-  duas etapas novas e visíveis ao usuário (confirmação de documento, autorização LGPD).
-- Riscos e dependências: depende da confirmação final do backend (Erasmo) sobre como o
-  consentimento vai funcionar de verdade — se o modelo permanecer 100% via API ou se parte
-  dele precisar de um ambiente seguro do parceiro, as telas `of_lgpd`/`of_transicao` podem
-  mudar de novo. Depende também de definição sobre a origem do avatar do banco (API da
-  Klavi vs. SVGs próprios).
-- Impacto esperado em métricas: possível aumento no tempo da etapa de conexão bancária
-  (mais telas) e possível impacto na taxa de conclusão — recomenda-se medir via os eventos
-  desta tabela antes/depois do lançamento.
+- Impacto em escopo: a jornada de conexão bancária do cadastro passa a ter 4 telas (proposta
+  de valor, seleção de instituição, instrução do banco, retorno), 2 a menos do que a versão
+  anterior desta mesma rodada (que tinha confirmação de documento e autorização LGPD como
+  etapas nossas). A etapa de autorização passa a acontecer na própria tela do banco, fora
+  do nosso controle visual.
+- Riscos e dependências: depende da confirmação do Erasmo sobre vários pontos técnicos da
+  Celcoin que a documentação pública não deixou claros (ver open questions) — prazo de
+  consentimento, onde a revogação acontece, se o redirecionamento abre o app nativo do
+  banco ou só uma página web, e se o diretório de instituições que encontrei (sob
+  `/open/itp/`) é o mesmo usado para consentimento de dados.
+- Impacto esperado em métricas: menos telas antes do redirecionamento pode melhorar a taxa
+  de conclusão dessa etapa em relação à versão anterior (6 telas) — recomenda-se medir via
+  os eventos desta tabela antes/depois do lançamento.
 - Plano de rollout: liberar como parte do onboarding assim que o backend confirmar a
   integração; a jornada genérica anterior fica preservada e pode ser reativada trocando o
   componente montado em `/cadastro/open-finance` caso a decisão mude.
 
 ## 10) Open questions
 
+Lista compilada em 12/11/2026 para endereçar ao Erasmo de uma vez, depois de finalizado o
+estudo da documentação da Celcoin.
+
 | pergunta | owner | prazo | status |
 |---|---|---|---|
-| O consentimento vai ficar 100% em telas nossas, ou uma parte (ex.: `of_lgpd`/`of_transicao`) vai precisar levar o usuário a um ambiente seguro do parceiro? Se sim, isso acontece sem sair do app (iframe/webview/SDK) ou é redirect de verdade? | Erasmo (backend) | [A CONFIRMAR] | aberta |
-| Qual é, de fato, o prazo de retenção do consentimento (ex.: 12 meses foi citado como exemplo, não confirmado)? | Backend / Jurídico | [A CONFIRMAR] | aberta |
-| O avatar do banco em `of_selecionar` vem pela API da Klavi ou a Pode Já precisa manter uma base própria de SVGs por banco? | Erasmo (backend) | [A CONFIRMAR] | aberta |
-| A lista de bancos disponíveis (tier 1) muda com o catálogo real de instituições da Klavi? | Erasmo (backend) | [A CONFIRMAR] | aberta |
+| Qual é o prazo de retenção/validade do consentimento que a Pode Já vai usar? A API da Celcoin aceita até 1 ano no máximo (`expirationDateTime`), mas não fica claro se é a Pode Já quem fixa esse valor ao criar o consentimento, ou se o usuário escolhe. | Erasmo (backend) | [A CONFIRMAR] | aberta |
+| Onde o usuário revoga o consentimento? A API tem um endpoint de revogação (`DELETE /consents/{id}`), mas não ficou claro se isso acontece só dentro do app do banco, ou se a Pode Já vai expor um botão de "desconectar banco" que chama essa API em nome do usuário (nossa copy hoje promete "direto na Pode Já"). | Erasmo (backend) | [A CONFIRMAR] | aberta |
+| O redirecionamento pro banco (`authorizationUrl`) abre o app nativo do banco no celular, ou é sempre uma página web (login do banco no navegador)? Isso muda a copy de expectativa que usamos em `of_transicao` ("o app ou o site do seu banco vai abrir"). | Erasmo (backend) | [A CONFIRMAR] | aberta |
+| O diretório de instituições que encontrei na documentação pública (`GET /open/itp/participants/brands`) é o mesmo catálogo usado para o consentimento de dados (`/open/dat/`), ou é um catálogo separado, específico de pagamentos (ITP)? Preciso confirmar antes de pedir pros devs ligarem a tela de seleção nele. | Erasmo (backend) | [A CONFIRMAR] | aberta |
+| O logo de cada banco (`CustomerFriendlyLogoUri`) vem pronto da API, em que formato? A tela de seleção está mockada com um ícone genérico até isso ser confirmado. | Erasmo (backend) | [A CONFIRMAR] | aberta |
 | Qual deve ser o estado vazio da busca em `of_selecionar` quando nenhum resultado é encontrado? Ainda não tem copy definida (herdado do protótipo). | Ellen | [A CONFIRMAR] | aberta |
 | "Conectar outro banco" deveria reexibir os bancos já conectados (como a jornada antiga fazia com `modo=adicionar`)? Não foi implementado nesta rodada. | Ellen | [A CONFIRMAR] | aberta |

@@ -1,35 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
+import { ArrowLeft, Bank, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
-import { openFinanceBankDirectory, tier1BankIds, type OpenFinanceBankId } from "@/pages/open-finance/openFinanceData";
+import { BRANDS_EM_DESTAQUE, celcoinBrandsPF } from "./celcoinBrandsData";
 import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
 
-// DESIGN ONLY: reaproveita a lista de bancos de src/pages/open-finance/openFinanceData.ts
-// por referência (mesmos nomes e cores reais de banco), sem duplicar os dados. Na opção
-// API Only, essa lista viria do catálogo de instituições da Klavi.
+// DESIGN ONLY: lista de bancos no formato da API de Discovery da Celcoin (ver
+// celcoinBrandsData.ts). Na jornada real, pula direto pra tela de instrução do banco: não tem
+// mais etapa separada de documento nem de autorização LGPD (quem autoriza de verdade é o
+// próprio banco, depois do redirecionamento). No protótipo de comparação solto, mantém a
+// cadeia antiga (documento → LGPD) como referência de como seria com a Klavi.
 export default function KlaviApiSelecionarInstituicaoPage() {
   const navigate = useNavigate();
   const { base, isReal } = useOpenFinanceApiBase();
   const [bankSearch, setBankSearch] = useState("");
 
   const query = bankSearch.trim().toLowerCase();
-  const matches = openFinanceBankDirectory.filter((bank) => bank.name.toLowerCase().includes(query));
-  const top = matches.filter((bank) => bank.group === "top");
-  const others = matches.filter((bank) => bank.group === "other");
+  const matches = celcoinBrandsPF.filter((brand) => brand.customerFriendlyName.toLowerCase().includes(query));
+  const destaque = matches.filter((brand) => BRANDS_EM_DESTAQUE.includes(brand.brandId));
+  const outros = matches.filter((brand) => !BRANDS_EM_DESTAQUE.includes(brand.brandId));
 
-  // DESIGN ONLY: na jornada real, o CPF já foi coletado no início do cadastro (a Pode Já só
-  // atende pessoa física), então pula direto pra autorização LGPD. No protótipo de comparação
-  // solto, mantém a etapa de confirmação de documento como referência do que o parceiro de
-  // Open Finance exporia nesse ponto via API.
-  const onBankClick = (id: string) => {
-    if (tier1BankIds.includes(id as OpenFinanceBankId)) {
-      navigate(isReal ? `${base}/autorizacao-lgpd` : `${base}/confirmar-documento`, { state: { bancoId: id } });
-      return;
-    }
-    toast("Em breve! O guia para este banco será disponibilizado em breve.");
+  const onBankClick = (brandId: string) => {
+    navigate(isReal ? `${base}/transicao-banco` : `${base}/confirmar-documento`, { state: { bancoId: brandId } });
   };
 
   return (
@@ -43,9 +36,9 @@ export default function KlaviApiSelecionarInstituicaoPage() {
           >
             <ArrowLeft size={20} />
           </button>
-          <span className="text-xs font-medium text-muted-foreground">{isReal ? "Passo 1 de 3" : "Passo 1 de 4"}</span>
+          <span className="text-xs font-medium text-muted-foreground">{isReal ? "Passo 1 de 2" : "Passo 1 de 4"}</span>
         </div>
-        <Progress value={isReal ? 33 : 25} className="h-1 bg-secondary [&>div]:bg-primary" />
+        <Progress value={isReal ? 50 : 25} className="h-1 bg-secondary [&>div]:bg-primary" />
 
         <div>
           <h2 className="text-2xl font-bold text-foreground">Qual é o seu banco principal?</h2>
@@ -65,49 +58,47 @@ export default function KlaviApiSelecionarInstituicaoPage() {
         </div>
 
         <div className="max-h-[56vh] space-y-2 overflow-y-auto pr-1">
-          {top.map((bank) => (
+          {destaque.map((brand) => (
             <button
-              key={bank.id}
+              key={brand.brandId}
               type="button"
-              onClick={() => onBankClick(bank.id)}
+              onClick={() => onBankClick(brand.brandId)}
               className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-3 py-3 text-left transition-colors hover:bg-[#FAFAFA]"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: bank.color }}>
-                  {bank.initials}
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">{bank.name}</p>
-                  {!bank.available && (
-                    <span className="rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[10px] font-semibold text-[#DC2626]">Sem Open Finance</span>
-                  )}
-                </div>
+                {brand.customerFriendlyLogoUri ? (
+                  <img src={brand.customerFriendlyLogoUri} alt="" className="h-10 w-10 rounded-full object-contain" />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                    <Bank size={20} />
+                  </div>
+                )}
+                <p className="text-sm font-semibold text-foreground">{brand.customerFriendlyName}</p>
               </div>
               <CaretRight size={16} className="text-muted-foreground" />
             </button>
           ))}
 
-          {others.length > 0 && (
+          {outros.length > 0 && (
             <p className="pt-3 text-xs font-medium text-muted-foreground">Outros bancos</p>
           )}
 
-          {others.map((bank) => (
+          {outros.map((brand) => (
             <button
-              key={bank.id}
+              key={brand.brandId}
               type="button"
-              onClick={() => onBankClick(bank.id)}
+              onClick={() => onBankClick(brand.brandId)}
               className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-3 py-3 text-left transition-colors hover:bg-[#FAFAFA]"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: bank.color }}>
-                  {bank.initials}
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">{bank.name}</p>
-                  {!bank.available && (
-                    <span className="rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[10px] font-semibold text-[#DC2626]">Sem Open Finance</span>
-                  )}
-                </div>
+                {brand.customerFriendlyLogoUri ? (
+                  <img src={brand.customerFriendlyLogoUri} alt="" className="h-10 w-10 rounded-full object-contain" />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                    <Bank size={20} />
+                  </div>
+                )}
+                <p className="text-sm font-semibold text-foreground">{brand.customerFriendlyName}</p>
               </div>
               <CaretRight size={16} className="text-muted-foreground" />
             </button>
