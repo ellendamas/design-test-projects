@@ -145,7 +145,7 @@ export default function KlaviApiRetornoPage() {
         ))}
       </motion.div>
 
-      <div className="mt-5 w-full rounded-xl border border-[#E5E7EB] bg-white p-3 text-left">
+      <div className="mt-5 w-fit max-w-full rounded-xl border border-[#E5E7EB] bg-white p-3 text-left">
         <div className="flex items-center gap-2">
           {bank.customerFriendlyLogoUri ? (
             <img src={bank.customerFriendlyLogoUri} alt="" className="h-8 w-8 rounded-full object-contain" />

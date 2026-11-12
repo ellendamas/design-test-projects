@@ -29,8 +29,22 @@ export default function KlaviApiTransicaoBancoPage() {
           <ArrowLeft size={20} />
         </button>
 
-        <div className="overflow-hidden rounded-2xl">
-          <img src="/images/banner-passos-open-finance.png" alt="" className="w-full object-cover" />
+        {/* DESIGN ONLY: montada a partir dos elementos separados do banner no Figma (fundo sólido
+            + ilustração), com o texto como texto de verdade pra se adequar ao responsivo. */}
+        <div className="flex items-center justify-between gap-3 overflow-hidden rounded-2xl bg-[#FEF2EC] p-5">
+          <div className="min-w-0 space-y-2">
+            <h3 className="text-xl font-semibold leading-tight text-foreground md:text-2xl">
+              Conecte seu banco
+            </h3>
+            <p className="text-xs leading-relaxed text-foreground/70 md:text-sm">
+              Siga os passos abaixo para compartilhar suas informações com a Pode Já.
+            </p>
+          </div>
+          <img
+            src="/images/open-finance-banner-passos-ilustracao.svg"
+            alt=""
+            className="h-24 w-auto shrink-0 md:h-28"
+          />
         </div>
 
         <div>

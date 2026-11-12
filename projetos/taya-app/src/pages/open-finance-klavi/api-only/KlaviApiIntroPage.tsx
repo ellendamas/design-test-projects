@@ -31,8 +31,32 @@ export default function KlaviApiIntroPage() {
           </button>
         )}
 
-        <div className="overflow-hidden rounded-2xl">
-          <img src="/images/banner-intro-open-finance.png" alt="" className="w-full object-cover" />
+        {/* DESIGN ONLY: montada a partir dos elementos separados do banner no Figma (gradiente,
+            blob decorativo e foto), com o texto como texto de verdade (não baked na imagem),
+            pra se adequar ao responsivo. Gradiente reaproveita os mesmos tokens de cor já usados
+            no app (`from-[#FD5F31] to-[#FA9832]`). O padrão de pontinhos do fundo original não
+            foi recriado: estava embutido numa imagem de fundo única, difícil de separar sem
+            recortar à mão, e não carrega informação, só textura. */}
+        <div className="relative min-h-[170px] overflow-hidden rounded-2xl bg-gradient-to-br from-[#FD5F31] to-[#FA9832] p-5">
+          <img
+            src="/images/open-finance-banner-intro-blob.svg"
+            alt=""
+            className="pointer-events-none absolute -bottom-10 -right-10 h-[220px] w-[220px]"
+          />
+          <div className="relative z-10 max-w-[62%] space-y-2 md:max-w-[55%]">
+            <h2 className="text-xl font-semibold leading-tight text-white md:text-2xl">
+              Vamos entender sua vida financeira
+            </h2>
+            <p className="text-xs leading-relaxed text-white/85 md:text-sm">
+              Conecte seu banco de forma segura e veja para onde seu dinheiro vai, sem julgamento e
+              sem pegadinha.
+            </p>
+          </div>
+          <img
+            src="/images/open-finance-banner-intro-foto.png"
+            alt=""
+            className="pointer-events-none absolute bottom-0 right-0 h-full max-w-[42%] object-contain object-bottom"
+          />
         </div>
 
         <div className="rounded-2xl border border-border bg-white p-4">
