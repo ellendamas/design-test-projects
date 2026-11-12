@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Bank, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { useOpenFinance } from "@/context/OpenFinanceContext";
 import { BRANDS_EM_DESTAQUE, celcoinBrandsPF } from "./celcoinBrandsData";
 import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
 
@@ -14,8 +15,10 @@ import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
 export default function KlaviApiSelecionarInstituicaoPage() {
   const navigate = useNavigate();
   const { base, isReal } = useOpenFinanceApiBase();
+  const { bancosConectados } = useOpenFinance();
   const [bankSearch, setBankSearch] = useState("");
 
+  const connectedIds = new Set(bancosConectados.map((b) => b.id));
   const query = bankSearch.trim().toLowerCase();
   const matches = celcoinBrandsPF.filter((brand) => brand.customerFriendlyName.toLowerCase().includes(query));
   const destaque = matches.filter((brand) => BRANDS_EM_DESTAQUE.includes(brand.brandId));
@@ -73,7 +76,12 @@ export default function KlaviApiSelecionarInstituicaoPage() {
                     <Bank size={20} />
                   </div>
                 )}
-                <p className="text-sm font-semibold text-foreground">{brand.customerFriendlyName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">{brand.customerFriendlyName}</p>
+                  {isReal && connectedIds.has(brand.brandId) && (
+                    <span className="rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-semibold text-[#15803D]">Conectado</span>
+                  )}
+                </div>
               </div>
               <CaretRight size={16} className="text-muted-foreground" />
             </button>
@@ -98,7 +106,12 @@ export default function KlaviApiSelecionarInstituicaoPage() {
                     <Bank size={20} />
                   </div>
                 )}
-                <p className="text-sm font-semibold text-foreground">{brand.customerFriendlyName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">{brand.customerFriendlyName}</p>
+                  {isReal && connectedIds.has(brand.brandId) && (
+                    <span className="rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-semibold text-[#15803D]">Conectado</span>
+                  )}
+                </div>
               </div>
               <CaretRight size={16} className="text-muted-foreground" />
             </button>

@@ -2285,14 +2285,19 @@ function App() {
       }
       localStorage.setItem("podeja_telefone_validado", "true");
       setMfaErro(null);
-      // DESIGN ONLY: leva pra jornada de Open Finance aqui no meio do onboarding, antes do
-      // passo de senha. `setStep(4)` é o que importa de verdade: o App() nunca desmonta entre
-      // rotas (navegação é tudo client-side), então o estado `step` em memória tem que avançar
-      // aqui mesmo — gravar só no sessionStorage não é o suficiente, porque o useState que lê
-      // de lá só roda uma vez, no primeiro carregamento da página. Mantemos o sessionStorage
-      // também, como resumo pro caso raro de recarregar a página de verdade no meio do caminho.
       setStep(4);
-      sessionStorage.setItem("onboarding_step", "4");
+      return;
+    }
+    if (step === 4) {
+      // DESIGN ONLY: leva pra jornada de Open Finance aqui, depois da senha e antes das
+      // necessidades (pedido da Ellen: conta criada primeiro, Open Finance depois). `setStep(5)`
+      // é o que importa de verdade: o App() nunca desmonta entre rotas (navegação é tudo
+      // client-side), então o estado `step` em memória tem que avançar aqui mesmo. Gravar só no
+      // sessionStorage não é o suficiente, porque o useState que lê de lá só roda uma vez, no
+      // primeiro carregamento da página. Mantemos o sessionStorage também, como resumo pro caso
+      // raro de recarregar a página de verdade no meio do caminho.
+      setStep(5);
+      sessionStorage.setItem("onboarding_step", "5");
       if (typeof window !== "undefined" && name && email) {
         window.localStorage.setItem("podeja_user", JSON.stringify({ name, email }));
       }

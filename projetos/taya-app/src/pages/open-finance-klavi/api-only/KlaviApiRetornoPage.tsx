@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, ArrowSquareOut, Bank as BankIcon, Check, CheckCircle, Prohibit, WarningCircle } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { celcoinBrandsMock } from "./celcoinBrandsData";
 import { useOpenFinance } from "@/context/OpenFinanceContext";
 import { useOpenFinanceApiBase } from "./useOpenFinanceApiBase";
@@ -152,23 +151,18 @@ export default function KlaviApiRetornoPage() {
             </div>
           )}
           <p className="text-sm font-semibold text-foreground">{bank.customerFriendlyName}</p>
+          {isReal && (
+            <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+              {bancosConectados.length} {bancosConectados.length === 1 ? "banco conectado" : "bancos conectados"}
+            </span>
+          )}
           <CheckCircle size={18} weight="fill" className="ml-auto text-[#16A34A]" />
         </div>
-        {isReal && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            {bancosConectados.length} {bancosConectados.length === 1 ? "banco conectado" : "bancos conectados"}
-          </p>
-        )}
       </div>
 
-      <Card className="mt-3 w-full border-0 bg-primary-light">
-        <CardContent className="p-3 text-left">
-          <p className="text-xs text-primary-dark">
-            Você só faz isso uma vez por banco. Nas próximas vezes, tudo acontece aqui mesmo, sem sair do
-            app.
-          </p>
-        </CardContent>
-      </Card>
+      <p className="mt-3 w-full text-xs text-muted-foreground">
+        Você só faz isso uma vez por banco. Nas próximas vezes, tudo acontece aqui mesmo, sem sair do app.
+      </p>
 
       <AnimatePresence>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6 w-full">
