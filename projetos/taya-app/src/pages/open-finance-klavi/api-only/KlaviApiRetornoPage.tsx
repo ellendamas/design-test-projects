@@ -146,7 +146,7 @@ export default function KlaviApiRetornoPage() {
         <h2 className="mt-5 text-2xl font-bold text-foreground">Tivemos um problema por aqui</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           A autorização no {bank.customerFriendlyName} foi concluída, mas não conseguimos finalizar a conexão
-          agora. Isso não tem a ver com o seu banco. Nenhum dado foi compartilhado.
+          agora. Isso não tem a ver com o seu banco. Nenhum dado foi compartilhado. Tente novamente.
         </p>
         {mostrarSuporte && supportCard}
         <div className="fixed bottom-0 left-0 right-0 px-4 py-3">

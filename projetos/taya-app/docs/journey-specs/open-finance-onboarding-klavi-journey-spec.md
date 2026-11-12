@@ -137,6 +137,15 @@ solto, e ajusta:
   toast avisando. Antes disso a jornada deixava repetir a conexão de um banco já conectado
   sem necessidade.
 
+> **Regra de negócio obrigatória para `nao_autorizado` e `falha_tecnica` (confirmada pela
+> Ellen em 12/11/2026):** sempre oferecer "tentar novamente" primeiro. Só depois de um número
+> de tentativas seguidas falhando (no protótipo, 3 — número ainda não validado, ver open
+> questions) é que aparece a opção de falar com o suporte. Não é pra pular direto pro suporte
+> na primeira falha, nem pra deixar a pessoa tentando pra sempre sem alternativa. Essa regra
+> precisa estar implementada no backend/contagem de tentativas, não só na tela: o protótipo
+> simula isso por parâmetro de URL (`?tentativas=N`), mas em produção isso tem que vir de uma
+> contagem real de tentativas da sessão/consentimento.
+
 ## 6) Diff de UX por tela
 
 | screen_id | tipo de mudança | o que mudou | por que mudou | impacto esperado |
