@@ -2033,6 +2033,12 @@ function App() {
   const [mfaCode, setMfaCode] = useState("");
   const [mfaErro, setMfaErro] = useState<string | null>(null);
   const [mfaCountdown, setMfaCountdown] = useState(0);
+  // DESIGN ONLY: canal de confirmação de identidade do onboarding, pensado a partir da troca de
+  // canal (SMS/e-mail) que a produção já teve que adicionar no cadastro, por causa de SMS que não
+  // chegavam pra boa parte das pessoas (ver SignupOtpStep na taya-b2c-frontend). Default SMS,
+  // porque é o que o passo anterior já coleta primeiro; troca pra e-mail (ou volta) sem perder o
+  // código digitado até ali, e reaproveita o mesmo cooldown do reenvio.
+  const [mfaCanal, setMfaCanal] = useState<"sms" | "email">("sms");
   const [necessidades, setNecessidades] = useState<string[]>([]);
   const [mostrarTermos, setMostrarTermos] = useState(false);
   const [biometriaSheetOpen, setBiometriaSheetOpen] = useState(false);
@@ -2070,6 +2076,11 @@ function App() {
   const phoneMascarado = (() => {
     const d = phone.replace(/\D/g, "");
     return d.length >= 6 ? `+55 (${d.slice(0, 2)}) •••••-${d.slice(-4)}` : "o número cadastrado";
+  })();
+  const emailMascarado = (() => {
+    const [local, dominio] = email.split("@");
+    if (!local || !dominio) return "o e-mail cadastrado";
+    return `${local.slice(0, 2)}***@${dominio}`;
   })();
 
   const pageVariants = {
@@ -2764,14 +2775,23 @@ function App() {
                 </>
               )}
 
-              {/* ── Step 3 — MFA SMS ── */}
+              {/* ── Step 3 — Confirmação de identidade (SMS ou e-mail) ──
+                  Troca de canal sempre visível, habilitada só quando o cooldown de reenvio zera
+                  (mesma regra já usada na troca de canal da tela de código de exclusão de conta,
+                  em ExcluirContaCodigoPage). Pensada a partir do SignupOtpStep da produção, que
+                  precisou ganhar essa troca por causa de SMS que não chegava pra boa parte das
+                  pessoas. */}
               {step === 3 && (
                 <>
                   <StepHeader
                     step={3}
                     total={totalSteps}
-                    title="Confirme seu telefone"
-                    subtitle={`Enviamos um código por SMS para ${phoneMascarado}`}
+                    title="Confirme sua identidade"
+                    subtitle={
+                      mfaCanal === "sms"
+                        ? `Enviamos um código por SMS para ${phoneMascarado}`
+                        : `Enviamos um código por e-mail para ${emailMascarado}`
+                    }
                   />
                   <Card className="border-border shadow-sm">
                     <CardContent className="space-y-4 pt-5">
@@ -2805,8 +2825,8 @@ function App() {
                               setMfaCountdown(30);
                               setMfaCode("");
                               setMfaErro(null);
-                              // TODO: acionar reenvio de SMS via API
-                              toast(`Código reenviado para ${phoneMascarado}.`);
+                              // TODO: acionar reenvio de SMS/e-mail via API
+                              toast(`Código reenviado para ${mfaCanal === "sms" ? phoneMascarado : emailMascarado}.`);
                             }}
                             className="text-sm font-semibold text-[#FD5F31] underline"
                           >
@@ -2814,6 +2834,39 @@ function App() {
                           </button>
                         )}
                       </div>
+
+                      {/* Troca de canal: visível desde o início, libera só quando o cooldown zera */}
+                      <button
+                        type="button"
+                        disabled={mfaCountdown > 0}
+                        onClick={() => {
+                          const outro = mfaCanal === "sms" ? "email" : "sms";
+                          setMfaCanal(outro);
+                          setMfaCountdown(30);
+                          setMfaCode("");
+                          setMfaErro(null);
+                          // TODO: acionar envio pelo canal escolhido via API
+                          toast(`Código enviado por ${outro === "sms" ? "SMS" : "e-mail"} para ${outro === "sms" ? phoneMascarado : emailMascarado}.`);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary">
+                          {mfaCanal === "sms" ? <EnvelopeSimple size={20} /> : <ChatCircle size={20} />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-muted-foreground">Não chegou?</p>
+                          <p className="text-sm font-semibold text-foreground">
+                            {mfaCanal === "sms" ? "Receber por e-mail" : "Receber por SMS"}
+                          </p>
+                        </div>
+                        {mfaCountdown > 0 ? (
+                          <span className="shrink-0 text-xs font-semibold text-muted-foreground">em {mfaCountdown}s</span>
+                        ) : (
+                          <ArrowRight size={18} className="shrink-0 text-primary" />
+                        )}
+                      </button>
+
+                      <SecurityStrip />
                     </CardContent>
                   </Card>
                 </>
