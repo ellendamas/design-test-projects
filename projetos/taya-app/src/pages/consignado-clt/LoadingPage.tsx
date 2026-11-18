@@ -36,44 +36,53 @@ export default function ConsignadoCLTLoadingPage() {
   const [timedOut, setTimedOut] = useState(false);
 
   // DESIGN ONLY — simular resultado da consulta via query param
-  // URLs de teste: /consignado-clt/loading?resultado=negativo|nenhuma|uma|multiplas
+  // URLs de teste: /consignado-clt/loading?resultado=negativo|nenhuma|uma|multiplas|inelegivel
   // TODO: substituir por lógica real da API
   const resultado = searchParams.get("resultado") ?? "multiplas";
   const semOferta = resultado === "negativo" || resultado === "nenhuma";
+  // Inelegível pós-consulta: motivo diferente de "sem margem" (isso é sem-oferta) e diferente
+  // de "sem carteira assinada" (isso é barrado antes do consentimento). Pedido da Ellen em
+  // 18/11/2026: mesmo status "inelegível", tela própria, porque o motivo real ainda não foi
+  // definido com o time técnico.
+  const inelegivel = resultado === "inelegivel";
   const qtd = resultado === "uma" ? 1 : 3; // multiplas (default) = 3
 
   useEffect(() => {
     if (semOferta) {
       navigate("/consignado-clt/sem-oferta", { replace: true });
+      return;
     }
-  }, [semOferta, navigate]);
+    if (inelegivel) {
+      navigate("/consignado-clt/inelegivel-consulta", { replace: true });
+    }
+  }, [semOferta, inelegivel, navigate]);
 
   useEffect(() => {
-    if (semOferta) return;
+    if (semOferta || inelegivel) return;
     // TODO: substituir MOCK_TIMELINE por polling real da API (status por provedor)
     const timers = MOCK_TIMELINE.map(({ delay, updates }) =>
       setTimeout(() => setStatus((prev) => ({ ...prev, ...updates })), delay),
     );
     return () => timers.forEach(clearTimeout);
-  }, [semOferta]);
+  }, [semOferta, inelegivel]);
 
   useEffect(() => {
-    if (semOferta) return;
+    if (semOferta || inelegivel) return;
     // Timeout de 60s — se nem todos os provedores responderem, mostrar opção de saída
     const timeout = setTimeout(() => setTimedOut(true), 60000);
     return () => clearTimeout(timeout);
-  }, [semOferta]);
+  }, [semOferta, inelegivel]);
 
   // Navegação automática quando todos os provedores mock já responderam
   useEffect(() => {
-    if (semOferta) return;
+    if (semOferta || inelegivel) return;
     const todosResponderam = PROVEDORES_IDS.every((id) => Boolean(status[id]));
     if (!todosResponderam) return;
     const timer = setTimeout(() => {
       navigate(`/consignado-clt/ofertas?qtd=${qtd}`, { replace: true });
     }, 800);
     return () => clearTimeout(timer);
-  }, [status, semOferta, qtd, navigate]);
+  }, [status, semOferta, inelegivel, qtd, navigate]);
 
   const handleVerDisponiveis = () => {
     navigate(`/consignado-clt/ofertas?qtd=${qtd}`);
