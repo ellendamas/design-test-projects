@@ -1,0 +1,266 @@
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowRight, ArrowSquareOut, Bank as BankIcon, Check, CheckCircle, Headset, Prohibit, WarningCircle } from "@phosphor-icons/react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { celcoinBrandsMock } from "./celcoinBrandsData";
+import { useOpenFinance } from "@/context/OpenFinanceContext";
+
+const BASE = "/cadastro/open-finance";
+
+// DESIGN ONLY: ?resultado=sucesso (default) | parcial | nao_autorizado | falha_tecnica
+// ?tentativas=N (default 1) simula quantas tentativas seguidas já falharam, pra testar a
+// escalação pro suporte sem precisar clicar em "tentar novamente" várias vezes de verdade.
+// bancoId tem fallback "nubank" pra permitir acesso direto por URL.
+//
+// Os 4 resultados vêm do que a doc do parceiro de Open Finance realmente expõe, não de
+// suposição:
+// - sucesso: consentimento aprovado com todos os dados que pedimos liberados.
+// - parcial: existe um erro específico (403 "no resource allowed") pra quando o banco aprova
+//   o consentimento mas não libera todos os recursos pedidos. Conexão existe, só que
+//   incompleta, diferente de uma falha total.
+// - nao_autorizado: o parceiro não distingue "o usuário recusou" de "não respondeu a tempo".
+//   As duas coisas chegam como o mesmo status (REJECTED), por isso a copy aqui não afirma
+//   que sabe qual dos dois aconteceu.
+// - falha_tecnica: depois que o banco já autorizou, ainda trocamos o código por um token e
+//   buscamos os primeiros dados. Se isso falhar (rede, timeout), a culpa não é do banco, é
+//   nossa. Copy separada pra não jogar a culpa no lugar errado.
+//
+// O retorno é um redirect de volta pra Pode Já com um código, e aí a gente ainda troca esse
+// código por um token: por isso passa por um estado de "confirmando" antes do resultado,
+// mesmo não sendo um evento assíncrono de verdade. No sucesso/parcial, grava no
+// OpenFinanceContext de verdade.
+type Resultado = "sucesso" | "parcial" | "nao_autorizado" | "falha_tecnica";
+
+const SUPPORT_THRESHOLD = 3;
+
+export default function OpenFinanceRetornoPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { connectBankById, bancosConectados } = useOpenFinance();
+  const [confirmando, setConfirmando] = useState(true);
+  const isOnboarding = typeof window !== "undefined" && !!sessionStorage.getItem("onboarding_step");
+
+  const bancoId = (location.state as { bancoId?: string } | null)?.bancoId ?? "nubank"; // DESIGN ONLY
+  const bank = celcoinBrandsMock.find((item) => item.brandId === bancoId) ?? celcoinBrandsMock[0];
+  const resultado = (searchParams.get("resultado") ?? "sucesso") as Resultado; // DESIGN ONLY
+  const tentativas = Number(searchParams.get("tentativas") ?? "1") || 1; // DESIGN ONLY
+  const mostrarSuporte = tentativas >= SUPPORT_THRESHOLD;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setConfirmando(false), 2200);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!confirmando && (resultado === "sucesso" || resultado === "parcial")) {
+      connectBankById(bank.brandId, bank.customerFriendlyName);
+    }
+  }, [confirmando, resultado, bank.brandId, bank.customerFriendlyName, connectBankById]);
+
+  const voltarDepois = () => {
+    if (typeof window !== "undefined") window.localStorage.setItem("openfinance_pendente", "true");
+    navigate(isOnboarding ? "/cadastro" : "/painel");
+  };
+
+  const tentarNovamente = () => {
+    navigate(`${BASE}/transicao-banco`, { state: { bancoId } });
+  };
+
+  const supportCard = (
+    <div className="mt-3 w-full rounded-2xl border border-primary/25 bg-primary-light p-4 text-left">
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
+          <Headset size={20} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">Ainda não conseguiu conectar?</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+            Nosso time pode te ajudar a resolver isso.
+          </p>
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        className="mt-3 h-11 w-full rounded-xl border-border"
+        onClick={() => navigate("/duvidas")}
+      >
+        Falar com o suporte
+      </Button>
+    </div>
+  );
+
+  if (confirmando) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#FD5F31] to-[#FA9832] px-6 text-center text-white">
+        <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1, repeat: Infinity }}>
+          <ArrowSquareOut size={48} />
+        </motion.div>
+        <h2 className="mt-6 text-2xl font-bold">Confirmando com o {bank.customerFriendlyName}...</h2>
+        <p className="mt-2 text-sm text-white/80">Isso pode levar alguns instantes.</p>
+      </main>
+    );
+  }
+
+  if (resultado === "nao_autorizado") {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 pb-28 text-center">
+        <Prohibit size={64} weight="fill" className="text-muted-foreground" />
+        <h2 className="mt-5 text-2xl font-bold text-foreground">Não conseguimos confirmar a autorização</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Isso acontece quando a autorização não é concluída no {bank.customerFriendlyName}. Nenhum dado foi
+          compartilhado. Você pode tentar novamente quando quiser.
+        </p>
+        {mostrarSuporte && supportCard}
+        <div className="fixed bottom-0 left-0 right-0 px-4 py-3">
+          <div className="mx-auto w-full max-w-[640px] space-y-2">
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+              onClick={tentarNovamente}
+            >
+              Tentar novamente
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 w-full rounded-xl border-border"
+              onClick={voltarDepois}
+            >
+              Fazer isso depois
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (resultado === "falha_tecnica") {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 pb-28 text-center">
+        <WarningCircle size={64} weight="fill" className="text-[#DC2626]" />
+        <h2 className="mt-5 text-2xl font-bold text-foreground">Tivemos um problema por aqui</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          A autorização no {bank.customerFriendlyName} foi concluída, mas não conseguimos finalizar a conexão
+          agora. Isso não tem a ver com o seu banco. Nenhum dado foi compartilhado. Tente novamente.
+        </p>
+        {mostrarSuporte && supportCard}
+        <div className="fixed bottom-0 left-0 right-0 px-4 py-3">
+          <div className="mx-auto w-full max-w-[640px] space-y-2">
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+              onClick={tentarNovamente}
+            >
+              Tentar novamente
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 w-full rounded-xl border-border"
+              onClick={voltarDepois}
+            >
+              Fazer isso depois
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (resultado === "parcial") {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 pb-28 text-center">
+        <WarningCircle size={64} weight="fill" className="text-warning" />
+        <h2 className="mt-5 text-2xl font-bold text-foreground">Conectamos, mas com acesso limitado</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          O {bank.customerFriendlyName} não liberou todos os dados que pedimos. Você pode tentar autorizar de
+          novo ou continuar só com o que já temos.
+        </p>
+        <div className="fixed bottom-0 left-0 right-0 px-4 py-3">
+          <div className="mx-auto w-full max-w-[640px] space-y-2">
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+              onClick={tentarNovamente}
+            >
+              Tentar autorizar de novo
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 w-full rounded-xl border-border"
+              onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
+            >
+              Continuar mesmo assim
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 pb-28 text-center">
+      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.4, ease: "backOut" }}>
+        <CheckCircle size={64} weight="fill" className="text-[#16A34A]" />
+      </motion.div>
+      <h2 className="mt-5 text-2xl font-bold text-foreground">Banco conectado!</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Estamos buscando seus dados financeiros...</p>
+
+      <motion.div
+        className="mt-6 flex flex-col items-start gap-2"
+        initial="hidden"
+        animate="show"
+        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.6 } } }}
+      >
+        {["Transações importadas", "Categorias identificadas", "Primeiro insight gerado"].map((item) => (
+          <motion.div
+            key={item}
+            variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }}
+            className="flex items-center gap-2"
+          >
+            <Check size={16} className="text-[#16A34A]" />
+            <p className="text-sm text-foreground">{item}</p>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <div className="mt-5 w-fit max-w-full rounded-xl border border-[#E5E7EB] bg-white p-3 text-left">
+        <div className="flex items-center gap-2">
+          {bank.customerFriendlyLogoUri ? (
+            <img src={bank.customerFriendlyLogoUri} alt="" className="h-8 w-8 rounded-full object-contain" />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+              <BankIcon size={16} />
+            </div>
+          )}
+          <p className="text-sm font-semibold text-foreground">{bank.customerFriendlyName}</p>
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+            {bancosConectados.length} {bancosConectados.length === 1 ? "banco conectado" : "bancos conectados"}
+          </span>
+          <CheckCircle size={18} weight="fill" className="ml-auto text-[#16A34A]" />
+        </div>
+      </div>
+
+      <p className="mt-3 w-full text-xs text-muted-foreground">
+        Você só faz isso uma vez por banco. Nas próximas vezes, tudo acontece aqui mesmo, sem sair do app.
+      </p>
+
+      <AnimatePresence>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed bottom-0 left-0 right-0 px-4 py-3">
+          <div className="mx-auto w-full max-w-[640px]">
+            <Button
+              className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
+              onClick={() => navigate(`${BASE}/selecionar-instituicao`)}
+            >
+              Conectar outro banco
+            </Button>
+            <Button
+              variant="outline"
+              className="mt-2 h-12 w-full rounded-xl border-border"
+              onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
+            >
+              Ir para o início <ArrowRight size={16} className="ml-2" />
+            </Button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </main>
+  );
+}
