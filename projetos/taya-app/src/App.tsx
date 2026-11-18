@@ -94,6 +94,16 @@ import OpenFinanceIntroPage from "@/pages/open-finance-celcoin/OpenFinanceIntroP
 import OpenFinanceSelecionarInstituicaoPage from "@/pages/open-finance-celcoin/OpenFinanceSelecionarInstituicaoPage";
 import OpenFinanceTransicaoBancoPage from "@/pages/open-finance-celcoin/OpenFinanceTransicaoBancoPage";
 import OpenFinanceRetornoPage from "@/pages/open-finance-celcoin/OpenFinanceRetornoPage";
+import VidaFinanceiraHomePage from "@/pages/vida-financeira/VidaFinanceiraHomePage";
+import VidaFinanceiraDestaquesPage from "@/pages/vida-financeira/VidaFinanceiraDestaquesPage";
+import VidaFinanceiraAssinaturasPage from "@/pages/vida-financeira/VidaFinanceiraAssinaturasPage";
+import VidaFinanceiraGastosPage from "@/pages/vida-financeira/VidaFinanceiraGastosPage";
+import VidaFinanceiraTransacoesPage from "@/pages/vida-financeira/VidaFinanceiraTransacoesPage";
+import VidaFinanceiraFluxoCaixaPage from "@/pages/vida-financeira/VidaFinanceiraFluxoCaixaPage";
+import VidaFinanceiraLimitesPage from "@/pages/vida-financeira/VidaFinanceiraLimitesPage";
+import VidaFinanceiraCartoesFaturasPage from "@/pages/vida-financeira/VidaFinanceiraCartoesFaturasPage";
+import VidaFinanceiraCartoesParcelasPage from "@/pages/vida-financeira/VidaFinanceiraCartoesParcelasPage";
+import VidaFinanceiraCartoesLimitesPage from "@/pages/vida-financeira/VidaFinanceiraCartoesLimitesPage";
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
 import ConsignadoCLTLandingPage from "@/pages/consignado-clt/LandingPage";
@@ -535,7 +545,7 @@ export function SubPageLayout({ title, children, hideNav = false }: { title: str
 
   const navItems = [
     { path: "/painel", icon: <House size={18} />, label: "Início" },
-    { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" },
+    { path: "/vida-financeira", icon: <ChartLineUp size={18} />, label: "Vida financeira" },
     { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" },
     { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" },
   ];
@@ -2309,6 +2319,12 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Sem isso, trocar de rota mantinha a posição de scroll da tela anterior (o App() nunca
+  // desmonta entre navegações). Toda troca de pathname tem que voltar pro topo.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   // DESIGN ONLY — /acesso?redirect=/algum/caminho volta o usuário pra lá após o login,
   // em vez do /painel padrão. Usado pela jornada Leilão CLT ("Já tenho conta").
   const redirectPosLogin = () => new URLSearchParams(location.search).get("redirect") || "/painel";
@@ -2638,7 +2654,7 @@ function App() {
       <ul className="grid w-full grid-cols-4 text-center">
         {[
           { path: "/painel", icon: <House size={18} />, label: "Início" },
-          { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" },
+          { path: "/vida-financeira", icon: <ChartLineUp size={18} />, label: "Vida financeira" },
           { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" },
           { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" },
         ].map((item) => (
@@ -3719,7 +3735,7 @@ function App() {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <Logo size="md" className="mb-8 self-start" />
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/vida-financeira", icon: <ChartLineUp size={18} />, label: "Vida financeira" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -4331,7 +4347,7 @@ function App() {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-border md:bg-white md:px-6 md:py-8">
         <Logo size="md" className="mb-8 self-start" />
         <nav className="flex flex-col gap-1">
-          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/contratos", icon: <FileText size={18} />, label: "Contratos" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
+          {[{ path: "/painel", icon: <House size={18} />, label: "Início" }, { path: "/vida-financeira", icon: <ChartLineUp size={18} />, label: "Vida financeira" }, { path: "/duvidas", icon: <Headset size={18} />, label: "Dúvidas" }, { path: "/minha-conta", icon: <UserCircle size={18} />, label: "Conta" }].map((item) => (
             <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.path ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-background"}`}>{item.icon}{item.label}</button>
           ))}
         </nav>
@@ -4419,6 +4435,9 @@ function App() {
                     { label: "Editar endereço", action: () => navigate("/minha-conta/editar-endereco") },
                     { label: "Dados bancários", action: () => navigate("/minha-conta/dados-bancarios") },
                     { label: "Open Finance", action: () => navigate("/minha-conta/open-finance") },
+                    // DESIGN ONLY: Contratos saiu da tab bar (virou "Vida financeira") e passou
+                    // pra cá, a pedido da Ellen em 13/11/2026.
+                    { label: "Contratos", action: () => navigate("/contratos") },
                     // Ponto de acesso fixo ao Indique e ganhe — sem ele, quem via o banner e não
                     // indicou na hora (ou quem já dispensou/não vê mais o card em "Para você
                     // agora", por causa da regra de recorrência) não tinha como achar o link de
@@ -4516,6 +4535,17 @@ function App() {
             <Route path="/minha-conta/editar-endereco" element={getStoredUser() ? <EditarEnderecoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/dados-bancarios" element={getStoredUser() ? <DadosBancariosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/open-finance" element={getStoredUser() ? <OpenFinanceGestaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira" element={getStoredUser() ? <VidaFinanceiraHomePage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/destaques" element={getStoredUser() ? <VidaFinanceiraDestaquesPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/assinaturas" element={getStoredUser() ? <VidaFinanceiraAssinaturasPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/gastos" element={getStoredUser() ? <VidaFinanceiraGastosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/transacoes" element={getStoredUser() ? <VidaFinanceiraTransacoesPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/fluxo-de-caixa" element={getStoredUser() ? <VidaFinanceiraFluxoCaixaPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/limites" element={getStoredUser() ? <VidaFinanceiraLimitesPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/cartoes" element={<Navigate to="/vida-financeira/cartoes/faturas" replace />} />
+            <Route path="/vida-financeira/cartoes/faturas" element={getStoredUser() ? <VidaFinanceiraCartoesFaturasPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/cartoes/parcelas" element={getStoredUser() ? <VidaFinanceiraCartoesParcelasPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/vida-financeira/cartoes/limites" element={getStoredUser() ? <VidaFinanceiraCartoesLimitesPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/alterar-senha" element={getStoredUser() ? <AlterarSenhaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/verificar-email" element={getStoredUser() ? <VerificarContato tipo="email" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/verificar-celular" element={getStoredUser() ? <VerificarContato tipo="celular" /> : <Navigate to="/boas-vindas" replace />} />

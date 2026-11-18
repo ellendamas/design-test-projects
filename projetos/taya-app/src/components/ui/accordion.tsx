@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { CaretDown } from "@phosphor-icons/react";
+import { AnimatePresence, motion } from "framer-motion";
 
 type AccordionContextValue = {
   openValue: string | null;
@@ -82,6 +83,21 @@ export function AccordionContent({
 }) {
   const ctx = useContext(AccordionContext);
   const value = useContext(AccordionItemContext);
-  if (!ctx || value === null || ctx.openValue !== value) return null;
-  return <div className={className}>{children}</div>;
+  if (!ctx || value === null) return null;
+  const open = ctx.openValue === value;
+  return (
+    <AnimatePresence initial={false}>
+      {open && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="overflow-hidden"
+        >
+          <div className={className}>{children}</div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
