@@ -107,6 +107,9 @@ import VidaFinanceiraCartoesLimitesPage from "@/pages/vida-financeira/VidaFinanc
 import type { Notificacao, NotificacaoTipo } from "@/data/notificacoes";
 import { trackStep } from "@/utils/analytics";
 import ConsignadoCLTLandingPage from "@/pages/consignado-clt/LandingPage";
+import ConsignadoCLTElegibilidadePage from "@/pages/consignado-clt/ElegibilidadePage";
+import ConsignadoCLTInelegivelPage from "@/pages/consignado-clt/InelegivelPage";
+import ConsignadoCLTInelegivelConsultaPage from "@/pages/consignado-clt/InelegivelConsultaPage";
 import ConsignadoCLTProvedoresPage from "@/pages/consignado-clt/ProvedoresPage";
 import ConsignadoCLTRedirecionandoPage from "@/pages/consignado-clt/RedirecionandoPage";
 import ConsignadoCLTRedirecionandoUnicoPage from "@/pages/consignado-clt/RedirecionandoUnicoPage";
@@ -4607,6 +4610,9 @@ function App() {
             <Route path="/cadastro/conectando" element={getStoredUser() ? <OpenFinanceConnectingPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/cadastro/conectado" element={getStoredUser() ? <OpenFinanceConnectedPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt" element={getStoredUser() ? <ConsignadoCLTLandingPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/elegibilidade" element={getStoredUser() ? <ConsignadoCLTElegibilidadePage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/inelegivel" element={getStoredUser() ? <ConsignadoCLTInelegivelPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/consignado-clt/inelegivel-consulta" element={getStoredUser() ? <ConsignadoCLTInelegivelConsultaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/provedores" element={getStoredUser() ? <ConsignadoCLTProvedoresPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/redirecionando/unico" element={getStoredUser() ? <ConsignadoCLTRedirecionandoUnicoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/consignado-clt/redirecionando/:provedor" element={getStoredUser() ? <ConsignadoCLTRedirecionandoPage /> : <Navigate to="/boas-vindas" replace />} />

@@ -51,9 +51,10 @@ export default function ConsignadoCLTLandingPage() {
 
   const handleConsult = () => {
     setIsConsulting(true);
-    // Fluxo padrão: usuário sempre parte do zero, sem nenhum consentimento prévio,
-    // e passa por todas as etapas (escolha de parceiro → consentimento → consulta)
-    navigate("/consignado-clt/provedores");
+    // Antes de ir pro consentimento, confirma se a pessoa se qualifica (carteira assinada +
+    // emprego ativo). Pedido do Barreto em 18/11/2026: muita gente chegava até o consentimento
+    // e só descobria a inelegibilidade no fim, depois de já ter consultado o Dataprev à toa.
+    navigate("/consignado-clt/elegibilidade");
   };
 
   return (
