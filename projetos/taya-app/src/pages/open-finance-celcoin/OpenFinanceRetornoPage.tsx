@@ -42,7 +42,9 @@ export default function OpenFinanceRetornoPage() {
   const [confirmando, setConfirmando] = useState(true);
   const isOnboarding = typeof window !== "undefined" && !!sessionStorage.getItem("onboarding_step");
 
-  const bancoId = (location.state as { bancoId?: string } | null)?.bancoId ?? "nubank"; // DESIGN ONLY
+  const state = location.state as { bancoId?: string; returnTo?: string } | null;
+  const bancoId = state?.bancoId ?? "nubank"; // DESIGN ONLY
+  const returnTo = state?.returnTo; // DESIGN ONLY
   const bank = celcoinBrandsMock.find((item) => item.brandId === bancoId) ?? celcoinBrandsMock[0];
   const resultado = (searchParams.get("resultado") ?? "sucesso") as Resultado; // DESIGN ONLY
   const tentativas = Number(searchParams.get("tentativas") ?? "1") || 1; // DESIGN ONLY
@@ -59,13 +61,17 @@ export default function OpenFinanceRetornoPage() {
     }
   }, [confirmando, resultado, bank.brandId, bank.customerFriendlyName, connectBankById]);
 
+  // `returnTo` (ver OpenFinanceSelecionarInstituicaoPage) tem prioridade: se a jornada foi
+  // aberta a partir de Minha Conta > Open Finance, "sair" tem que voltar lá, não pro painel.
+  const irParaInicio = () => navigate(returnTo ?? (isOnboarding ? "/cadastro" : "/painel"));
+
   const voltarDepois = () => {
     if (typeof window !== "undefined") window.localStorage.setItem("openfinance_pendente", "true");
-    navigate(isOnboarding ? "/cadastro" : "/painel");
+    irParaInicio();
   };
 
   const tentarNovamente = () => {
-    navigate(`${BASE}/transicao-banco`, { state: { bancoId } });
+    navigate(`${BASE}/transicao-banco`, { state: { bancoId, returnTo } });
   };
 
   const supportCard = (
@@ -185,7 +191,7 @@ export default function OpenFinanceRetornoPage() {
             <Button
               variant="outline"
               className="h-12 w-full rounded-xl border-border"
-              onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
+              onClick={irParaInicio}
             >
               Continuar mesmo assim
             </Button>
@@ -247,14 +253,14 @@ export default function OpenFinanceRetornoPage() {
           <div className="mx-auto w-full max-w-[640px]">
             <Button
               className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark"
-              onClick={() => navigate(`${BASE}/selecionar-instituicao`)}
+              onClick={() => navigate(`${BASE}/selecionar-instituicao`, { state: { returnTo } })}
             >
               Conectar outro banco
             </Button>
             <Button
               variant="outline"
               className="mt-2 h-12 w-full rounded-xl border-border"
-              onClick={() => navigate(isOnboarding ? "/cadastro" : "/painel")}
+              onClick={irParaInicio}
             >
               Ir para o início <ArrowRight size={16} className="ml-2" />
             </Button>
