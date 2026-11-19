@@ -1,15 +1,22 @@
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Bell, CaretRight, CheckCircle, ShieldCheck } from "@phosphor-icons/react";
+import { Bell, CaretRight, CheckCircle, Headset, ShieldCheck } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { SubPageLayout } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useChat } from "@/context/ChatContext";
 import { useInteresse } from "@/context/InteresseContext";
 import { PARCEIRO_NOME } from "@/config/parceiro";
-import { estadoAssinaturaViaParametro } from "@/pages/saude/estadoAssinaturaDesignOnly";
-import { ESTADOS_COM_CANCELAR, MINHA_ASSINATURA_POR_ESTADO, CHIP_ESTADO_ASSINATURA, type AcaoEstadoAssinatura } from "@/pages/saude/estadosAssinaturaConteudo";
+import { estadoAssinaturaEfetivo, pixVencidoViaParametro } from "@/pages/saude/estadoAssinaturaDesignOnly";
+import { ESTADOS_COM_CANCELAR, CHIP_ESTADO_ASSINATURA, minhaAssinaturaConteudo, type AcaoEstadoAssinatura } from "@/pages/saude/estadosAssinaturaConteudo";
 import { useMensalidades } from "@/pages/saude/useMensalidades";
 import { formatarDataBR, getAssinaturaBenemedAtiva, getDiaCobrancaAtivo, PLANOS, type Plano } from "./shared";
+
+// Prompt 1h (23/10) — "Próxima mensalidade" (renomeada "(estimada)") só aparece quando a URL
+// já trouxer `?diaCobranca=` de propósito (sem isso, não existe dado real nenhum por trás).
+// "Mensalidades pagas" e "Venceu em" saíram da tela — o backend não entrega isso ainda. Código
+// mantido, só a exibição desligada aqui, mesmo espírito de PLANOS_EXIBIDOS em shared.ts.
+const MOSTRAR_MENSALIDADES_PAGAS = false;
 
 // Rota: /assistencias/saude/assinatura — "Meu plano" da assinatura BeneMed, mesmo padrão
 // visual das telas de contrato existentes (ver ContratoSeguroPage em App.tsx: selo de status +
@@ -30,17 +37,19 @@ export default function AssistenciasAssinaturaPage() {
   const plano = getAssinaturaBenemedAtiva() ?? (location.state as { plano?: Plano } | null)?.plano ?? PLANOS[0];
   const diaCobranca = getDiaCobrancaAtivo();
   const { interesses, registrarInteresse } = useInteresse();
-  // DESIGN ONLY (Prompt 1e, 22/10) — estado simulado por ?assinaturaEstado= na própria URL
-  // desta tela, independente de ?assinaturaPlano= (esta tela sempre tem algum `plano` pra
-  // mostrar, real ou PLANOS[0] como fallback). Sem o parâmetro, "ativo" é o padrão — mesmo
-  // comportamento de hoje.
-  const estado = estadoAssinaturaViaParametro() ?? "ativo";
+  const { abrirChat } = useChat();
+  // DESIGN ONLY (Prompt 1e, 22/10; restrito a 4 estados no Prompt 1h, 23/10) — estado simulado
+  // por ?assinaturaEstado= na própria URL desta tela, independente de ?assinaturaPlano= (esta
+  // tela sempre tem algum `plano` pra mostrar, real ou PLANOS[0] como fallback).
+  const estado = estadoAssinaturaEfetivo(plano.id);
+  const pixVencido = pixVencidoViaParametro();
   const chip = CHIP_ESTADO_ASSINATURA[estado];
-  const { mensagem, botao } = MINHA_ASSINATURA_POR_ESTADO[estado];
+  const { mensagem, botao } = minhaAssinaturaConteudo(estado, pixVencido);
 
   const irParaPagamentoPix = () => navigate("/assistencias/saude/pagamento", { state: { plano } });
   const executarAcaoBotao = (acao: AcaoEstadoAssinatura) => {
-    if (acao === "pagar_pix" || acao === "regularizar") irParaPagamentoPix();
+    if (acao === "pagar_pix" || acao === "regularizar" || acao === "gerar_novo_pix") irParaPagamentoPix();
+    else if (acao === "contratar_de_novo") navigate("/assistencias/saude/planos");
     else navigate("/assistencias/saude/assinatura/benemed");
   };
 
@@ -52,14 +61,16 @@ export default function AssistenciasAssinaturaPage() {
   // sem precisar clicar — só pra pré-visualização, não persiste (basta tirar o parâmetro pra
   // voltar ao estado real).
   const temDiaCobranca = plano.id === "mensal" || plano.id === "familiar";
+  const planoSemestralOuAnual = plano.id === "semestral" || plano.id === "anual";
 
-  // Seção 5 do Prompt 1f (22/10) — "Próxima mensalidade"/"Mensalidades pagas" (ou "Venceu em"
-  // no atraso) só nos planos com dia de cobrança (Mensal/Familiar) e só nos estados em que faz
-  // sentido mostrar uma cobrança futura/vencida: pendente, cancelamento e cancelado não têm
-  // uma data de próxima mensalidade de verdade (sem cobrança agendada rodando).
+  // Prompt 1h (23/10) — "Próxima mensalidade (estimada)" só com `?diaCobranca=` explícito na
+  // URL (sem API de billing real, não existe valor nenhum pra mostrar por padrão) e só em
+  // "ativo" — os outros 3 estados exibidos não têm uma cobrança futura de verdade rodando.
+  // "Mensalidades pagas" saiu da tela (MOSTRAR_MENSALIDADES_PAGAS acima), e a variação "Venceu
+  // em" (que era do estado "atraso", agora escondido) foi removida com ela.
+  const diaCobrancaForcadoNaUrl = searchParams.get("diaCobranca") !== null;
   const { proximoVencimento, mensalidadesPagas } = useMensalidades(diaCobranca);
-  const mostraDadosMensalidade = temDiaCobranca && (estado === "ativo" || estado === "ativacao" || estado === "atraso");
-  const labelVencimento = estado === "atraso" ? "Venceu em" : "Próxima mensalidade";
+  const mostraProximaMensalidade = temDiaCobranca && diaCobrancaForcadoNaUrl && estado === "ativo";
 
   const CHAVE_INTERESSE_TROCAR_DIA = "assistencias-saude-trocar-dia-cobranca";
   const forcarTrocaSolicitada = searchParams.get("trocaDiaCobranca") === "solicitado"; // DESIGN ONLY
@@ -108,22 +119,22 @@ export default function AssistenciasAssinaturaPage() {
           <p className="text-xs text-muted-foreground">Parceiro</p>
           <p className="text-sm font-semibold text-foreground">{PARCEIRO_NOME}</p>
         </div>
-        {mostraDadosMensalidade && (
-          <>
-            <div>
-              <p className="text-xs text-muted-foreground">{labelVencimento}</p>
-              <p className="text-sm font-semibold text-foreground">{formatarDataBR(proximoVencimento)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Mensalidades pagas</p>
-              <p className="text-sm font-semibold text-foreground">{mensalidadesPagas}</p>
-            </div>
-          </>
+        {mostraProximaMensalidade && (
+          <div>
+            <p className="text-xs text-muted-foreground">Próxima mensalidade (estimada)</p>
+            <p className="text-sm font-semibold text-foreground">{formatarDataBR(proximoVencimento)}</p>
+          </div>
         )}
-        {/* Semestral/Anual (seção 5): "Vence em" pediria a data real de vigência, que não
-            existe no app hoje — vigenciaBenemedProximaDoFim() em shared.ts só guarda um
-            booleano "perto de vencer ou não", sem data nenhuma por trás. Não inventei a data;
-            registrado na entrega como pergunta em aberto. */}
+        {MOSTRAR_MENSALIDADES_PAGAS && mostraProximaMensalidade && (
+          <div>
+            <p className="text-xs text-muted-foreground">Mensalidades pagas</p>
+            <p className="text-sm font-semibold text-foreground">{mensalidadesPagas}</p>
+          </div>
+        )}
+        {/* Semestral/Anual: "Vence em" pediria a data real de vigência, que não existe no app
+            hoje — vigenciaBenemedProximaDoFim() em shared.ts só guarda um booleano "perto de
+            vencer ou não", sem data nenhuma por trás. Não inventei a data; registrado na
+            entrega como pergunta em aberto. */}
       </div>
 
       {botao && (
@@ -146,7 +157,7 @@ export default function AssistenciasAssinaturaPage() {
         </p>
       </div>
 
-      {(temDiaCobranca || ESTADOS_COM_CANCELAR.includes(estado)) && (
+      {(temDiaCobranca || ESTADOS_COM_CANCELAR.includes(estado) || planoSemestralOuAnual) && (
       <Card className="border-border shadow-sm">
         <CardContent className="p-0">
           {temDiaCobranca && (
@@ -167,8 +178,10 @@ export default function AssistenciasAssinaturaPage() {
           )}
           {/* Prompt 1e (22/10) — "Cancelar assinatura" só faz sentido enquanto ainda existe algo
               rodando pra cancelar: "ativo" e "ativacao". Nos demais estados (pagamento pendente
-              ou atrasado, cancelamento já pedido, ou já cancelado) a linha some. */}
-          {ESTADOS_COM_CANCELAR.includes(estado) && (
+              ou atrasado, cancelamento já pedido, ou já cancelado) a linha some. Só pros planos
+              Mensal/Familiar — Semestral/Anual mostram "Falar com o atendimento" no lugar (ver
+              abaixo, Prompt 1h). */}
+          {!planoSemestralOuAnual && ESTADOS_COM_CANCELAR.includes(estado) && (
             <button
               type="button"
               onClick={() => navigate("/assistencias/saude/cancelar/motivo", { state: { plano } })}
@@ -178,6 +191,26 @@ export default function AssistenciasAssinaturaPage() {
                 Cancelar assinatura
                 <CaretRight size={16} className="text-muted-foreground" />
               </div>
+            </button>
+          )}
+          {/* Prompt 1h (23/10) — Semestral/Anual não renovam sozinhos e não têm um fluxo de
+              cancelamento próprio ainda, então em vez de "Cancelar assinatura" esta linha leva
+              direto pro mesmo chat de atendimento que o fluxo de cancelamento (Mensal/Familiar)
+              já abre no fim dele (useChat/abrirChat, ver CancelarRetencaoPage.tsx). */}
+          {planoSemestralOuAnual && (
+            <button
+              type="button"
+              onClick={abrirChat}
+              className="flex w-full items-start gap-3 border-b border-border px-4 py-3.5 text-left last:border-0"
+            >
+              <Headset size={18} className="mt-0.5 shrink-0 text-[#FD5F31]" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-foreground">Falar com o atendimento</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                  Seu plano não renova sozinho. Precisa de ajuda com ele? Fale com o atendimento.
+                </p>
+              </div>
+              <CaretRight size={16} className="mt-0.5 shrink-0 text-muted-foreground" />
             </button>
           )}
         </CardContent>

@@ -8,8 +8,8 @@ import { formatoDeCodigoValido, gravarAtribuicao, gravarRefNaSessao } from "@/pa
 import { trackReferralLandingViewed } from "@/pages/referral/trackReferral";
 import { trackStep } from "@/utils/analytics";
 import { ReferralCard } from "@/pages/referral/ReferralCard";
-import { ASSINATURA_ATIVA_SO_POR_PARAMETRO, estadoAssinaturaViaParametro, planoAtivoViaParametro } from "./estadoAssinaturaDesignOnly";
-import { AVISO_SAUDE_POR_ESTADO, ESTADOS_COM_INDIQUE_E_GANHE, type AcaoEstadoAssinatura } from "./estadosAssinaturaConteudo";
+import { ASSINATURA_ATIVA_SO_POR_PARAMETRO, estadoAssinaturaEfetivo, pixVencidoViaParametro, planoAtivoViaParametro } from "./estadoAssinaturaDesignOnly";
+import { ESTADOS_COM_INDIQUE_E_GANHE, avisoSaudeConteudo, type AcaoEstadoAssinatura } from "./estadosAssinaturaConteudo";
 import { usarMetaTagsPublicas } from "./usarMetaTagsPublicas";
 import { AvisoAssinaturaAtiva } from "./secoes/AvisoAssinaturaAtiva";
 import { ComoFunciona } from "./secoes/ComoFuncionaProduto";
@@ -36,11 +36,14 @@ export default function SaudeProdutoPage({ modo }: { modo: ModoSaudeProduto }) {
   const [planosVisiveis, setPlanosVisiveis] = useState(false);
   const trackedRef = useRef(false);
 
+  const planoForcado = planoAtivoViaParametro();
   const assinaturaAtiva =
-    modo === "app" && (ASSINATURA_ATIVA_SO_POR_PARAMETRO ? planoAtivoViaParametro() !== null : false);
-  // Sem plano ativo, não existe estado. Com plano ativo e sem ?assinaturaEstado= na URL, o
-  // padrão é "ativo" — mesmo comportamento de antes deste parâmetro existir.
-  const estado = assinaturaAtiva ? estadoAssinaturaViaParametro() ?? "ativo" : null;
+    modo === "app" && (ASSINATURA_ATIVA_SO_POR_PARAMETRO ? planoForcado !== null : false);
+  // Sem plano ativo, não existe estado. Com plano ativo, estadoAssinaturaEfetivo já cuida dos
+  // dois fallbacks do Prompt 1h: estado fora de ESTADOS_EXIBIDOS cai em "ativo", e "encerrado"
+  // só vale pra Semestral/Anual.
+  const estado = assinaturaAtiva ? estadoAssinaturaEfetivo(planoForcado?.id) : null;
+  const pixVencido = pixVencidoViaParametro();
 
   const refParam = searchParams.get("ref");
   const refValido = formatoDeCodigoValido(refParam);
@@ -92,13 +95,14 @@ export default function SaudeProdutoPage({ modo }: { modo: ModoSaudeProduto }) {
   // "acessar_benemed" não aparece no aviso desta página (só em Minha assinatura), então não
   // precisa de caso aqui.
   const executarAcaoEstado = (acao: AcaoEstadoAssinatura) => {
-    if (acao === "pagar_pix" || acao === "regularizar") irParaPagamentoPix();
+    if (acao === "pagar_pix" || acao === "regularizar" || acao === "gerar_novo_pix") irParaPagamentoPix();
+    else if (acao === "contratar_de_novo") irParaPlanos();
     else irParaMeuPlano();
   };
 
   // "cancelado" não tem aviso nenhum (pedido explícito do brief) — some tanto o card quanto o
   // card de indicação, como se não houvesse assinatura pra mostrar aqui.
-  const avisoEstado = estado && estado !== "cancelado" ? AVISO_SAUDE_POR_ESTADO[estado] : null;
+  const avisoEstado = estado && estado !== "cancelado" ? avisoSaudeConteudo(estado, pixVencido) : null;
 
   const conteudo = (
     <div className="space-y-6 pb-4">

@@ -69,7 +69,7 @@ export default function AssistenciasConfirmacaoPage() {
               </p>
               {mostraVencimento && (
                 <p className="mt-2 text-xs font-medium text-foreground">
-                  Próxima mensalidade: {formatarDataBR(proximoVencimento)}
+                  Próxima mensalidade (estimada): {formatarDataBR(proximoVencimento)}
                 </p>
               )}
             </div>

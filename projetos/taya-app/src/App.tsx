@@ -122,7 +122,7 @@ import ConsignadoCLTSemOfertaPage from "@/pages/consignado-clt/SemOfertaPage";
 import SeguroVidaLandingPage from "@/pages/seguro-vida/SeguroVidaLandingPage";
 import SaudeProdutoPage from "@/pages/saude/SaudeProdutoPage";
 import SaudePlanosPage from "@/pages/saude/PlanosPage";
-import { estadoAssinaturaViaParametro, planoAtivoViaParametro } from "@/pages/saude/estadoAssinaturaDesignOnly";
+import { estadoAssinaturaEfetivo, planoAtivoViaParametro } from "@/pages/saude/estadoAssinaturaDesignOnly";
 import { CHIP_ESTADO_ASSINATURA } from "@/pages/saude/estadosAssinaturaConteudo";
 import AssistenciasVerificarCelularPage from "@/pages/assistencias/VerificarCelularPage";
 import AssistenciasVerificarEmailPage from "@/pages/assistencias/VerificarEmailPage";
@@ -1482,7 +1482,7 @@ function ContratosPage() {
   // com o estado simulado via ?assinaturaPlano= (Prompt 1e, 22/10) — sem isso, não dava pra
   // testar os 6 estados aqui sem completar um checkout de verdade.
   const assinaturaBenemed = getAssinaturaBenemedAtiva() ?? planoAtivoViaParametro();
-  const estadoAssinatura = estadoAssinaturaViaParametro() ?? "ativo";
+  const estadoAssinatura = estadoAssinaturaEfetivo(assinaturaBenemed?.id);
   const chipAssinatura = CHIP_ESTADO_ASSINATURA[estadoAssinatura];
   return (
     <SubPageLayout title="Meus contratos">

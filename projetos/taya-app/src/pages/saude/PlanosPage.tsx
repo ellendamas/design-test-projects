@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { PLANOS_CONTEUDO } from "@/data/saudeConteudo";
 import { PLANOS, planosExibidos, proximaEtapaAposVerificacao, type Plano, type PlanoId } from "@/pages/assistencias/shared";
 import { trackStep } from "@/utils/analytics";
-import { ASSINATURA_ATIVA_SO_POR_PARAMETRO, estadoAssinaturaViaParametro, planoAtivoViaParametro } from "./estadoAssinaturaDesignOnly";
-import { AVISO_SAUDE_POR_ESTADO, type AcaoEstadoAssinatura } from "./estadosAssinaturaConteudo";
+import { ASSINATURA_ATIVA_SO_POR_PARAMETRO, estadoAssinaturaEfetivo, pixVencidoViaParametro, planoAtivoViaParametro } from "./estadoAssinaturaDesignOnly";
+import { avisoSaudeConteudo, type AcaoEstadoAssinatura } from "./estadosAssinaturaConteudo";
 import { AvisoAssinaturaAtiva } from "./secoes/AvisoAssinaturaAtiva";
 
 const PRAZOS_INDIVIDUAL: PlanoId[] = ["mensal", "semestral", "anual"];
@@ -24,17 +24,20 @@ const PRAZOS_INDIVIDUAL: PlanoId[] = ["mensal", "semestral", "anual"];
 export default function SaudePlanosPage() {
   const navigate = useNavigate();
   const [prazoSelecionado, setPrazoSelecionado] = useState<PlanoId>("mensal");
-  const assinaturaAtiva = ASSINATURA_ATIVA_SO_POR_PARAMETRO ? planoAtivoViaParametro() !== null : false;
-  const estado = assinaturaAtiva ? estadoAssinaturaViaParametro() ?? "ativo" : null;
-  // "cancelado" é o único estado em que esta tela volta a mostrar os cards (com o aviso e os
-  // botões desativados abaixo) — todo o resto (inclusive sem assinatura nenhuma) segue cada um
-  // pro seu próprio caminho: sem estado, cards normais; com qualquer outro estado, aviso no
-  // lugar dos cards, igual já era pra "ativo" antes deste prompt.
-  const avisoEstado = estado && estado !== "cancelado" ? AVISO_SAUDE_POR_ESTADO[estado] : null;
+  const planoForcado = planoAtivoViaParametro();
+  const assinaturaAtiva = ASSINATURA_ATIVA_SO_POR_PARAMETRO ? planoForcado !== null : false;
+  const estado = assinaturaAtiva ? estadoAssinaturaEfetivo(planoForcado?.id) : null;
+  // "cancelado" e "encerrado" (Prompt 1h, 23/10) são os dois estados em que esta tela volta a
+  // mostrar os cards: "cancelado" com o aviso dos 3 meses e os botões desativados abaixo,
+  // "encerrado" exatamente como se não houvesse assinatura nenhuma — o brief pede
+  // explicitamente "sem o bloqueio de 3 meses do estado cancelado" pra "Contratar de novo".
+  // Todo o resto segue pro aviso no lugar dos cards, igual já era pra "ativo" antes deste prompt.
+  const avisoEstado = estado && estado !== "cancelado" && estado !== "encerrado" ? avisoSaudeConteudo(estado, pixVencidoViaParametro()) : null;
 
   const irParaPagamentoPix = () => navigate("/assistencias/saude/pagamento", { state: { plano: planoAtivoViaParametro() ?? undefined } });
   const executarAcaoEstado = (acao: AcaoEstadoAssinatura) => {
-    if (acao === "pagar_pix" || acao === "regularizar") irParaPagamentoPix();
+    if (acao === "pagar_pix" || acao === "regularizar" || acao === "gerar_novo_pix") irParaPagamentoPix();
+    else if (acao === "contratar_de_novo") return; // já está nesta tela
     else navigate("/contratos");
   };
 
