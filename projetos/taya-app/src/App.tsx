@@ -189,6 +189,9 @@ import CreditoPessoalConfirmacao from "./pages/credito-pessoal/CreditoPessoalCon
 import CreditoPessoalReprovada from "./pages/credito-pessoal/CreditoPessoalReprovada";
 import CreditoPessoalPendente from "./pages/credito-pessoal/CreditoPessoalPendente";
 import CreditoPessoalContratoPage from "./pages/credito-pessoal/CreditoPessoalContratoPage";
+import CreditoFacilIntroPage from "./pages/credito-facil/CreditoFacilIntroPage";
+import CreditoFacilConfirmarDadosPage from "./pages/credito-facil/CreditoFacilConfirmarDadosPage";
+import CreditoFacilRedirecionandoPage from "./pages/credito-facil/CreditoFacilRedirecionandoPage";
 import VerificarContato from "./pages/minha-conta/VerificarContato";
 import EnderecoSelector, { type EnderecoData } from "@/components/EnderecoSelector";
 import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
@@ -640,7 +643,9 @@ function MeusDadosPage() {
   // DESIGN ONLY — lê do localStorage para persistir a troca de contato entre esta tela e a de verificação
   const [email, setEmail] = useState(() => localStorage.getItem("podeja_email") ?? "cliente@exemplo.com");
   const [celular, setCelular] = useState(() => localStorage.getItem("podeja_celular") ?? "(11) 99999-8888");
-  const [dataNasc, setDataNasc] = useState("12/08/1989");
+  // Coletada no cadastro (etapa 2) e já persistida em produção — aqui simulada via localStorage,
+  // mesmo padrão de email/celular acima.
+  const [dataNasc, setDataNasc] = useState(() => localStorage.getItem("podeja_data_nascimento") ?? "12/08/1989");
   const [sexo, setSexo] = useState("M");
   const [estadoCivil, setEstadoCivil] = useState("Solteiro(a)");
   const [rendaMensal, setRendaMensal] = useState(4500);
@@ -700,6 +705,7 @@ function MeusDadosPage() {
     } else if (campoEditando === "dataNasc") {
       if (!isAdultBirthDate(valorTemp)) { setEditError("Data inválida ou idade mínima de 18 anos"); return; }
       setDataNasc(valorTemp);
+      localStorage.setItem("podeja_data_nascimento", valorTemp);
     } else if (campoEditando === "sexo") {
       if (!valorTemp) { setEditError("Selecione uma opção"); return; }
       setSexo(valorTemp);
@@ -2735,7 +2741,10 @@ function App() {
     // TODO: acionar WebAuthn / FaceID / TouchID real
     // Mock: simula autenticação bem-sucedida após 1s
     setTimeout(() => {
-      const user = getStoredUser() ?? { name: "Usuário", email: "" };
+      // Fallback só pro caso raro de login sem cadastro prévio salvo — "" aqui travava
+      // user?.email ?? "..." em branco pra sempre (?? só cai no fallback com null/undefined, não
+      // com string vazia), já que isso é persistido de volta no localStorage logo abaixo.
+      const user = getStoredUser() ?? { name: "Usuário", email: "cliente@exemplo.com" };
       localStorage.setItem("podeja_user", JSON.stringify(user));
       navigate(redirectPosLogin());
     }, 1000);
@@ -2942,7 +2951,9 @@ function App() {
                   className="h-12 w-full rounded-xl bg-primary font-semibold text-white hover:bg-primary-dark disabled:opacity-40"
                   disabled={!canConfirmOtp}
                   onClick={() => {
-                    const user = getStoredUser() ?? { name: "Usuário", email: "" };
+                    // Mesmo fallback do login por biometria, pelo mesmo motivo: "" aqui travava
+                    // o e-mail em branco pra sempre depois de persistido no localStorage.
+                    const user = getStoredUser() ?? { name: "Usuário", email: "cliente@exemplo.com" };
                     if (typeof window !== "undefined") window.localStorage.setItem("podeja_user", JSON.stringify(user));
                     setStoredUser(user);
                     navigate(redirectPosLogin());
@@ -4592,6 +4603,9 @@ function App() {
             <Route path="/credito-pessoal/reprovada" element={getStoredUser() ? <CreditoPessoalReprovada /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/pendente" element={getStoredUser() ? <CreditoPessoalPendente /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/credito-pessoal/contrato/:id" element={getStoredUser() ? <CreditoPessoalContratoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/credito-facil" element={getStoredUser() ? <CreditoFacilIntroPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/credito-facil/confirmar-dados" element={getStoredUser() ? <CreditoFacilConfirmarDadosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/credito-facil/redirecionando" element={getStoredUser() ? <CreditoFacilRedirecionandoPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/duvidas" element={getStoredUser() ? <DuvidasPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/seguro-vida" element={getStoredUser() ? <SeguroVidaLandingPage /> : <Navigate to="/boas-vindas" replace />} />
             {/* Jornada de Open Finance real, via API, com a Celcoin. Sem etapa própria de

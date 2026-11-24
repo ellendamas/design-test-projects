@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { FileX, Warning } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { CreditoPessoalBanner } from "@/components/CreditoPessoalBanner";
+import { marcarNegativadoClt } from "@/pages/credito-facil/creditoFacilApi";
 
 // Pedido do Barreto em 18/11/2026: quem responde "Não" na pergunta de elegibilidade (carteira
 // assinada/emprego ativo) cai aqui, com o motivo explicado e já direcionado pro Crédito Pessoal.
@@ -54,13 +55,21 @@ export default function ConsignadoCLTInelegivelPage() {
             </p>
           </div>
 
-          <CreditoPessoalBanner onNavegar={navigate} />
+          <CreditoPessoalBanner
+            onNavegar={(rota) => {
+              marcarNegativadoClt();
+              navigate(rota);
+            }}
+          />
         </div>
 
         <div className="space-y-1 pt-2">
           <button
             type="button"
-            onClick={() => navigate("/credito-pessoal")}
+            onClick={() => {
+              marcarNegativadoClt();
+              navigate("/credito-pessoal");
+            }}
             className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
           >
             Simular Crédito Pessoal

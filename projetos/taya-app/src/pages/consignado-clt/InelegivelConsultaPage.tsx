@@ -2,6 +2,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { WarningCircle, Warning } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { CreditoPessoalBanner } from "@/components/CreditoPessoalBanner";
+import { marcarNegativadoClt } from "@/pages/credito-facil/creditoFacilApi";
 
 // Mensagem por motivo: hoje só tem o genérico, porque a Pode Já ainda não definiu os motivos
 // reais de negativa pós-consulta (TODO: substituir pelos motivos reais quando o time técnico
@@ -60,13 +61,21 @@ export default function ConsignadoCLTInelegivelConsultaPage() {
             </p>
           </div>
 
-          <CreditoPessoalBanner onNavegar={navigate} />
+          <CreditoPessoalBanner
+            onNavegar={(rota) => {
+              marcarNegativadoClt();
+              navigate(rota);
+            }}
+          />
         </div>
 
         <div className="space-y-1 pt-2">
           <button
             type="button"
-            onClick={() => navigate("/credito-pessoal")}
+            onClick={() => {
+              marcarNegativadoClt();
+              navigate("/credito-pessoal");
+            }}
             className="flex h-14 w-full items-center justify-center rounded-full bg-[#FD5F31] text-base font-semibold text-white transition-colors hover:bg-[#d04e08] active:scale-[0.98]"
           >
             Simular Crédito Pessoal

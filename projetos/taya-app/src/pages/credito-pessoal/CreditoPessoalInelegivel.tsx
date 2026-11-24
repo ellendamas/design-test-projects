@@ -1,7 +1,14 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Headset, IdentificationCard, WarningCircle, Warning } from "@phosphor-icons/react";
 import { SubPageLayout } from "@/App";
 import { CrossSellCarousel, type CrossSellBannerItem } from "@/components/CrossSellCarousel";
+import { CreditoFacilBanner } from "@/components/CreditoFacilBanner";
+import {
+  consultarDisponibilidadeCreditoFacil,
+  veioNegativadoClt,
+  type CreditoFacilOffer,
+} from "@/pages/credito-facil/creditoFacilApi";
 
 type LocationState = Record<string, unknown>;
 
@@ -57,6 +64,57 @@ export default function CreditoPessoalInelegivel() {
     | "divergencia"
     | "outro"; // DESIGN ONLY
 
+  // Banner do Crédito Fácil — no PROTÓTIPO aparece sempre por padrão, pra facilitar simular e
+  // revisar o design sem depender de CPF salvo nem de uma chamada assíncrona. A regra real
+  // (consulta de disponibilidade antes de mostrar + "nunca mais mostrar" após o primeiro toque)
+  // fica documentada na journey-spec: docs/journey-specs/credito-facil-contorno-journey-spec.md
+  //
+  // DESIGN ONLY — parâmetros de simulação:
+  // ?facil=indisponivel | erro — esconde o banner (simula não ter oferta disponível)
+  // ?facilDispensado=true — esconde o banner (simula "o usuário já tinha dispensado antes")
+  const facilForcado = searchParams.get("facil") as "indisponivel" | "erro" | null;
+  const facilDispensado = searchParams.get("facilDispensado") === "true";
+  const [facilOffer, setFacilOffer] = useState<CreditoFacilOffer | null>(
+    facilDispensado || facilForcado
+      ? null
+      : { maxValue: 300, description: "Antecipe até R$ 300 com a Facio. Taxas a partir de R$ 9,90." },
+  );
+
+  useEffect(() => {
+    if (facilDispensado || !facilForcado) return;
+    let cancelado = false;
+    consultarDisponibilidadeCreditoFacil({ forcarResultado: facilForcado })
+      .then((resultado) => {
+        if (!cancelado && resultado.isAvailable && resultado.offer) {
+          setFacilOffer(resultado.offer);
+        }
+      })
+      .catch(() => {
+        // Falha na consulta: não mostra o banner, sem estado de erro visível nesta tela
+        // (mesma regra de não expor o motivo de uma indisponibilidade).
+      });
+    return () => {
+      cancelado = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const facilBanner = facilOffer ? (
+    <div className="w-full">
+      <CreditoFacilBanner
+        valorEstimado={facilOffer.maxValue}
+        onClick={() => navigate("/credito-facil", { state: { offer: facilOffer } })}
+      />
+    </div>
+  ) : null;
+
+  // Dupla negativa (CLT + Crédito Pessoal): não faz sentido oferecer Saúde por Assinatura (algo
+  // pra gastar) pra quem acabou de ser negado duas vezes e está precisando de dinheiro. Nesse
+  // caso, esconde o cross-sell genérico e mostra só o Crédito Fácil. Ver journey-spec.
+  // DESIGN ONLY — ?origemClt=negativado simula vir negativado do CLT, sem precisar repetir o
+  // fluxo todo.
+  const duplaNegativa = veioNegativadoClt() || searchParams.get("origemClt") === "negativado";
+
   // ── Caso 1 — Sem oferta disponível ──────────────────────────────────────
   if (motivo === "sem_oferta") {
     return (
@@ -89,10 +147,14 @@ export default function CreditoPessoalInelegivel() {
             Outros produtos disponíveis para você
           </p>
 
-          {/* Cross-sell — apenas no Caso 1 — carrossel de banners com peek (CrossSellCarousel) */}
-          <div className="w-full">
-            <CrossSellCarousel items={CROSS_SELL} onNavegar={navigate} />
-          </div>
+          {facilBanner}
+
+          {/* Cross-sell genérico — apenas no Caso 1, oculto na dupla negativa (CLT + Crédito Pessoal) */}
+          {!duplaNegativa && (
+            <div className="w-full">
+              <CrossSellCarousel items={CROSS_SELL} onNavegar={navigate} />
+            </div>
+          )}
 
           {/* Sem CTA de nova tentativa — bloqueio de 7 dias */}
           <div className="sticky bottom-20 z-40 w-full bg-background pb-4 pt-2 md:bottom-0">
