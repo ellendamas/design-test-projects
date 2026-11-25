@@ -193,6 +193,12 @@ import CreditoFacilIntroPage from "./pages/credito-facil/CreditoFacilIntroPage";
 import CreditoFacilConfirmarDadosPage from "./pages/credito-facil/CreditoFacilConfirmarDadosPage";
 import CreditoFacilRedirecionandoPage from "./pages/credito-facil/CreditoFacilRedirecionandoPage";
 import VerificarContato from "./pages/minha-conta/VerificarContato";
+import ExcluirContaImpactosPage from "@/pages/conta/ExcluirContaImpactosPage";
+import ExcluirContaMotivoPage from "@/pages/conta/ExcluirContaMotivoPage";
+import ExcluirContaRevisaoPage from "@/pages/conta/ExcluirContaRevisaoPage";
+import ExcluirContaCanalPage from "@/pages/conta/ExcluirContaCanalPage";
+import ExcluirContaCodigoPage from "@/pages/conta/ExcluirContaCodigoPage";
+import ExcluirContaProtocoloPage from "@/pages/conta/ExcluirContaProtocoloPage";
 import EnderecoSelector, { type EnderecoData } from "@/components/EnderecoSelector";
 import ContaSelector, { type ContaData as ContaSelectorData } from "@/components/ContaSelector";
 import { Logo } from "@/components/Logo";
@@ -2474,7 +2480,7 @@ function App() {
   };
 
   useEffect(() => {
-    const protectedPaths = ["/painel", "/minha-conta", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/assistencias/saude/cancelar/motivo", "/assistencias/saude/cancelar/retencao", "/assistencias/saude/indique-e-ganhe", "/assistencias/saude/planos", "/energia"];
+    const protectedPaths = ["/painel", "/minha-conta", "/minha-conta/excluir", "/minha-conta/excluir/motivo", "/minha-conta/excluir/revisao", "/minha-conta/excluir/canal", "/minha-conta/excluir/codigo", "/minha-conta/excluir/protocolo", "/contratos", "/duvidas", "/notificacoes", "/contratos/seguro-001", "/contratos/clt-001", "/contratos/fgts-001", "/seubolso", "/seubolso/como-funciona", "/seubolso/historico", "/assistencias", "/assistencias/saude", "/assistencias/saude/verificar-celular", "/assistencias/saude/verificar-email", "/assistencias/saude/confirmar-dados", "/assistencias/saude/pagamento", "/assistencias/saude/pagamento/expirado", "/assistencias/saude/confirmacao", "/assistencias/saude/assinatura", "/assistencias/saude/assinatura/benemed", "/assistencias/saude/cancelar/motivo", "/assistencias/saude/cancelar/retencao", "/assistencias/saude/indique-e-ganhe", "/assistencias/saude/planos", "/energia"];
     if (!protectedPaths.includes(location.pathname)) return;
     const user = getStoredUser();
     if (!user) navigate("/boas-vindas", { replace: true });
@@ -2804,6 +2810,14 @@ function App() {
         <>
           {loginStep === 1 && (
             <>
+              {/* ?conta=excluida (não é DESIGN ONLY, é o estado real de pós-exclusão) — ver
+                  ExcluirContaProtocoloPage.tsx, botão "Concluir". Avisa a pessoa por que ela caiu
+                  de volta no login logo após concluir a exclusão. */}
+              {new URLSearchParams(location.search).get("conta") === "excluida" && (
+                <div className="rounded-xl border border-border bg-muted p-3">
+                  <p className="text-sm text-foreground">Sua conta foi excluída. Para usar a Pode Já de novo, crie uma conta nova.</p>
+                </div>
+              )}
               <div>
                 <h1 className="text-2xl font-bold leading-tight text-foreground">Bem-vindo de volta.</h1>
                 <p className="mt-2 text-sm text-muted-foreground">Entre com seu CPF e senha.</p>
@@ -4466,6 +4480,11 @@ function App() {
                   icon: <ShieldCheck size={18} />,
                   items: [
                     { label: "Alterar senha", action: () => navigate("/minha-conta/alterar-senha") },
+                    // Primeira ação destrutiva de verdade neste menu — por isso o tom avermelhado
+                    // sutil, só no texto/ícone (não um botão vermelho cheio, que destoaria de uma
+                    // lista de configurações). "destructive" só existe aqui, os outros itens não
+                    // usam a flag.
+                    { label: "Excluir conta", destructive: true, action: () => navigate("/minha-conta/excluir") },
                   ],
                 },
                 {
@@ -4484,7 +4503,13 @@ function App() {
                       <p className="text-sm font-medium text-foreground">{group.title}</p>
                     </div>
                     {group.items.map((item) => (
-                      <button key={item.label} onClick={() => item.action()} className="w-full border-b border-border px-4 py-3.5 text-left text-sm text-foreground last:border-0">
+                      <button
+                        key={item.label}
+                        onClick={() => item.action()}
+                        className={`w-full border-b border-border px-4 py-3.5 text-left text-sm last:border-0 ${
+                          "destructive" in item && item.destructive ? "text-red-600" : "text-foreground"
+                        }`}
+                      >
                         <div className="flex items-center justify-between">
                           {item.label}
                           <CaretRight size={16} className="text-muted-foreground" />
@@ -4563,6 +4588,12 @@ function App() {
             <Route path="/minha-conta/alterar-senha" element={getStoredUser() ? <AlterarSenhaPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/verificar-email" element={getStoredUser() ? <VerificarContato tipo="email" /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/minha-conta/verificar-celular" element={getStoredUser() ? <VerificarContato tipo="celular" /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/excluir" element={getStoredUser() ? <ExcluirContaImpactosPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/excluir/motivo" element={getStoredUser() ? <ExcluirContaMotivoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/excluir/revisao" element={getStoredUser() ? <ExcluirContaRevisaoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/excluir/canal" element={getStoredUser() ? <ExcluirContaCanalPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/excluir/codigo" element={getStoredUser() ? <ExcluirContaCodigoPage /> : <Navigate to="/boas-vindas" replace />} />
+            <Route path="/minha-conta/excluir/protocolo" element={getStoredUser() ? <ExcluirContaProtocoloPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos" element={getStoredUser() ? <ContratosPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/seguro-001" element={getStoredUser() ? <ContratoSeguroPage /> : <Navigate to="/boas-vindas" replace />} />
             <Route path="/contratos/clt-001" element={getStoredUser() ? <ContratoCLTPage /> : <Navigate to="/boas-vindas" replace />} />
